@@ -1,0 +1,12 @@
+[submodule "submodule/eigen"]
+	path = submodule/eigen
+	url = https://github.com/eigenteam/eigen-git-mirror.git
+[submodule "submodule/libigl"]
+	path = submodule/libigl
+	url = https://github.com/n-taka/libigl.git
+[submodule "submodule/boost"]
+	path = submodule/boost
+	url = https://github.com/boostorg/boost.git
+[submodule "submodule/cgal"]
+	path = submodule/cgal
+	url = https://github.com/CGAL/cgal.git
