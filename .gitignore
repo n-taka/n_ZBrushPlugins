@@ -1,0 +1,14 @@
+.DS_Store
+*~
+#*
+*#
+*.o
+**/Debug
+**/Release
+external/CGAL/*
+GeneratedFiles
+.vs
+*.db
+*.opendb
+*.pro.user
+!**/distribute/**/*
