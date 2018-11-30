@@ -7,6 +7,3 @@
 [submodule "submodule/boost"]
 	path = submodule/boost
 	url = https://github.com/boostorg/boost.git
-[submodule "submodule/cgal"]
-	path = submodule/cgal
-	url = https://github.com/CGAL/cgal.git
