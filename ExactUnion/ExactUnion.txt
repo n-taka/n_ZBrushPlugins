@@ -7,7 +7,7 @@
 [VarDef, Tool_Export_Mrg]
 [VarDef, Tool_Export_Grp]
 // hard coded...
-[VarDef, tmpFilePath, [fileNameResolvePath, "ZBRUSH_ZSTARTUP\ZPlugs64\ExactUnionData\test.obj"]]
+[VarDef, tmpFilePath, [fileNameResolvePath, "ZBRUSH_ZSTARTUP\ZPlugs64\ExactUnionData\union.obj"]]
 [VarDef, unionResult]
 [VarDef, path, "dummyPath"]
 [VarDef, memBlock]
@@ -50,10 +50,8 @@
 
 
 // main processing
-//[ISubPalette, "ZPlugin:Exact Union"]
-//[IButton, "ZPlugin:Exact Union:Compute", "Compute exact union of multiple shells",
-[ISubPalette, "ZPlugin:Test plugin"]
-[IButton, "ZPlugin:Test plugin:Compute", "Plugin test",
+[ISubPalette, "ZPlugin:Exact Union"]
+[IButton, "ZPlugin:Exact Union:Compute", "Compute exact union of multiple shells",
     [If, [IExists, Tool:Export],
         [RoutineCall, CheckSystem]
         // store current export settings
@@ -90,7 +88,10 @@
         [ISet, Tool:Export:Grp, [Var, Tool_Export_Grp]]
     
         // do something with C++
-        [Varset, unionResult, [FileExecute, [Var, dllPath], "computeUnion", [var, tmpFilePath]]]
+        [MemCreate, memBlock, 1000, 0]
+        [Varset, unionResult, [FileExecute, [Var, dllPath], "computeUnion", [var, tmpFilePath], 0, memBlock]]
+        [MemReadString, memBlock, path]
+        [Note, [Var, path]]
 
         // import to Tool
         [FileNameSetNext,[Var, tmpFilePath]]

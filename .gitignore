@@ -6,6 +6,7 @@
 **/Debug
 **/Release
 external/CGAL/*
+!external/CGAL-*-Setup.exe
 GeneratedFiles
 .vs
 *.db
