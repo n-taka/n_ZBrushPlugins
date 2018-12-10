@@ -1,0 +1,145 @@
+// variable definitions
+[VarDef, dllPath, "dummy"]
+[VarDef, Tool_Export_Tri]
+[VarDef, Tool_Polypaint_Colorize]
+[VarDef, Tool_Export_Txr]
+[VarDef, Tool_Export_Flp]
+[VarDef, Tool_Export_Mrg]
+[VarDef, Tool_Export_Grp]
+
+// hard coded...
+[VarDef, tmpFilePath, [fileNameResolvePath, "ZBRUSH_ZSTARTUP\ZPlugs64\MagicaVoxelizerData\voxel.obj"]]
+[VarDef, voxFilePath, ""]
+
+[VarDef, dllResult]
+[VarDef, voxelResolution, 50]
+[VarDef, defaultPalette, 0]
+[VarDef, textFordll, "dummy"]
+
+// check if this plugin is correctly installed
+// from http://docs.pixologic.com/user-guide/customizing-zbrush/zscripting/zfileutils/#dllPath
+[RoutineDef, CheckSystem,	
+    //check ZBrush version
+    [VarSet,Zvers,[ZBrushInfo,0]]
+    [If,[Val,Zvers] >= 4.8,,		
+        [Note,"\Cff9923This zscript\Cffffff is not designed for this version of \Cff9923ZBrush\Cffffff.",,3,4737096,,300]
+        [Exit]
+    ]
+    [VarSet,isMac, [ZBrushInfo,6]]	//check Mac or PC
+    // Make sure we have the dll and set its path
+    [If, [ZBrushInfo, 16]==64,//64 bit
+        [If, isMac,
+            //use the path below for testing only   
+            //[VarSet, dllPath, "MagicaVoxelizerData/MagicaVoxelizer.lib"]	
+            //use the path below for installed plugins
+            [VarSet, dllPath, "ZBRUSH_ZSTARTUP/ZPlugs64/MagicaVoxelizerData/MagicaVoxelizer.lib"]						
+            ,
+            //use the path below for testing only	
+            //[VarSet, dllPath, "MagicaVoxelizerData\MagicaVoxelizer.dll"]
+            //use the path below for installed plugins
+            [VarSet, dllPath, "ZBRUSH_ZSTARTUP\ZPlugs64\MagicaVoxelizerData\MagicaVoxelizer.dll"]		
+        ]
+    ,//else 32 bit - no longer supported
+        [Note, "\Cff9923This zscript\Cffffff is not designed for this version of \Cff9923ZBrush\Cffffff.",,3,4737096,,300]
+        [Exit]
+    ]
+    // check if there are dll/lib exists
+    [If, [FileExists, [Var,dllPath]],
+    , // else no DLL.
+    [Note,"\Cff9923Note :\Cc0c0c0 The \Cff9923 ExactUnion plugin \Cffffffdll/lib\Cc0c0c0 could not be found at the correct location.  Please re-install the plugin, making sure the relevant files and folders are in the \CffffffZStartup/ZPlugs\Cc0c0c0 folder."]
+    [Exit]
+    ]
+]//end routine
+
+////
+// main processing
+[ISubPalette, "ZPlugin:MagicaVoxelizer"]
+[ISlider, "ZPlugin:MagicaVoxelizer:Resolution (Y)", 50, 1, 0, 255, "Set number of voxels in height (Y) direction",
+    [VarSet, voxelResolution, [IGet, "ZPlugin:MagicaVoxelizer:Resolution (Y)"]]
+]
+[IButton, "ZPlugin:MagicaVoxelizer:Export", "Export to .vox file",
+    [If, [IExists, Tool:Export],
+        [RoutineCall, CheckSystem]
+        // store current export settings
+        [VarSet, Tool_Export_Tri,[IGet, Tool:Export:Tri]]
+        [VarSet, Tool_Polypaint_Colorize,[IGet, Tool:Polypaint:Colorize]]
+        [VarSet, Tool_Export_Txr,[IGet, Tool:Export:Txr]]
+        [VarSet, Tool_Export_Flp,[IGet, Tool:Export:Flp]]
+        [VarSet, Tool_Export_Mrg,[IGet, Tool:Export:Mrg]]
+        [VarSet, Tool_Export_Grp,[IGet, Tool:Export:Grp]]
+
+        //set export options
+        [IPress,Tool:Export:Tri]
+        [IPress,Tool:Polypaint:Colorize]
+        // don't need any extra attributes
+        [IUnPress,Tool:Export:Txr]
+        [IUnPress,Tool:Export:Flp]
+        [IUnPress,Tool:Export:Mrg]
+        [IUnPress,Tool:Export:Grp]
+
+        //export current subtool to OBJ file (temporary file)
+        [FileNameSetNext, [Var, tmpFilePath]]
+        //[IPress,Tool:Clone]
+        [IPress,Tool:Export]
+
+        // restore original settings
+        [If, [Var, Tool_Export_Tri],
+            [IPress, Tool:Export:Tri],
+            [IPress, Tool:Export:Qud]
+        ]
+        [ISet, Tool:Polypaint:Colorize, [Var, Tool_Polypaint_Colorize]]
+        [ISet, Tool:Export:Txr, [Var, Tool_Export_Txr]]
+        [ISet, Tool:Export:Flp, [Var, Tool_Export_Flp]]
+        [ISet, Tool:Export:Mrg, [Var, Tool_Export_Mrg]]
+        [ISet, Tool:Export:Grp, [Var, Tool_Export_Grp]]
+
+        // find filename for Save
+        [VarSet, voxFilePath, [FileNameAsk, "*.vox", "voxel.vox", "Save .vox file..."]]
+        [If, ([StrLength, [FileNameExtract, [Var, voxFilePath], 2]] != 0),
+            [VarSet, textFordll, [StrMerge, [Var, tmpFilePath], ",", [Var, voxFilePath]]]
+            // do something with C++
+            [Varset, dllResult, [FileExecute, [Var, dllPath], "magicaVoxelize", [var, textFordll], [var, voxelResolution], , ]]
+
+            // import to Tool
+            //[FileNameSetNext,[Var, tmpFilePath]]
+            //[IPress,Tool:Import]
+            ,
+        ]
+
+        // erase temporary file.
+        [FileDelete, [Var, tmpFilePath]]
+        ,
+    ],
+    0,
+    0
+]
+
+[ISwitch, "ZPlugin:MagicaVoxelizer:Default Palette", 0, "Use MagicaVoxel's default palette",
+    [VarSet, defaultPalette, 1.0],
+    [VarSet, defaultPalette, -1.0]    
+]
+[IButton, "ZPlugin:MagicaVoxelizer:Import", "Import from .vox file",
+    [If, [IExists, Tool:Import],
+        [RoutineCall, CheckSystem]
+
+        // find filename for Load
+        [VarSet, voxFilePath, [FileNameAsk, "*.vox", , "Load .vox file..."]]
+        [If, [FileExists, [Var, voxFilePath]],
+            [VarSet, textFordll, [StrMerge, [var, voxFilePath], "," , [Var, tmpFilePath]]]
+            // do something with C++
+            [Varset, dllResult, [FileExecute, [Var, dllPath], "magicaDeVoxelize", [var, textFordll], [var, defaultPalette], , ]]
+
+            // import to Tool
+            [IPress,Tool:PolyMesh3D]
+            [FileNameSetNext,[Var, tmpFilePath]]
+            [IPress,Tool:Import]
+
+            // erase temporary file.
+            [FileDelete, [Var, tmpFilePath]]
+            ,
+        ]
+        ,
+    ],
+    0,
+    0
+]

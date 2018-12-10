@@ -1,147 +1,14 @@
 // Sample.cpp : Defines the exported functions for the DLL application.
 //
-
 #include "stdafx.h"
-#include "Eigen/Core"
-#include "igl/read_triangle_mesh.h"
-#include "igl/signed_distance.h"
-#include <iostream>
 #include <fstream>
+#include "igl/signed_distance.h"
+#include "MagicaVoxelizer.h"
 
 // see https://github.com/ephtracy/voxel-model/blob/master/MagicaVoxel-file-format-vox.txt
 	////
 	// implementation
 	////
-int MagicaVoxelChunk::sizeOfChunk(const bool recursive) const
-{
-	// chunkID + contentSize + childrenSize + itsContent
-	int size = sizeof(char) * 4 + sizeof(int) + sizeof(int) + sizeof(int)*content.size() + sizeof(float)*matContent.size();
-	if (recursive)
-	{
-		for (const auto& c : children)
-			size += (c.sizeOfChunk(true));
-	}
-	return size;
-}
-
-int MagicaVoxelChunk::writeChunkToFile(std::ofstream& file) const
-{
-	int byteWritten = 0;
-	bool success = true;
-	try
-	{
-		// chunk id
-		switch (type)
-		{
-		case chunkType::MAIN:
-			file.write("MAIN", sizeof(unsigned char) * 4);
-			break;
-		case chunkType::PACK:
-			file.write("PACK", sizeof(unsigned char) * 4);
-			break;
-		case chunkType::SIZE:
-			file.write("SIZE", sizeof(unsigned char) * 4);
-			break;
-		case chunkType::XYZI:
-			file.write("XYZI", sizeof(unsigned char) * 4);
-			break;
-		case chunkType::RGBA:
-			file.write("RGBA", sizeof(unsigned char) * 4);
-			break;
-		case chunkType::MATT:
-			file.write("MATT", sizeof(unsigned char) * 4);
-			break;
-		default:
-			break;
-		}
-		byteWritten += sizeof(unsigned char) * 4;
-
-		// byte of content
-		const int byteOfContent = sizeof(int)*content.size() + sizeof(float)*matContent.size();
-		file.write((const char*)&byteOfContent, sizeof(int) * 1);
-		byteWritten += sizeof(int) * 1;
-
-		// byte of children chunks
-		const int byteOfChildren = sizeOfChunk(true) - (sizeof(char) * 4 + sizeof(int) + sizeof(int) + sizeof(int)*content.size() + sizeof(float)*matContent.size());
-		file.write((const char*)&byteOfChildren, sizeof(int) * 1);
-		byteWritten += sizeof(int) * 1;
-
-		// content
-		switch (type)
-		{
-		case chunkType::MAIN:
-			// no content
-			break;
-		case chunkType::PACK:
-		case chunkType::SIZE:
-		case chunkType::XYZI:
-		case chunkType::RGBA:
-			file.write((const char*)&content[0], sizeof(int) * content.size());
-			byteWritten += sizeof(int) * content.size();
-			// content.size() ==
-			// PACK: 1
-			// SIZE: 3
-			// XYZI: (1+N)
-			// RGBA: 256
-			// matContent.size() == 0
-			break;
-		case chunkType::MATT:
-			file.write((const char*)&content[0], sizeof(int) * 2);
-			byteWritten += sizeof(int) * 2;
-			file.write((const char*)&matContent[0], sizeof(float) * 1);
-			byteWritten += sizeof(float) * 1;
-			file.write((const char*)&content[2], sizeof(int) * 1);
-			byteWritten += sizeof(int) * 1;
-			file.write((const char*)&matContent[1], sizeof(float) * (matContent.size() - 1));
-			byteWritten += sizeof(float) * (matContent.size() - 1);
-			// content.size() == 3
-			// matContent.size() == (1+N)
-			break;
-		default:
-			break;
-		}
-
-	}
-	catch (int e) {
-		return false;
-	}
-
-	// children
-	for (const auto& c : children)
-	{
-		byteWritten += c.writeChunkToFile(file);
-		if (!success) {
-			return -1;
-		}
-	}
-	return byteWritten;
-}
-
-bool MagicaVoxelChunk::writeVoxelToFile(const std::string& fileName) const
-{
-	if (type == chunkType::MAIN)
-	{
-		std::ofstream file;
-		file.open(fileName, std::ios::out | std::ios::binary | std::ios::trunc);
-		if (!file)
-		{
-			std::cerr << "cannot open file." << std::endl;
-			return false;
-		}
-
-		// write header
-		int version = 150;
-		file.write("VOX ", sizeof(unsigned char) * 4);
-		file.write((const char*)&version, sizeof(int));
-
-		return (writeChunkToFile(file) > 0);
-	}
-	else
-	{
-		std::cerr << "writeToFile(const std::string&) const must be called with MAIN chunk." << std::endl;
-		return false;
-	}
-}
 
 extern "C" __declspec(dllexport) float magicaVoxelize(char* someText, double optValue, char* pOptBuffer1, int optBuffer1Size, char* pOptBuffer2, int optBuffer2Size, char** zData);
 
@@ -151,16 +18,47 @@ extern "C" __declspec(dllexport) float magicaVoxelize(char* someText, double opt
 	// someText: file name to be opened
 	// optValue: voxel resolution in Y coordinate
 	////
+	std::string ZBtext(someText);
+	std::string separator(",");
+	size_t separator_length = separator.length();
+
+	std::vector<std::string> ZBtextList({});
+
+	if (separator_length == 0) {
+		ZBtextList.push_back(ZBtext);
+	}
+	else {
+		size_t offset = std::string::size_type(0);
+		while (true) {
+			size_t pos = ZBtext.find(separator, offset);
+			if (pos == std::string::npos) {
+				ZBtextList.push_back(ZBtext.substr(offset));
+				break;
+			}
+			ZBtextList.push_back(ZBtext.substr(offset, pos - offset));
+			offset = pos + separator_length;
+		}
+	}
+
 	Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> P;
 	Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> V;
+	Eigen::Matrix<   int, Eigen::Dynamic, Eigen::Dynamic> VC;
 	Eigen::Matrix<   int, Eigen::Dynamic, Eigen::Dynamic> F;
+	Eigen::Matrix<   int, Eigen::Dynamic, Eigen::Dynamic> FC;
 	Eigen::Matrix<double, Eigen::Dynamic, 1> S;
-	Eigen::Matrix<double, Eigen::Dynamic, 1> I;
+	Eigen::Matrix<   int, Eigen::Dynamic, 1> I;
 	Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> C;
 	Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> N;
 
 	// read triangle from file
-	igl::read_triangle_mesh(someText, V, F);
+	read_OBJ(ZBtextList.at(0), V, F, VC);
+	FC.resize(F.rows(), 3);
+	// convert vertex color to Face color
+	for (int f = 0; f < FC.rows(); f++)
+	{
+		// simply compute average
+		FC.row(f) = (VC.row(F(f, 0)) + VC.row(F(f, 1)) + VC.row(F(f, 2))) / 3;
+	}
 
 	// generate voxel for signed distance computation (query point is center of each voxel)
 	Eigen::Matrix<double, 1, Eigen::Dynamic> BBSize = V.colwise().maxCoeff() - V.colwise().minCoeff();
@@ -194,10 +92,65 @@ extern "C" __declspec(dllexport) float magicaVoxelize(char* someText, double opt
 	igl::signed_distance(P, V, F, signedDistanceType, S, I, C, N);
 
 	// voxelize
-	// TODO
+	MagicaVoxelChunk mainChunk = MagicaVoxelChunk("MAIN");
+	MagicaVoxelChunk packChunk = MagicaVoxelChunk("PACK");
+	MagicaVoxelChunk sizeChunk = MagicaVoxelChunk("SIZE");
+	MagicaVoxelChunk xyziChunk = MagicaVoxelChunk("XYZI");
 
-	//std::cout << V << std::endl << std::endl;
-	//std::cout << F << std::endl << std::endl;
-	std::cout << "test function!" << std::endl;
+	// currently we assume that there is only 1 model.
+	packChunk.content.at(0) = 1;
+
+	// xyz (ZBrush) --> yzx(MagicaVoxel)
+	sizeChunk.content.at(0) = voxelCount(0, 2);
+	sizeChunk.content.at(1) = voxelCount(0, 0);
+	sizeChunk.content.at(2) = voxelCount(0, 1);
+
+	int voxelNum = (S.array() <= 0).count();
+	xyziChunk.content.resize(1 + voxelNum);
+	xyziChunk.content.at(0) = voxelNum;
+	int voxelIdx = 0;
+	for (int z = 0; z < voxelCount(0, 2); ++z)
+	{
+		for (int y = 0; y < voxelCount(0, 1); ++y)
+		{
+			for (int x = 0; x < voxelCount(0, 0); ++x)
+			{
+				const int voxelIndex = VOX(x, y, z);
+				if (S(voxelIndex, 0) <= 0)
+				{
+					union converter {
+						unsigned char c[4];
+						int i;
+					};
+					union converter conv;
+					conv.c[0] = static_cast<unsigned char>(z);
+					conv.c[1] = static_cast<unsigned char>(x);
+					conv.c[2] = static_cast<unsigned char>(y);
+					// pickup from first 216 colors (becaus of implementation cost...)
+					// 255, 204, 153, 102, 51, 0
+					int rIdx = std::round(double(FC(I(voxelIndex, 0), 0)) / 51.0);
+					int gIdx = std::round(double(FC(I(voxelIndex, 0), 1)) / 51.0);
+					int bIdx = std::round(double(FC(I(voxelIndex, 0), 2)) / 51.0);
+					if (rIdx == 0 && gIdx == 0 && bIdx == 0)
+					{
+						conv.c[3] = 254;
+					}
+					else
+					{
+						conv.c[3] = 216 - (bIdx + gIdx * 6 + rIdx * 6 * 6);
+					}
+					xyziChunk.content.at(1 + voxelIdx) = conv.i;
+					voxelIdx++;
+				}
+			}
+		}
+	}
+
+	// write to file
+	mainChunk.appendChild(packChunk);
+	mainChunk.appendChild(sizeChunk);
+	mainChunk.appendChild(xyziChunk);
+	mainChunk.writeVoxelToFile(ZBtextList.at(1));
+
 	return 0.0f;
 }

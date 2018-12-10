@@ -7,14 +7,14 @@
 
 int main()
 {
-	std::cout << "Hello World!\n";
-	char dummyc0[100] = "../../testModels/cube.obj\0";
+	char dummyc0[100] = "../../testModels/voxel.vox,../../testModels/a.obj";
 	char dummyc1[100], dummyc2[100];
 	char dummyc3[] = "hello";
-	double dummyd = 100;
+	double dummyd = 50;
 	int dummyi0 = 0;
 	int dummyi1 = 0;
-	magicaVoxelize(dummyc0, dummyd, dummyc1, dummyi0, dummyc2, dummyi1, (char**)&dummyc3);
+	magicaDeVoxelize(dummyc0, dummyd, dummyc1, dummyi0, dummyc2, dummyi1, (char**)&dummyc3);
+	//magicaVoxelize(dummyc0, dummyd, dummyc1, dummyi0, dummyc2, dummyi1, (char**)&dummyc3);
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu
