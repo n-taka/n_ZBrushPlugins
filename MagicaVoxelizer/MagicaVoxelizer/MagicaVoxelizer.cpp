@@ -6,14 +6,18 @@
 #include "MagicaVoxelizer.h"
 
 // see https://github.com/ephtracy/voxel-model/blob/master/MagicaVoxel-file-format-vox.txt
-	////
-	// implementation
-	////
+////
+// implementation
+////
+#ifdef WIN32
+#define DLLEXPORT __declspec(dllexport)
+#else
+#define DLLEXPORT __attribute__((visibility("default")))
+#endif
 
-extern "C" __declspec(dllexport) float magicaVoxelize(char* someText, double optValue, char* pOptBuffer1, int optBuffer1Size, char* pOptBuffer2, int optBuffer2Size, char** zData);
-
-extern "C" __declspec(dllexport) float magicaVoxelize(char* someText, double optValue, char* pOptBuffer1, int optBuffer1Size, char* pOptBuffer2, int optBuffer2Size, char** zData)
+extern "C" DLLEXPORT float magicaVoxelize(char* someText, double optValue, char* pOptBuffer1, int optBuffer1Size, char* pOptBuffer2, int optBuffer2Size, char** zData)
 {
+    
 	//// input
 	// someText: file name to be opened
 	// optValue: voxel resolution in Y coordinate
@@ -40,6 +44,14 @@ extern "C" __declspec(dllexport) float magicaVoxelize(char* someText, double opt
 		}
 	}
 
+#ifndef WIN32
+    // if Mac, ZBrush gives me invalid prefix with FileNameResolvePath ...
+    for(auto& s : ZBtextList)
+    {
+        s.erase(s.begin(), s.begin()+2);
+    }
+#endif
+
 	Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> P;
 	Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> V;
 	Eigen::Matrix<   int, Eigen::Dynamic, Eigen::Dynamic> VC;
@@ -52,17 +64,17 @@ extern "C" __declspec(dllexport) float magicaVoxelize(char* someText, double opt
 
 	// read triangle from file
 	read_OBJ(ZBtextList.at(0), V, F, VC);
-	FC.resize(F.rows(), 3);
+	FC.resize(F.rows(), 4);
 	// convert vertex color to Face color
+
 	for (int f = 0; f < FC.rows(); f++)
 	{
 		// simply compute average
 		FC.row(f) = (VC.row(F(f, 0)) + VC.row(F(f, 1)) + VC.row(F(f, 2))) / 3;
 	}
 
-	// generate voxel for signed distance computation (query point is center of each voxel)
-	Eigen::Matrix<double, 1, Eigen::Dynamic> BBSize = V.colwise().maxCoeff() - V.colwise().minCoeff();
-	Eigen::Matrix<double, 1, Eigen::Dynamic> BBCenter = (V.colwise().maxCoeff() + V.colwise().minCoeff()) / 2;
+    // generate voxel for signed distance computation (query point is center of each voxel)
+    Eigen::Matrix<double, 1, 3> BBSize = V.colwise().maxCoeff() - V.colwise().minCoeff();
 	const double oneVoxelSize = BBSize(0, 1) / optValue;
 	Eigen::Matrix<int, 1, Eigen::Dynamic> voxelCount;
 	voxelCount.resize(1, 3);
@@ -128,9 +140,9 @@ extern "C" __declspec(dllexport) float magicaVoxelize(char* someText, double opt
 					conv.c[2] = static_cast<unsigned char>(y);
 					// pickup from first 216 colors (becaus of implementation cost...)
 					// 255, 204, 153, 102, 51, 0
-					int rIdx = std::round(double(FC(I(voxelIndex, 0), 0)) / 51.0);
-					int gIdx = std::round(double(FC(I(voxelIndex, 0), 1)) / 51.0);
-					int bIdx = std::round(double(FC(I(voxelIndex, 0), 2)) / 51.0);
+					int rIdx = std::round(double(FC(I(voxelIndex, 0), 1)) / 51.0);
+					int gIdx = std::round(double(FC(I(voxelIndex, 0), 2)) / 51.0);
+					int bIdx = std::round(double(FC(I(voxelIndex, 0), 3)) / 51.0);
 					if (rIdx == 0 && gIdx == 0 && bIdx == 0)
 					{
 						conv.c[3] = 254;

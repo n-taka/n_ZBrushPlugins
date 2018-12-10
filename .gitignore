@@ -12,4 +12,5 @@ GeneratedFiles
 *.db
 *.opendb
 *.pro.user
+DerivedData
 !**/distribute/**/*

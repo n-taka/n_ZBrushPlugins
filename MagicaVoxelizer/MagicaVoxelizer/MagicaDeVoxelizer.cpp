@@ -6,9 +6,13 @@
 #include "igl/writeOBJ.h"
 #include "MagicaVoxelizer.h"
 
-extern "C" __declspec(dllexport) float magicaDeVoxelize(char* someText, double optValue, char* pOptBuffer1, int optBuffer1Size, char* pOptBuffer2, int optBuffer2Size, char** zData);
+#ifdef WIN32
+#define DLLEXPORT __declspec(dllexport)
+#else
+#define DLLEXPORT __attribute__((visibility("default")))
+#endif
 
-extern "C" __declspec(dllexport) float magicaDeVoxelize(char* someText, double optValue, char* pOptBuffer1, int optBuffer1Size, char* pOptBuffer2, int optBuffer2Size, char** zData)
+extern "C" DLLEXPORT float magicaDeVoxelize(char* someText, double optValue, char* pOptBuffer1, int optBuffer1Size, char* pOptBuffer2, int optBuffer2Size, char** zData)
 {
 	std::string ZBtext(someText);
 	std::string separator(",");
@@ -32,6 +36,14 @@ extern "C" __declspec(dllexport) float magicaDeVoxelize(char* someText, double o
 		}
 	}
 
+#ifndef WIN32
+    // if Mac, ZBrush gives me invalid prefix with FileNameResolvePath ...
+    for(auto& s : ZBtextList)
+    {
+        s.erase(s.begin(), s.begin()+2);
+    }
+#endif
+    
 	MagicaVoxelChunk mainChunk(std::string("MAIN", 4));
 	mainChunk.readVoxelFromFile(ZBtextList.at(0));
 

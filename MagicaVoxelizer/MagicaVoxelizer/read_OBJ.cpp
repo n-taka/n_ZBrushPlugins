@@ -226,18 +226,12 @@ bool read_OBJ(
 	}
 	fclose(obj_file);
 
-	assert(F.size() == FN.size());
-	assert(F.size() == FTC.size());
-
 	//////////////////////////////////
 	// convert to Eigen Matrix Style
 	Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> TC;
 	Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> CN;
 	Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> FTC;
 	Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> FN;
-
-	std::cout << "Color string: " << C << std::endl;
-
 
 	bool V_rect = igl::list_to_matrix(vV, V);
 	const char * format = "Failed to cast %s to matrix: min (%d) != max (%d)\n";
@@ -293,17 +287,20 @@ bool read_OBJ(
 		}
 	}
 
+    VC.resize(V.rows(), 4);
+    VC.setOnes();
+    VC *= 255;
 	if (C.length() > 0)
 	{
 		// convert to Matrix Style
-		VC.resize(V.rows(), 3);
 		for (int v = 0; v < VC.rows(); ++v)
 		{
-			for (int rgb = 0; rgb < 3; ++rgb)
+			for (int mrgb = 0; mrgb < 4; ++mrgb)
 			{
-				VC(v, rgb) = std::stoi(C.substr(v * 8 + 2 + rgb * 2, 2), nullptr, 16);
+				VC(v, mrgb) = std::stoi(C.substr(v * 8 + mrgb * 2, 2), nullptr, 16);
 			}
 		}
 	}
+    
 	return true;
 }
