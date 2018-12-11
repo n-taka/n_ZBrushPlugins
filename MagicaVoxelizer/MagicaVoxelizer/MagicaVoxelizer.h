@@ -10,7 +10,7 @@
 
 #include "Eigen/Core"
 
-#ifdef WIN32
+#if defined(_WIN32) || defined(_WIN64)
 #define DLLEXPORT __declspec(dllexport)
 #else
 #define DLLEXPORT __attribute__((visibility("default")))

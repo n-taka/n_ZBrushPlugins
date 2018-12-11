@@ -5,14 +5,14 @@
 
 #pragma once
 
-#ifdef WIN32
+#if defined(_WIN32) || defined(_WIN64)
 #include "targetver.h"
 #endif
 
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
 // Windows Header Files
 
-#ifdef WIN32
+#if defined(_WIN32) || defined(_WIN64)
 #include <windows.h>
 #endif
 
