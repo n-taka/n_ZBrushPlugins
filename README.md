@@ -2,6 +2,7 @@ ZBrush のプラグイン集です。
 
 # I just want to Use! / 使いたい人
 Please access to https://github.com/n-taka/n_ZBrushPlugins/releases and download .zip archive(s).
+
 https://github.com/n-taka/n_ZBrushPlugins/releases にアクセス後、zipアーカイブをダウンロードしてご利用ください。
 
 # I want to extend (develop) plugin(s)! / 改造したい人(開発者の方)
@@ -17,6 +18,7 @@ https://github.com/n-taka/n_ZBrushPlugins/releases にアクセス後、zipア�
 
 # Contact / 連絡先
 If you encounter some trouble (e.g. plugin doesn't work) or some feature requests, please contact me via github issue. Contact via Twitter is also welcomed.
+
 「アプリが動かない！」「意図した挙動をしない！」「こういう機能があるといいよね！」等ありましたらgithub issueからお気軽にどうぞ。Twitterでも構いません
 
 twitter [@kazutaka_nakash](https://twitter.com/kazutaka_nakash)
