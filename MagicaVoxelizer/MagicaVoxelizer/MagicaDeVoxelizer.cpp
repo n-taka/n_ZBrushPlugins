@@ -36,8 +36,8 @@ extern "C" DLLEXPORT float magicaDeVoxelize(char* someText, double optValue, cha
 		}
 	}
 
-#ifndef WIN32
-    // if Mac, ZBrush gives me invalid prefix with FileNameResolvePath ...
+#if !(defined(_WIN32) || defined(_WIN64))
+	// if Mac, ZBrush gives me invalid prefix with FileNameResolvePath ...
     for(auto& s : ZBtextList)
     {
         s.erase(s.begin(), s.begin()+2);
