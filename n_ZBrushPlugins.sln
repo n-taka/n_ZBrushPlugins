@@ -11,6 +11,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MagicaVoxelizer", "MagicaVo
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MagicaVoxelizerTest", "MagicaVoxelizer\MagicaVoxelizerTest\MagicaVoxelizerTest.vcxproj", "{208DF1B1-26F5-4120-B94D-A723936BB597}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ThicknessChecker", "ThicknessChecker\ThicknessChecker\ThicknessChecker.vcxproj", "{D5FF4D8C-AAD5-4678-A6A9-A59EDC350E72}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ThicknessCheckerTest", "ThicknessChecker\ThicknessCheckerTest\ThicknessCheckerTest.vcxproj", "{9FAF1F9D-55AA-4A1E-9B20-9A93035407B9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -33,6 +37,14 @@ Global
 		{208DF1B1-26F5-4120-B94D-A723936BB597}.Debug|x64.Build.0 = Debug|x64
 		{208DF1B1-26F5-4120-B94D-A723936BB597}.Release|x64.ActiveCfg = Release|x64
 		{208DF1B1-26F5-4120-B94D-A723936BB597}.Release|x64.Build.0 = Release|x64
+		{D5FF4D8C-AAD5-4678-A6A9-A59EDC350E72}.Debug|x64.ActiveCfg = Debug|x64
+		{D5FF4D8C-AAD5-4678-A6A9-A59EDC350E72}.Debug|x64.Build.0 = Debug|x64
+		{D5FF4D8C-AAD5-4678-A6A9-A59EDC350E72}.Release|x64.ActiveCfg = Release|x64
+		{D5FF4D8C-AAD5-4678-A6A9-A59EDC350E72}.Release|x64.Build.0 = Release|x64
+		{9FAF1F9D-55AA-4A1E-9B20-9A93035407B9}.Debug|x64.ActiveCfg = Debug|x64
+		{9FAF1F9D-55AA-4A1E-9B20-9A93035407B9}.Debug|x64.Build.0 = Debug|x64
+		{9FAF1F9D-55AA-4A1E-9B20-9A93035407B9}.Release|x64.ActiveCfg = Release|x64
+		{9FAF1F9D-55AA-4A1E-9B20-9A93035407B9}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

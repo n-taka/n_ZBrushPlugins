@@ -1,0 +1,307 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 50;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		3BDC173321BE547600B876E4 /* MagicaDeVoxelizer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3BDC172D21BE547500B876E4 /* MagicaDeVoxelizer.cpp */; };
+		3BDC173421BE547600B876E4 /* write_OBJ.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3BDC172F21BE547500B876E4 /* write_OBJ.cpp */; };
+		3BDC173521BE547600B876E4 /* MagicaVoxelChunk.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3BDC173021BE547500B876E4 /* MagicaVoxelChunk.cpp */; };
+		3BDC173621BE547600B876E4 /* MagicaVoxelizer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3BDC173121BE547600B876E4 /* MagicaVoxelizer.cpp */; };
+		3BDC173721BE547600B876E4 /* read_OBJ.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3BDC173221BE547600B876E4 /* read_OBJ.cpp */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		3BDC16E021BE471D00B876E4 /* libMagicaVoxelizer.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libMagicaVoxelizer.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
+		3BDC172D21BE547500B876E4 /* MagicaDeVoxelizer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MagicaDeVoxelizer.cpp; sourceTree = "<group>"; };
+		3BDC172E21BE547500B876E4 /* MagicaVoxelizer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MagicaVoxelizer.h; sourceTree = "<group>"; };
+		3BDC172F21BE547500B876E4 /* write_OBJ.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = write_OBJ.cpp; sourceTree = "<group>"; };
+		3BDC173021BE547500B876E4 /* MagicaVoxelChunk.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MagicaVoxelChunk.cpp; sourceTree = "<group>"; };
+		3BDC173121BE547600B876E4 /* MagicaVoxelizer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MagicaVoxelizer.cpp; sourceTree = "<group>"; };
+		3BDC173221BE547600B876E4 /* read_OBJ.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = read_OBJ.cpp; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		3BDC16DE21BE471D00B876E4 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		3BDC16D721BE471D00B876E4 = {
+			isa = PBXGroup;
+			children = (
+				3BDC172D21BE547500B876E4 /* MagicaDeVoxelizer.cpp */,
+				3BDC173021BE547500B876E4 /* MagicaVoxelChunk.cpp */,
+				3BDC173121BE547600B876E4 /* MagicaVoxelizer.cpp */,
+				3BDC172E21BE547500B876E4 /* MagicaVoxelizer.h */,
+				3BDC173221BE547600B876E4 /* read_OBJ.cpp */,
+				3BDC172F21BE547500B876E4 /* write_OBJ.cpp */,
+				3BDC16E121BE471D00B876E4 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		3BDC16E121BE471D00B876E4 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				3BDC16E021BE471D00B876E4 /* libMagicaVoxelizer.dylib */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		3BDC16DC21BE471D00B876E4 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		3BDC16DF21BE471D00B876E4 /* MagicaVoxelizer */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3BDC16E421BE471D00B876E4 /* Build configuration list for PBXNativeTarget "MagicaVoxelizer" */;
+			buildPhases = (
+				3BDC16DC21BE471D00B876E4 /* Headers */,
+				3BDC16DD21BE471D00B876E4 /* Sources */,
+				3BDC16DE21BE471D00B876E4 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = MagicaVoxelizer;
+			productName = MagicaVoxelizer;
+			productReference = 3BDC16E021BE471D00B876E4 /* libMagicaVoxelizer.dylib */;
+			productType = "com.apple.product-type.library.dynamic";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		3BDC16D821BE471D00B876E4 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 1010;
+				ORGANIZATIONNAME = KazutakaNakashima;
+				TargetAttributes = {
+					3BDC16DF21BE471D00B876E4 = {
+						CreatedOnToolsVersion = 10.1;
+					};
+				};
+			};
+			buildConfigurationList = 3BDC16DB21BE471D00B876E4 /* Build configuration list for PBXProject "MagicaVoxelizer" */;
+			compatibilityVersion = "Xcode 9.3";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 3BDC16D721BE471D00B876E4;
+			productRefGroup = 3BDC16E121BE471D00B876E4 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				3BDC16DF21BE471D00B876E4 /* MagicaVoxelizer */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		3BDC16DD21BE471D00B876E4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3BDC173621BE547600B876E4 /* MagicaVoxelizer.cpp in Sources */,
+				3BDC173321BE547600B876E4 /* MagicaDeVoxelizer.cpp in Sources */,
+				3BDC173721BE547600B876E4 /* read_OBJ.cpp in Sources */,
+				3BDC173521BE547600B876E4 /* MagicaVoxelChunk.cpp in Sources */,
+				3BDC173421BE547600B876E4 /* write_OBJ.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		3BDC16E221BE471D00B876E4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD)";
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					../../submodule/eigen,
+					../../submodule/libigl/include,
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		3BDC16E321BE471D00B876E4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD)";
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					../../submodule/eigen,
+					../../submodule/libigl/include,
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		3BDC16E521BE471D00B876E4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = CG3R2X53L3;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				EXECUTABLE_PREFIX = lib;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+			};
+			name = Debug;
+		};
+		3BDC16E621BE471D00B876E4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = CG3R2X53L3;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				EXECUTABLE_PREFIX = lib;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		3BDC16DB21BE471D00B876E4 /* Build configuration list for PBXProject "MagicaVoxelizer" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3BDC16E221BE471D00B876E4 /* Debug */,
+				3BDC16E321BE471D00B876E4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		3BDC16E421BE471D00B876E4 /* Build configuration list for PBXNativeTarget "MagicaVoxelizer" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3BDC16E521BE471D00B876E4 /* Debug */,
+				3BDC16E621BE471D00B876E4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 3BDC16D821BE471D00B876E4 /* Project object */;
+}
