@@ -140,27 +140,27 @@ relevant files and folders are in the \CffffffZStartup/ZPlugs\Cc0c0c0 folder."]
         //delete the memblock as we've done with it
         [MemDelete,ZFileUTils_AppPath]
 
-        [Delay, 3] // magic number...
+        [Loop, 3600,
+            [If, ([FileExists, [StrMerge, [Var, dataDirPath], [Var, colorOBJFile]]] && [FileExists, [StrMerge, [Var, dataDirPath], [Var, groupOBJFile]]]),
+                // import to Tool
+                [IPress,Tool:PolyMesh3D]
+                [FileNameSetNext, [StrMerge, [Var, dataDirPath], [Var, groupOBJFile]]]
+                [IPress,"Tool:Import"]
 
-        // import to Tool
-        [IPress,"Tool:Copy Tool"]
-        [IPress,"Tool:Paste Tool"]
-        [IPress,"Tool:Subtool:Del All"]
-        [IKeyPress, 13]
-        [FileNameSetNext, [StrMerge, [Var, dataDirPath], [Var, groupOBJFile]]]
-        [IPress,"Tool:Import"]
+                [IPress,Tool:PolyMesh3D]
+                [FileNameSetNext, [StrMerge, [Var, dataDirPath], [Var, colorOBJFile]]]
+                [IPress,"Tool:Import"]
 
-        [IPress,"Tool:Copy Tool"]
-        [IPress,"Tool:Paste Tool"]
-        [IPress,"Tool:Subtool:Del All"]
-        [FileNameSetNext, [StrMerge, [Var, dataDirPath], [Var, colorOBJFile]]]
-        [IPress,"Tool:Import"]
-
-        // erase temporary file.
-        [FileDelete, [StrMerge, [Var, dataDirPath], [Var, memFile]]]
-        [FileDelete, [StrMerge, [Var, dataDirPath], [Var, tmpFile]]]
-        [FileDelete, [StrMerge, [Var, dataDirPath], [Var, colorOBJFile]]]
-        [FileDelete, [StrMerge, [Var, dataDirPath], [Var, groupOBJFile]]]
+                // erase temporary file.
+                [FileDelete, [StrMerge, [Var, dataDirPath], [Var, memFile]]]
+                [FileDelete, [StrMerge, [Var, dataDirPath], [Var, tmpFile]]]
+                [FileDelete, [StrMerge, [Var, dataDirPath], [Var, colorOBJFile]]]
+                [FileDelete, [StrMerge, [Var, dataDirPath], [Var, groupOBJFile]]]
+                [LoopExit]
+                ,
+                [Delay, 1]
+            ]
+        ]
         ,
     ],
     0,
