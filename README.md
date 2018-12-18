@@ -7,7 +7,9 @@ https://github.com/n-taka/n_ZBrushPlugins/releases にアクセス後、zipア�
 
 # I want to extend (develop) plugin(s)! / 改造したい人(開発者の方)
 * Clone this repository, then also clone submodules
-  * libigl, Eigen
+  * libigl, Eigen, boost
+* Install dependency
+  * CGAL, GMP, MPFR
 * Build with your preferred IDE
   * Currently we have Visual Studio solution file and Xcode project file.
 
