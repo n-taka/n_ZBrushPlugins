@@ -12,6 +12,7 @@ GeneratedFiles
 *.db
 *.opendb
 *.pro.user
+!*.exe
 !*.dll
 !*.lib
 DerivedData
