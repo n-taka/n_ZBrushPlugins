@@ -14,7 +14,9 @@ https://github.com/n-taka/n_ZBrushPlugins/releases にアクセス後、zipア�
   * Currently we have Visual Studio solution file and Xcode project file.
 
 * このレポジトリをクローン後、submoduleもクローンします
-  * libigl, Eigen
+  * libigl, Eigen, boost
+* 依存関係もインストールしてください
+  * CGAL, GMP, MPFR
 * お好きな環境でビルドしてください
   * 現在はVisual StudioとXcode向けのプロジェクトファイルを用意しています。
 
