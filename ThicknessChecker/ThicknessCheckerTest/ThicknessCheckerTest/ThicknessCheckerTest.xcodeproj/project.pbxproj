@@ -7,8 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		3B5A130721C3FA7000BBAAF6 /* ThicknessCheckerTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3B5A130621C3FA7000BBAAF6 /* ThicknessCheckerTest.cpp */; };
-		3B5A130A21C3FAA400BBAAF6 /* libThicknessChecker.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B5A130921C3FAA400BBAAF6 /* libThicknessChecker.dylib */; };
+		3B5A12FA21C3FA0C00BBAAF6 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3B5A12F921C3FA0C00BBAAF6 /* main.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -25,8 +24,7 @@
 
 /* Begin PBXFileReference section */
 		3B5A12F621C3FA0C00BBAAF6 /* ThicknessCheckerTest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = ThicknessCheckerTest; sourceTree = BUILT_PRODUCTS_DIR; };
-		3B5A130621C3FA7000BBAAF6 /* ThicknessCheckerTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ThicknessCheckerTest.cpp; sourceTree = "<group>"; };
-		3B5A130921C3FAA400BBAAF6 /* libThicknessChecker.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; path = libThicknessChecker.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
+		3B5A12F921C3FA0C00BBAAF6 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -34,7 +32,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3B5A130A21C3FAA400BBAAF6 /* libThicknessChecker.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -44,9 +41,8 @@
 		3B5A12ED21C3FA0C00BBAAF6 = {
 			isa = PBXGroup;
 			children = (
-				3B5A130621C3FA7000BBAAF6 /* ThicknessCheckerTest.cpp */,
+				3B5A12F821C3FA0C00BBAAF6 /* ThicknessCheckerTest */,
 				3B5A12F721C3FA0C00BBAAF6 /* Products */,
-				3B5A130821C3FAA400BBAAF6 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -58,12 +54,12 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		3B5A130821C3FAA400BBAAF6 /* Frameworks */ = {
+		3B5A12F821C3FA0C00BBAAF6 /* ThicknessCheckerTest */ = {
 			isa = PBXGroup;
 			children = (
-				3B5A130921C3FAA400BBAAF6 /* libThicknessChecker.dylib */,
+				3B5A12F921C3FA0C00BBAAF6 /* main.cpp */,
 			);
-			name = Frameworks;
+			path = ThicknessCheckerTest;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -122,7 +118,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3B5A130721C3FA7000BBAAF6 /* ThicknessCheckerTest.cpp in Sources */,
+				3B5A12FA21C3FA0C00BBAAF6 /* main.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -180,8 +176,6 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				HEADER_SEARCH_PATHS = ../../submodule/eigen;
-				LD_RUNPATH_SEARCH_PATHS = "@executable_path/";
 				MACOSX_DEPLOYMENT_TARGET = 10.14;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -235,8 +229,6 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				HEADER_SEARCH_PATHS = ../../submodule/eigen;
-				LD_RUNPATH_SEARCH_PATHS = "@executable_path/";
 				MACOSX_DEPLOYMENT_TARGET = 10.14;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;

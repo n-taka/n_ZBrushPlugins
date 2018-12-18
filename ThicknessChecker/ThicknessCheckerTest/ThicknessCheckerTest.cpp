@@ -5,6 +5,22 @@
 #include "../ThicknessChecker/stdafx.h"
 #include <iostream>
 #include <fstream>
+#include <dlfcn.h>
+
+#if defined(_WIN32) || defined(_WIN64)
+#else
+#define MAX_PATH (260)
+#endif
+
+std::string GetFullPath()
+{
+    Dl_info module_info;
+    if (dladdr(reinterpret_cast<void*>(GetFullPath), &module_info) == 0)
+    {
+        return std::string();
+    }
+    return std::string(module_info.dli_fname);
+}
 
 int main(int argc, char* argv[])
 {
@@ -14,32 +30,37 @@ int main(int argc, char* argv[])
 #endif
 
 	std::cout << "Please do not touch ZBrush until this window closes!!!!" << std::endl;
-	char Path[MAX_PATH + 1];
+    std::string path = GetFullPath();
+    
+    size_t dirEnd = path.find_last_of("/");
+    if(dirEnd == std::string::npos)
+    {
+        // for windows environment.
+        dirEnd = path.find_last_of("\\");
+    }
+    
+    if(dirEnd == std::string::npos)
+    {
+        return 1;
+    }
+    std::string dir = path.substr(0, dirEnd+1);
+    std::string failFile = dir;
+    failFile.append("fail");
+    try
+    {
+    dir.append(",thickness.OBJ"); // ZBrush use CAPITAL extension (this is very important for OSX)
+    dir.append(",parameter.mem");
+    dir.append(",thickness_color.OBJ");
+    dir.append(",thickness_group.OBJ\0");
 
-	if (0 != GetModuleFileName(NULL, Path, MAX_PATH))
-	{
-		char drive[MAX_PATH + 1]
-			, dir[MAX_PATH + 1]
-			, fname[MAX_PATH + 1]
-			, ext[MAX_PATH + 1];
-
-		_splitpath_s(Path, drive, dir, fname, ext);
-
-		//printf("完全パス : %s\n", Path);
-		//printf("ドライブ : %s\n", drive);
-		//printf("ディレクトリ パス : %s\n", dir);
-		//printf("ベース ファイル名 (拡張子なし) : %s\n", fname);
-		//printf("ファイル名の拡張子 : %s\n", ext);
-
-		std::string str(dir);
-		str.append(",thickness.obj");
-		str.append(",parameter.mem");
-		str.append(",thickness_color.obj");
-		str.append(",thickness_group.obj\0");
-		char dummyc0[200];
+    char dummyc0[MAX_PATH];
 		//char dummyc0[200] = "../../testModels/a.obj,_color,_group\0";
-		strcpy_s(dummyc0, str.c_str());
-		char dummyc1[100], dummyc2[100];
+#if defined(_WIN32) || defined(_WIN64)
+        strcpy_s(dummyc0, dir.c_str());
+#else
+        strcpy(dummyc0, dir.c_str());
+#endif
+		char dummyc1[MAX_PATH], dummyc2[MAX_PATH];
 		char dummyc3[] = "hello";
 
 		float height = 100;
@@ -49,9 +70,16 @@ int main(int argc, char* argv[])
 		double dummyd = double(height) * 1024 * 1024 + double(preferredThickness) * 1024 + double(minimumThickness);
 		int dummyi0 = 0;
 		int dummyi1 = 0;
-		detectThickness(dummyc0, dummyd, dummyc1, dummyi0, dummyc2, dummyi1, (char**)&dummyc3);
-		return 0;
-	}
+        detectThickness(dummyc0, dummyd, dummyc1, dummyi0, dummyc2, dummyi1, (char**)&dummyc3);
+    }
+    catch(int e)
+    {
+        std::ofstream fail(failFile.c_str(), std::ios::out);
+        fail << "fail" << std::endl;
+        fail.close();
+        return e;
+    }
+    return 0;
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu

@@ -7,51 +7,104 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		3BDC173321BE547600B876E4 /* MagicaDeVoxelizer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3BDC172D21BE547500B876E4 /* MagicaDeVoxelizer.cpp */; };
-		3BDC173421BE547600B876E4 /* write_OBJ.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3BDC172F21BE547500B876E4 /* write_OBJ.cpp */; };
-		3BDC173521BE547600B876E4 /* MagicaVoxelChunk.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3BDC173021BE547500B876E4 /* MagicaVoxelChunk.cpp */; };
-		3BDC173621BE547600B876E4 /* MagicaVoxelizer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3BDC173121BE547600B876E4 /* MagicaVoxelizer.cpp */; };
-		3BDC173721BE547600B876E4 /* read_OBJ.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3BDC173221BE547600B876E4 /* read_OBJ.cpp */; };
+		3B5A12DA21C3F89000BBAAF6 /* ThicknessChecker.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3B5A12D421C3F88F00BBAAF6 /* ThicknessChecker.cpp */; };
+		3B5A12DB21C3F89000BBAAF6 /* ThicknessChecker.h in Headers */ = {isa = PBXBuildFile; fileRef = 3B5A12D521C3F88F00BBAAF6 /* ThicknessChecker.h */; };
+		3B5A12DC21C3F89000BBAAF6 /* write_OBJ.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3B5A12D621C3F89000BBAAF6 /* write_OBJ.cpp */; };
+		3B5A12DD21C3F89000BBAAF6 /* CGAL_SDF.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3B5A12D721C3F89000BBAAF6 /* CGAL_SDF.cpp */; };
+		3B5A12DE21C3F89000BBAAF6 /* read_OBJ.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3B5A12D821C3F89000BBAAF6 /* read_OBJ.cpp */; };
+		3B5A12DF21C3F89000BBAAF6 /* stdafx.h in Headers */ = {isa = PBXBuildFile; fileRef = 3B5A12D921C3F89000BBAAF6 /* stdafx.h */; };
+		3B5A12E721C3F94C00BBAAF6 /* libgmp.10.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B5A12E121C3F94C00BBAAF6 /* libgmp.10.dylib */; };
+		3B5A12E821C3F94C00BBAAF6 /* libboost_system-mt.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B5A12E221C3F94C00BBAAF6 /* libboost_system-mt.dylib */; };
+		3B5A12E921C3F94C00BBAAF6 /* libCGAL.13.0.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B5A12E321C3F94C00BBAAF6 /* libCGAL.13.0.2.dylib */; };
+		3B5A12EA21C3F94C00BBAAF6 /* libmpfr.6.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B5A12E421C3F94C00BBAAF6 /* libmpfr.6.dylib */; };
+		3B5A12EB21C3F94C00BBAAF6 /* libCGAL_Core.13.0.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B5A12E521C3F94C00BBAAF6 /* libCGAL_Core.13.0.2.dylib */; };
+		3B5A12EC21C3F94C00BBAAF6 /* libboost_thread-mt.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B5A12E621C3F94C00BBAAF6 /* libboost_thread-mt.dylib */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		3B5A130421C3FA4E00BBAAF6 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3B5A130021C3FA4E00BBAAF6 /* ThicknessCheckerTest.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 3B5A12F621C3FA0C00BBAAF6;
+			remoteInfo = ThicknessCheckerTest;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
-		3BDC16E021BE471D00B876E4 /* libMagicaVoxelizer.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libMagicaVoxelizer.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
-		3BDC172D21BE547500B876E4 /* MagicaDeVoxelizer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MagicaDeVoxelizer.cpp; sourceTree = "<group>"; };
-		3BDC172E21BE547500B876E4 /* MagicaVoxelizer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MagicaVoxelizer.h; sourceTree = "<group>"; };
-		3BDC172F21BE547500B876E4 /* write_OBJ.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = write_OBJ.cpp; sourceTree = "<group>"; };
-		3BDC173021BE547500B876E4 /* MagicaVoxelChunk.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MagicaVoxelChunk.cpp; sourceTree = "<group>"; };
-		3BDC173121BE547600B876E4 /* MagicaVoxelizer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MagicaVoxelizer.cpp; sourceTree = "<group>"; };
-		3BDC173221BE547600B876E4 /* read_OBJ.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = read_OBJ.cpp; sourceTree = "<group>"; };
+		3B5A12CD21C3F83100BBAAF6 /* libThicknessChecker.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libThicknessChecker.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
+		3B5A12D421C3F88F00BBAAF6 /* ThicknessChecker.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ThicknessChecker.cpp; sourceTree = "<group>"; };
+		3B5A12D521C3F88F00BBAAF6 /* ThicknessChecker.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ThicknessChecker.h; sourceTree = "<group>"; };
+		3B5A12D621C3F89000BBAAF6 /* write_OBJ.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = write_OBJ.cpp; sourceTree = "<group>"; };
+		3B5A12D721C3F89000BBAAF6 /* CGAL_SDF.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CGAL_SDF.cpp; sourceTree = "<group>"; };
+		3B5A12D821C3F89000BBAAF6 /* read_OBJ.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = read_OBJ.cpp; sourceTree = "<group>"; };
+		3B5A12D921C3F89000BBAAF6 /* stdafx.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stdafx.h; sourceTree = "<group>"; };
+		3B5A12E121C3F94C00BBAAF6 /* libgmp.10.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libgmp.10.dylib; path = ../../../../../../../../../usr/local/Cellar/gmp/6.1.2_2/lib/libgmp.10.dylib; sourceTree = "<group>"; };
+		3B5A12E221C3F94C00BBAAF6 /* libboost_system-mt.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libboost_system-mt.dylib"; path = "../../../../../../../../../usr/local/Cellar/boost/1.68.0/lib/libboost_system-mt.dylib"; sourceTree = "<group>"; };
+		3B5A12E321C3F94C00BBAAF6 /* libCGAL.13.0.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libCGAL.13.0.2.dylib; path = ../../../../../../../../../usr/local/Cellar/cgal/4.13/lib/libCGAL.13.0.2.dylib; sourceTree = "<group>"; };
+		3B5A12E421C3F94C00BBAAF6 /* libmpfr.6.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libmpfr.6.dylib; path = ../../../../../../../../../usr/local/Cellar/mpfr/4.0.1/lib/libmpfr.6.dylib; sourceTree = "<group>"; };
+		3B5A12E521C3F94C00BBAAF6 /* libCGAL_Core.13.0.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libCGAL_Core.13.0.2.dylib; path = ../../../../../../../../../usr/local/Cellar/cgal/4.13/lib/libCGAL_Core.13.0.2.dylib; sourceTree = "<group>"; };
+		3B5A12E621C3F94C00BBAAF6 /* libboost_thread-mt.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libboost_thread-mt.dylib"; path = "../../../../../../../../../usr/local/Cellar/boost/1.68.0/lib/libboost_thread-mt.dylib"; sourceTree = "<group>"; };
+		3B5A130021C3FA4E00BBAAF6 /* ThicknessCheckerTest.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = ThicknessCheckerTest.xcodeproj; path = ../ThicknessCheckerTest/ThicknessCheckerTest.xcodeproj; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		3BDC16DE21BE471D00B876E4 /* Frameworks */ = {
+		3B5A12CB21C3F83100BBAAF6 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3B5A12E721C3F94C00BBAAF6 /* libgmp.10.dylib in Frameworks */,
+				3B5A12E821C3F94C00BBAAF6 /* libboost_system-mt.dylib in Frameworks */,
+				3B5A12E921C3F94C00BBAAF6 /* libCGAL.13.0.2.dylib in Frameworks */,
+				3B5A12EA21C3F94C00BBAAF6 /* libmpfr.6.dylib in Frameworks */,
+				3B5A12EB21C3F94C00BBAAF6 /* libCGAL_Core.13.0.2.dylib in Frameworks */,
+				3B5A12EC21C3F94C00BBAAF6 /* libboost_thread-mt.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		3BDC16D721BE471D00B876E4 = {
+		3B5A12C421C3F83100BBAAF6 = {
 			isa = PBXGroup;
 			children = (
-				3BDC172D21BE547500B876E4 /* MagicaDeVoxelizer.cpp */,
-				3BDC173021BE547500B876E4 /* MagicaVoxelChunk.cpp */,
-				3BDC173121BE547600B876E4 /* MagicaVoxelizer.cpp */,
-				3BDC172E21BE547500B876E4 /* MagicaVoxelizer.h */,
-				3BDC173221BE547600B876E4 /* read_OBJ.cpp */,
-				3BDC172F21BE547500B876E4 /* write_OBJ.cpp */,
-				3BDC16E121BE471D00B876E4 /* Products */,
+				3B5A12D721C3F89000BBAAF6 /* CGAL_SDF.cpp */,
+				3B5A12D821C3F89000BBAAF6 /* read_OBJ.cpp */,
+				3B5A12D921C3F89000BBAAF6 /* stdafx.h */,
+				3B5A12D421C3F88F00BBAAF6 /* ThicknessChecker.cpp */,
+				3B5A12D521C3F88F00BBAAF6 /* ThicknessChecker.h */,
+				3B5A12D621C3F89000BBAAF6 /* write_OBJ.cpp */,
+				3B5A12CE21C3F83100BBAAF6 /* Products */,
+				3B5A12E021C3F94B00BBAAF6 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
-		3BDC16E121BE471D00B876E4 /* Products */ = {
+		3B5A12CE21C3F83100BBAAF6 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				3BDC16E021BE471D00B876E4 /* libMagicaVoxelizer.dylib */,
+				3B5A12CD21C3F83100BBAAF6 /* libThicknessChecker.dylib */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		3B5A12E021C3F94B00BBAAF6 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				3B5A130021C3FA4E00BBAAF6 /* ThicknessCheckerTest.xcodeproj */,
+				3B5A12E221C3F94C00BBAAF6 /* libboost_system-mt.dylib */,
+				3B5A12E621C3F94C00BBAAF6 /* libboost_thread-mt.dylib */,
+				3B5A12E521C3F94C00BBAAF6 /* libCGAL_Core.13.0.2.dylib */,
+				3B5A12E321C3F94C00BBAAF6 /* libCGAL.13.0.2.dylib */,
+				3B5A12E121C3F94C00BBAAF6 /* libgmp.10.dylib */,
+				3B5A12E421C3F94C00BBAAF6 /* libmpfr.6.dylib */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		3B5A130121C3FA4E00BBAAF6 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				3B5A130521C3FA4E00BBAAF6 /* ThicknessCheckerTest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -59,85 +112,101 @@
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
-		3BDC16DC21BE471D00B876E4 /* Headers */ = {
+		3B5A12C921C3F83100BBAAF6 /* Headers */ = {
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3B5A12DF21C3F89000BBAAF6 /* stdafx.h in Headers */,
+				3B5A12DB21C3F89000BBAAF6 /* ThicknessChecker.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
-		3BDC16DF21BE471D00B876E4 /* MagicaVoxelizer */ = {
+		3B5A12CC21C3F83100BBAAF6 /* ThicknessChecker */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 3BDC16E421BE471D00B876E4 /* Build configuration list for PBXNativeTarget "MagicaVoxelizer" */;
+			buildConfigurationList = 3B5A12D121C3F83100BBAAF6 /* Build configuration list for PBXNativeTarget "ThicknessChecker" */;
 			buildPhases = (
-				3BDC16DC21BE471D00B876E4 /* Headers */,
-				3BDC16DD21BE471D00B876E4 /* Sources */,
-				3BDC16DE21BE471D00B876E4 /* Frameworks */,
+				3B5A12C921C3F83100BBAAF6 /* Headers */,
+				3B5A12CA21C3F83100BBAAF6 /* Sources */,
+				3B5A12CB21C3F83100BBAAF6 /* Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
-			name = MagicaVoxelizer;
-			productName = MagicaVoxelizer;
-			productReference = 3BDC16E021BE471D00B876E4 /* libMagicaVoxelizer.dylib */;
+			name = ThicknessChecker;
+			productName = ThicknessChecker;
+			productReference = 3B5A12CD21C3F83100BBAAF6 /* libThicknessChecker.dylib */;
 			productType = "com.apple.product-type.library.dynamic";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		3BDC16D821BE471D00B876E4 /* Project object */ = {
+		3B5A12C521C3F83100BBAAF6 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
 				LastUpgradeCheck = 1010;
 				ORGANIZATIONNAME = KazutakaNakashima;
 				TargetAttributes = {
-					3BDC16DF21BE471D00B876E4 = {
+					3B5A12CC21C3F83100BBAAF6 = {
 						CreatedOnToolsVersion = 10.1;
 					};
 				};
 			};
-			buildConfigurationList = 3BDC16DB21BE471D00B876E4 /* Build configuration list for PBXProject "MagicaVoxelizer" */;
+			buildConfigurationList = 3B5A12C821C3F83100BBAAF6 /* Build configuration list for PBXProject "ThicknessChecker" */;
 			compatibilityVersion = "Xcode 9.3";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
 			);
-			mainGroup = 3BDC16D721BE471D00B876E4;
-			productRefGroup = 3BDC16E121BE471D00B876E4 /* Products */;
+			mainGroup = 3B5A12C421C3F83100BBAAF6;
+			productRefGroup = 3B5A12CE21C3F83100BBAAF6 /* Products */;
 			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = 3B5A130121C3FA4E00BBAAF6 /* Products */;
+					ProjectRef = 3B5A130021C3FA4E00BBAAF6 /* ThicknessCheckerTest.xcodeproj */;
+				},
+			);
 			projectRoot = "";
 			targets = (
-				3BDC16DF21BE471D00B876E4 /* MagicaVoxelizer */,
+				3B5A12CC21C3F83100BBAAF6 /* ThicknessChecker */,
 			);
 		};
 /* End PBXProject section */
 
+/* Begin PBXReferenceProxy section */
+		3B5A130521C3FA4E00BBAAF6 /* ThicknessCheckerTest */ = {
+			isa = PBXReferenceProxy;
+			fileType = "compiled.mach-o.executable";
+			path = ThicknessCheckerTest;
+			remoteRef = 3B5A130421C3FA4E00BBAAF6 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
+
 /* Begin PBXSourcesBuildPhase section */
-		3BDC16DD21BE471D00B876E4 /* Sources */ = {
+		3B5A12CA21C3F83100BBAAF6 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3BDC173621BE547600B876E4 /* MagicaVoxelizer.cpp in Sources */,
-				3BDC173321BE547600B876E4 /* MagicaDeVoxelizer.cpp in Sources */,
-				3BDC173721BE547600B876E4 /* read_OBJ.cpp in Sources */,
-				3BDC173521BE547600B876E4 /* MagicaVoxelChunk.cpp in Sources */,
-				3BDC173421BE547600B876E4 /* write_OBJ.cpp in Sources */,
+				3B5A12DA21C3F89000BBAAF6 /* ThicknessChecker.cpp in Sources */,
+				3B5A12DD21C3F89000BBAAF6 /* CGAL_SDF.cpp in Sources */,
+				3B5A12DC21C3F89000BBAAF6 /* write_OBJ.cpp in Sources */,
+				3B5A12DE21C3F89000BBAAF6 /* read_OBJ.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
-		3BDC16E221BE471D00B876E4 /* Debug */ = {
+		3B5A12CF21C3F83100BBAAF6 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = "$(ARCHS_STANDARD)";
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -186,22 +255,23 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = (
-					../../submodule/eigen,
 					../../submodule/libigl/include,
+					../../submodule/eigen,
+					/usr/local/include,
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.14;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
+				SYSTEM_HEADER_SEARCH_PATHS = "";
 			};
 			name = Debug;
 		};
-		3BDC16E321BE471D00B876E4 /* Release */ = {
+		3B5A12D021C3F83100BBAAF6 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = "$(ARCHS_STANDARD)";
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -244,17 +314,19 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = (
-					../../submodule/eigen,
 					../../submodule/libigl/include,
+					../../submodule/eigen,
+					/usr/local/include,
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.14;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = macosx;
+				SYSTEM_HEADER_SEARCH_PATHS = "";
 			};
 			name = Release;
 		};
-		3BDC16E521BE471D00B876E4 /* Debug */ = {
+		3B5A12D221C3F83100BBAAF6 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
@@ -262,12 +334,19 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				EXECUTABLE_PREFIX = lib;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/usr/local/Cellar/gmp/6.1.2_2/lib,
+					/usr/local/Cellar/boost/1.68.0/lib,
+					/usr/local/Cellar/cgal/4.13/lib,
+					/usr/local/Cellar/mpfr/4.0.1/lib,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 			};
 			name = Debug;
 		};
-		3BDC16E621BE471D00B876E4 /* Release */ = {
+		3B5A12D321C3F83100BBAAF6 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
@@ -275,6 +354,13 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				EXECUTABLE_PREFIX = lib;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/usr/local/Cellar/gmp/6.1.2_2/lib,
+					/usr/local/Cellar/boost/1.68.0/lib,
+					/usr/local/Cellar/cgal/4.13/lib,
+					/usr/local/Cellar/mpfr/4.0.1/lib,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 			};
@@ -283,25 +369,25 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		3BDC16DB21BE471D00B876E4 /* Build configuration list for PBXProject "MagicaVoxelizer" */ = {
+		3B5A12C821C3F83100BBAAF6 /* Build configuration list for PBXProject "ThicknessChecker" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				3BDC16E221BE471D00B876E4 /* Debug */,
-				3BDC16E321BE471D00B876E4 /* Release */,
+				3B5A12CF21C3F83100BBAAF6 /* Debug */,
+				3B5A12D021C3F83100BBAAF6 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		3BDC16E421BE471D00B876E4 /* Build configuration list for PBXNativeTarget "MagicaVoxelizer" */ = {
+		3B5A12D121C3F83100BBAAF6 /* Build configuration list for PBXNativeTarget "ThicknessChecker" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				3BDC16E521BE471D00B876E4 /* Debug */,
-				3BDC16E621BE471D00B876E4 /* Release */,
+				3B5A12D221C3F83100BBAAF6 /* Debug */,
+				3B5A12D321C3F83100BBAAF6 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
-	rootObject = 3BDC16D821BE471D00B876E4 /* Project object */;
+	rootObject = 3B5A12C521C3F83100BBAAF6 /* Project object */;
 }

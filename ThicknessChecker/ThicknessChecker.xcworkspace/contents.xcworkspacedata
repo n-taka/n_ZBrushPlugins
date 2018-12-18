@@ -2,9 +2,9 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "group:MagicaVoxelizerTest/MagicaVoxelizerTest.xcodeproj">
+      location = "group:ThicknessCheckerTest/ThicknessCheckerTest.xcodeproj">
    </FileRef>
    <FileRef
-      location = "group:MagicaVoxelizer/MagicaVoxelizer.xcodeproj">
+      location = "group:ThicknessChecker/ThicknessChecker.xcodeproj">
    </FileRef>
 </Workspace>

@@ -57,7 +57,7 @@ extern "C" DLLEXPORT float detectThickness(char* someText, double optValue, char
 		tmp = ZBtextList.at(i);
 		ZBtextList.at(i) = ZBtextList.at(0) + tmp;
 	}
-
+    
 	std::ifstream ifs(ZBtextList.at(2), std::ios::in | std::ios::binary);
 	if (!ifs)
 	{
@@ -71,14 +71,6 @@ extern "C" DLLEXPORT float detectThickness(char* someText, double optValue, char
 	ifs.read((char*)&preferredThickness, sizeof(float));
 	ifs.read((char*)&minimumThickness, sizeof(float));
 	ifs.close();
-
-#if !(defined(_WIN32) || defined(_WIN64))
-	// if Mac, ZBrush gives me invalid prefix with FileNameResolvePath ...
-	for (auto& s : ZBtextList)
-	{
-		s.erase(s.begin(), s.begin() + 2);
-	}
-#endif
 
 	Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> V;
 	Eigen::Matrix<   int, Eigen::Dynamic, Eigen::Dynamic> VC;

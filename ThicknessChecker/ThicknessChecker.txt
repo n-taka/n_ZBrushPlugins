@@ -8,6 +8,7 @@
 
 [VarDef, dllPath, "dummy"]
 [VarDef, exePath, "dummy"]
+[VarDef, exeResolvePath, "dummy"]
 // hard coded...
 [VarDef, dataDirPath, [fileNameResolvePath, "ZBRUSH_ZSTARTUP\ZPlugs64\ThicknessCheckerData\"]]
 [VarDef, tmpFile, "thickness.obj"]
@@ -26,7 +27,7 @@
 [RoutineDef, CheckSystem,	
     //check ZBrush version
     [VarSet,Zvers,[ZBrushInfo,0]]
-    [If,[Val,Zvers] >= 4.8,,		
+    [If,[Val,Zvers] >= 4.8,,
         [Note,"\Cff9923This zscript\Cffffff is not designed for this version of \Cff9923ZBrush\Cffffff.",,3,4737096,,300]
         [Exit]
     ]
@@ -136,7 +137,12 @@ relevant files and folders are in the \CffffffZStartup/ZPlugs\Cc0c0c0 folder."]
         [MemCreate,ZFileUTils_AppPath, 256, 0]
         //write app path to memblock
         [MemWriteString,ZFileUTils_AppPath,exePath,0]
-        [VarSet,err,[FileExecute,[Var,dllPath],"LaunchAppWithFile",#fullFilePath,,ZFileUTils_AppPath]]
+        [If, [ZBrushInfo, 6]==0,//windows
+            [VarSet,err,[FileExecute,[Var,dllPath],"LaunchAppWithFile",#fullFilePath,,ZFileUTils_AppPath]]
+            ,
+            [VarSet, exeResolvePath, "/Applications/ZBrushOSX\ 2018/ZStartup/ZPlugs64/ThicknessCheckerData/ThicknessCheckerTest || touch /Applications/ZBrushOSX\ 2018/ZStartup/ZPlugs64/ThicknessCheckerData/fail"]
+            [ShellExecute, [Var, exeResolvePath]]
+        ]
         //delete the memblock as we've done with it
         [MemDelete,ZFileUTils_AppPath]
 
@@ -158,7 +164,15 @@ relevant files and folders are in the \CffffffZStartup/ZPlugs\Cc0c0c0 folder."]
                 [FileDelete, [StrMerge, [Var, dataDirPath], [Var, groupOBJFile]]]
                 [LoopExit]
                 ,
+                [If, ([FileExists, [StrMerge, [Var, dataDirPath], "fail"]] || err),
+                    [FileDelete, [StrMerge, [Var, dataDirPath], "fail"]]
+                    [FileDelete, [StrMerge, [Var, dataDirPath], [Var, memFile]]]
+                    [FileDelete, [StrMerge, [Var, dataDirPath], [Var, tmpFile]]]
+                    [Note, "Sorry, some error happened..."]
+                    [LoopExit]
+                ,
                 [Delay, 1]
+                ]
             ]
         ]
         ,
