@@ -6,10 +6,13 @@
 #include <iostream>
 #include <fstream>
 
-#include <tchar.h>
-
 int main(int argc, char* argv[])
 {
+
+#if defined(_WIN32) || defined(_WIN64)
+	::ShowWindow(::GetConsoleWindow(), SW_HIDE);
+#endif
+
 	std::cout << "Please do not touch ZBrush until this window closes!!!!" << std::endl;
 	char Path[MAX_PATH + 1];
 
