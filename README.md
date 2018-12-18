@@ -32,6 +32,27 @@ twitter [@kazutaka_nakash](https://twitter.com/kazutaka_nakash)
   * http://eigen.tuxfamily.org/
   * linked with submodule
   * MPL2
+* boost
+  * https://www.boost.org/
+  * linked with submodule
+  * boost software license https://www.boost.org/users/license.html
+* CGAL
+  * https://www.cgal.org/
+  * GPL/LGPL https://www.cgal.org/license.html
+* GMP
+  * http://gmplib.org/
+  * CGAL dependency
+  * For windows, use CGAL installer
+  * For max, use homebrew
+  * LGPL v3/GPL v2
+* MPFR
+  * http://www.mpfr.org/
+  * CGAL dependency
+  * For windows, use CGAL installer
+  * For max, use homebrew
+  * LGPL
+
   
 # Licenses / ライセンス
 * MagicaVoxelizer: MPL2
+* ThicknessChecker: GPL/LGPL (derived from CGAL)
