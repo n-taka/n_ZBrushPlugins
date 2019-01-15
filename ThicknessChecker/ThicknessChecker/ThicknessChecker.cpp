@@ -8,7 +8,6 @@
 
 #include "igl/jet.h"
 
-// see https://github.com/ephtracy/voxel-model/blob/master/MagicaVoxel-file-format-vox.txt
 ////
 // implementation
 ////
@@ -18,21 +17,23 @@
 #define DLLEXPORT __attribute__((visibility("default")))
 #endif
 
-extern "C" DLLEXPORT float detectThickness(char* someText, double optValue, char* pOptBuffer1, int optBuffer1Size, char* pOptBuffer2, int optBuffer2Size, char** zData)
+extern "C" DLLEXPORT float checkThickness(char* someText, double optValue, char* pOptBuffer1, int optBuffer1Size, char* pOptBuffer2, int optBuffer2Size, char** zData)
 {
 	//// input
 	// someText: file name to be opened
-	// input filename, output filename (thickness as color), outputfilename (thickness (segment) as group)
+	// input filename, output filename (thickness as color)
 	// optValue: encoded value for minimumThickness, betterThickness, height
 	////
-	// decode parameters
-	//const double minimumThickness = optValue - std::floor(optValue / 1024) * 1024;
-	//const double preferredThickness = optValue / 1024.0 - std::floor(optValue / (1024.0 * 1024.0)) * 1024.0;
-	//const double height = optValue / (1024.0 * 1024.0) - std::floor(optValue / (1024.0 * 1024.0 * 1024.0)) * 1024.0;
+
+	////
+	// [begin] decode parameters
+	const double minimumThickness = optValue - std::floor(optValue / 1024) * 1024;
+	const double preferredThickness = optValue / 1024.0 - std::floor(optValue / (1024.0 * 1024.0)) * 1024.0;
+	const double height = optValue / (1024.0 * 1024.0) - std::floor(optValue / (1024.0 * 1024.0 * 1024.0)) * 1024.0;
+
 	std::string ZBtext(someText);
 	std::string separator(",");
 	size_t separator_length = separator.length();
-
 	std::vector<std::string> ZBtextList({});
 
 	if (separator_length == 0) {
@@ -50,43 +51,35 @@ extern "C" DLLEXPORT float detectThickness(char* someText, double optValue, char
 			offset = pos + separator_length;
 		}
 	}
-
 	std::string tmp;
 	for (int i = 1; i < 5; ++i)
 	{
 		tmp = ZBtextList.at(i);
 		ZBtextList.at(i) = ZBtextList.at(0) + tmp;
 	}
-    
-	std::ifstream ifs(ZBtextList.at(2), std::ios::in | std::ios::binary);
-	if (!ifs)
-	{
-		std::cerr << "some error in opening file..." << std::endl;
-	}
-	float height;
-	float preferredThickness;
-	float minimumThickness;
+	// [end] parameter decoding end.
+	////
 
-	ifs.read((char*)&height, sizeof(float));
-	ifs.read((char*)&preferredThickness, sizeof(float));
-	ifs.read((char*)&minimumThickness, sizeof(float));
-	ifs.close();
-
+	////
+	// [begin] read triangle from file
 	Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> V;
-	Eigen::Matrix<   int, Eigen::Dynamic, Eigen::Dynamic> VC;
 	Eigen::Matrix<   int, Eigen::Dynamic, Eigen::Dynamic> F;
+	Eigen::Matrix<   int, Eigen::Dynamic, Eigen::Dynamic> VC;
 	Eigen::Matrix<   int, Eigen::Dynamic, Eigen::Dynamic> FG;
 	Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> F_RAWSDF;
-	Eigen::Matrix<   int, Eigen::Dynamic, Eigen::Dynamic> F_Segment;
 
-	// read triangle from file
 	read_OBJ(ZBtextList.at(1), V, F, VC, FG);
-
 	// scale for make height (Y) is user-given height.
 	const double scale = (height / (V.col(1).maxCoeff() - V.col(1).minCoeff()));
+	// [end] read triangle from file
+	////
 
-	CGAL_SDF(V*scale, F, F_RAWSDF, F_Segment);
+	////
+	// compute shape diameter function
+	// todo
+	////
 
+	////
 	// convert F_SDF to V_SDF (simple average)
 	Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> V_SDF;
 	Eigen::Matrix<   int, Eigen::Dynamic, Eigen::Dynamic> V_Count;
@@ -106,11 +99,11 @@ extern "C" DLLEXPORT float detectThickness(char* someText, double optValue, char
 	{
 		V_SDF(v, 0) /= double(V_Count(v, 0));
 	}
+	////
 
+	////
 	// export with
 	// jet color (update polypaint, keep polygroup)
-	// segment   (update polygroup, keep polypaint)
-
 	Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> VC_Thicknessd;
 	Eigen::Matrix<   int, Eigen::Dynamic, Eigen::Dynamic> VC_Thicknessi;
 	igl::jet(V_SDF, preferredThickness, minimumThickness, VC_Thicknessd);
@@ -122,9 +115,8 @@ extern "C" DLLEXPORT float detectThickness(char* someText, double optValue, char
 		VC_Thicknessi(v, 2) = int(VC_Thicknessd(v, 1) * 255); // G
 		VC_Thicknessi(v, 3) = int(VC_Thicknessd(v, 2) * 255); // B
 	}
-
 	write_OBJ(ZBtextList.at(3), V, F, VC_Thicknessi, FG);
-	write_OBJ(ZBtextList.at(4), V, F, VC, F_Segment);
+	////
 
 	return 0.0f;
 }

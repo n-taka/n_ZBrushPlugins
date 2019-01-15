@@ -38,10 +38,13 @@
     <ClCompile Include="write_OBJ.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CGAL_SDF.cpp">
+    <ClCompile Include="ThicknessChecker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ThicknessChecker.cpp">
+    <ClCompile Include="cppamp_SDF.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cppamp_Util.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

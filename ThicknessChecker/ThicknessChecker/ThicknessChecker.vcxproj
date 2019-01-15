@@ -94,7 +94,8 @@
     <ClInclude Include="ThicknessChecker.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="CGAL_SDF.cpp" />
+    <ClCompile Include="cppamp_SDF.cpp" />
+    <ClCompile Include="cppamp_Util.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="read_OBJ.cpp" />
     <ClCompile Include="stdafx.cpp">

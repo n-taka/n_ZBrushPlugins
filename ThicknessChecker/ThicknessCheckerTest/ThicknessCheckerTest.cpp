@@ -4,90 +4,18 @@
 #include "pch.h"
 #include "../ThicknessChecker/stdafx.h"
 #include <iostream>
-#include <fstream>
-
-#if defined(_WIN32) || defined(_WIN64)
-#else
-#include <dlfcn.h>
-#define MAX_PATH (260)
-std::string GetFullPath()
-{
-	Dl_info module_info;
-	if (dladdr(reinterpret_cast<void*>(GetFullPath), &module_info) == 0)
-	{
-		return std::string();
-	}
-	return std::string(module_info.dli_fname);
-}
-#endif
 
 
 int main(int argc, char* argv[])
 {
-
-#if defined(_WIN32) || defined(_WIN64)
-	::ShowWindow(::GetConsoleWindow(), SW_HIDE);
-#endif
-
-	std::cout << "Please do not touch ZBrush until this window closes!!!!" << std::endl;
-
-
-#if defined(_WIN32) || defined(_WIN64)
-	char PathC[MAX_PATH + 1];
-	GetModuleFileName(NULL, PathC, MAX_PATH);
-	std::string path(PathC);
-#else
-	std::string path = GetFullPath();
-#endif
-
-	size_t dirEnd = path.find_last_of("/");
-	if (dirEnd == std::string::npos)
-	{
-		// for windows environment.
-		dirEnd = path.find_last_of("\\");
-	}
-
-	if (dirEnd == std::string::npos)
-	{
-		return 1;
-	}
-	std::string dir = path.substr(0, dirEnd + 1);
-	std::string failFile = dir;
-	failFile.append("fail");
-	try
-	{
-		dir.append(",thickness.OBJ"); // ZBrush use CAPITAL extension (this is very important for OSX)
-		dir.append(",parameter.mem");
-		dir.append(",thickness_color.OBJ");
-		dir.append(",thickness_group.OBJ\0");
-
-		char dummyc0[MAX_PATH];
-		//char dummyc0[200] = "../../testModels/a.obj,_color,_group\0";
-#if defined(_WIN32) || defined(_WIN64)
-		strcpy_s(dummyc0, dir.c_str());
-#else
-		strcpy(dummyc0, dir.c_str());
-#endif
-		char dummyc1[MAX_PATH], dummyc2[MAX_PATH];
-		char dummyc3[] = "hello";
-
-		float height = 100;
-		float preferredThickness = 3;
-		float minimumThickness = 1;
-
-		double dummyd = double(height) * 1024 * 1024 + double(preferredThickness) * 1024 + double(minimumThickness);
-		int dummyi0 = 0;
-		int dummyi1 = 0;
-		detectThickness(dummyc0, dummyd, dummyc1, dummyi0, dummyc2, dummyi1, (char**)&dummyc3);
-	}
-	catch (int e)
-	{
-		std::ofstream fail(failFile.c_str(), std::ios::out);
-		fail << "fail" << std::endl;
-		fail.close();
-		return e;
-	}
-	return 0;
+	char dummyc0[100] = "../../testModels/voxel.obj,../../testModels/voxel.vox";
+	char dummyc1[100], dummyc2[100];
+	char dummyc3[] = "hello";
+	double dummyd = 50;
+	int dummyi0 = 0;
+	int dummyi1 = 0;
+	//checkThickness(dummyc0, dummyd, dummyc1, dummyi0, dummyc2, dummyi1, (char**)&dummyc3);
+	AMP_getAccelerator(dummyc0, dummyd, dummyc1, dummyi0, dummyc2, dummyi1, (char**)&dummyc3);
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu
