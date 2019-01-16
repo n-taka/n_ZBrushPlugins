@@ -17,7 +17,13 @@
 #define DLLEXPORT __attribute__((visibility("default")))
 #endif
 
-extern "C" DLLEXPORT float checkThickness(char* someText, double optValue, char* pOptBuffer1, int optBuffer1Size, char* pOptBuffer2, int optBuffer2Size, char** zData)
+
+extern "C" DLLEXPORT float version(char* someText, double optValue, char* outputBuffer, int optBuffer1Size, char* pOptBuffer2, int optBuffer2Size, char** zData)
+{
+	return 1.0f;
+}
+
+extern "C" DLLEXPORT float checkThickness(char* someText, double optValue, char* outputBuffer, int optBuffer1Size, char* pOptBuffer2, int optBuffer2Size, char** zData)
 {
 	//// input
 	// someText: file name to be opened
@@ -27,9 +33,9 @@ extern "C" DLLEXPORT float checkThickness(char* someText, double optValue, char*
 
 	////
 	// [begin] decode parameters
-	const double minimumThickness = optValue - std::floor(optValue / 1024) * 1024;
-	const double preferredThickness = optValue / 1024.0 - std::floor(optValue / (1024.0 * 1024.0)) * 1024.0;
-	const double height = optValue / (1024.0 * 1024.0) - std::floor(optValue / (1024.0 * 1024.0 * 1024.0)) * 1024.0;
+	const float minimumThickness = float(optValue - std::floor(optValue / 1024.0) * 1024.0);
+	const float preferredThickness = float(optValue / 1024.0 - std::floor(optValue / (1024.0 * 1024.0)) * 1024.0);
+	const float height = float(optValue / (1024.0 * 1024.0) - std::floor(optValue / (1024.0 * 1024.0 * 1024.0)) * 1024.0);
 
 	std::string ZBtext(someText);
 	std::string separator(",");
@@ -62,11 +68,11 @@ extern "C" DLLEXPORT float checkThickness(char* someText, double optValue, char*
 
 	////
 	// [begin] read triangle from file
-	Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> V;
-	Eigen::Matrix<   int, Eigen::Dynamic, Eigen::Dynamic> F;
-	Eigen::Matrix<   int, Eigen::Dynamic, Eigen::Dynamic> VC;
-	Eigen::Matrix<   int, Eigen::Dynamic, Eigen::Dynamic> FG;
-	Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> F_RAWSDF;
+	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> V;
+	Eigen::Matrix<  int, Eigen::Dynamic, Eigen::Dynamic> F;
+	Eigen::Matrix<  int, Eigen::Dynamic, Eigen::Dynamic> VC;
+	Eigen::Matrix<  int, Eigen::Dynamic, Eigen::Dynamic> FG;
+	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> F_RAWSDF;
 
 	read_OBJ(ZBtextList.at(1), V, F, VC, FG);
 	// scale for make height (Y) is user-given height.
