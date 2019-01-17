@@ -1,7 +1,6 @@
 #pragma once
 #if defined(_WIN32) || defined(_WIN64)
 #include <Windows.h>
-#include <amp.h>
 #endif
 
 #include "Eigen/Core"
@@ -38,16 +37,3 @@ float computeSDF(
 	const Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic>& V,
 	const Eigen::Matrix<  int, Eigen::Dynamic, Eigen::Dynamic>& F
 );
-
-float rayMeshIntersection(
-	concurrency::array_view<float, 2> V,
-	concurrency::array_view<  int, 2> F
-) restrict(amp);
-
-float rayTriangleIntersection(
-	float pos[3],
-	float dir[3],
-	float v0[3],
-	float v1[3],
-	float v2[3]
-) restrict(amp);

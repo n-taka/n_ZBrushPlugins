@@ -98,10 +98,6 @@
     <ClCompile Include="cppamp_Util.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="read_OBJ.cpp" />
-    <ClCompile Include="stdafx.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="ThicknessChecker.cpp" />
     <ClCompile Include="write_OBJ.cpp" />
   </ItemGroup>
