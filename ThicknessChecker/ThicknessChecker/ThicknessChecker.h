@@ -37,3 +37,8 @@ float computeSDF(
 	const Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic>& V,
 	const Eigen::Matrix<  int, Eigen::Dynamic, Eigen::Dynamic>& F
 );
+
+float debug(
+	const Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic>& V,
+	const Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic>& F
+);

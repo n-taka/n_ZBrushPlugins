@@ -27,7 +27,10 @@ extern "C" DLLEXPORT float checkThickness(char* someText, double optValue, char*
 {
 	//// input
 	// someText: file name to be opened
-	// input filename, output filename (thickness as color)
+	// [0]: dir name
+	// [1]: input filename
+	// [2]: output filename (thickness as color)
+	// [3]: accelerator name (optional)
 	// optValue: encoded value for minimumThickness, betterThickness, height
 	////
 
@@ -58,10 +61,14 @@ extern "C" DLLEXPORT float checkThickness(char* someText, double optValue, char*
 		}
 	}
 	std::string tmp;
-	for (int i = 1; i < 5; ++i)
+	for (int i = 1; i < 3; ++i)
 	{
 		tmp = ZBtextList.at(i);
 		ZBtextList.at(i) = ZBtextList.at(0) + tmp;
+	}
+	for (const auto& s : ZBtextList)
+	{
+		std::cout << s << std::endl;
 	}
 	// [end] parameter decoding end.
 	////
@@ -80,6 +87,7 @@ extern "C" DLLEXPORT float checkThickness(char* someText, double optValue, char*
 	// [end] read triangle from file
 	////
 
+	debug(V, F);
 	////
 	// compute shape diameter function
 	// todo

@@ -1,9 +1,10 @@
-// Sample.cpp : Defines the exported functions for the DLL application.
+﻿// Sample.cpp : Defines the exported functions for the DLL application.
 //
 #include "stdafx.h"
 #include "ThicknessChecker.h"
 
 #include "igl/per_face_normals.h"
+#include "igl/AABB.h"
 
 #include <amp.h>
 #include <amp_graphics.h>
@@ -12,6 +13,62 @@
 // implementation
 ////
 #define RAYCOUNT (25)
+
+bool rayBoxIntersection(
+	const concurrency::graphics::float_3& orig,
+	const concurrency::graphics::float_3& dir,
+	const concurrency::graphics::float_3& bb_min,
+	const concurrency::graphics::float_3& bb_max
+) restrict(amp)
+{
+	// This should be precomputed and provided as input
+	concurrency::graphics::float_3 inv_dir(1.0f / dir.x, 1.0f / dir.y, 1.0f / dir.z);
+	bool signX, signY, signZ;
+	signX = (inv_dir.x < 0.0f);
+	signY = (inv_dir.y < 0.0f);
+	signZ = (inv_dir.z < 0.0f);
+	// http://people.csail.mit.edu/amy/papers/box-jgt.pdf
+	// "An Efficient and Robust Ray–Box Intersection Algorithm"
+	float tmin, tmax, tymin, tymax, tzmin, tzmax;
+
+	tmin = (((signX) ? bb_max : bb_min).x - orig.x) * inv_dir.x;
+	tmax = (((signX) ? bb_min : bb_max).x - orig.x) * inv_dir.x;
+	tymin = (((signY) ? bb_max : bb_min).y - orig.y) * inv_dir.y;
+	tymax = (((signY) ? bb_min : bb_max).y - orig.y) * inv_dir.y;
+	if ((tmin > tymax) || (tymin > tmax))
+	{
+		return false;
+	}
+	if (tymin > tmin)
+	{
+		tmin = tymin;
+	}
+	if (tymax < tmax)
+	{
+		tmax = tymax;
+	}
+	tzmin = (((signZ) ? bb_max : bb_min).z - orig.z) * inv_dir.z;
+	tzmax = (((signZ) ? bb_min : bb_max).z - orig.z) * inv_dir.z;
+	if ((tmin > tzmax) || (tzmin > tmax))
+	{
+		return false;
+	}
+	if (tzmin > tmin)
+	{
+		tmin = tzmin;
+	}
+	if (tzmax < tmax)
+	{
+		tmax = tzmax;
+	}
+	// t1 == inf
+	// if(!( (tmin < t1) && (tmax > t0) ))
+	if (!(tmax > 0.0f))
+	{
+		return false;
+	}
+	return true;
+}
 
 float rayMeshIntersections(
 	const concurrency::graphics::float_3& orig,
@@ -29,18 +86,17 @@ float rayMeshIntersections(
 	while (unsigned(currentIdx[0]) < bb_mins.get_extent().size())
 	{
 		// check ray-box intersection (currentIdx)
-		// todo
-		if (true)
+		if (rayBoxIntersection(orig, dir, bb_mins[currentIdx], bb_maxs[currentIdx]))
 		{
 			// check this box is leaf or non-leaf
 			if (elements[currentIdx] < 0)
 			{
-				// traverse
+				// non-leaf: traverse
 				currentIdx[0] = currentIdx[0] * 2 + 1;
 			}
 			else
 			{
-				// ray-triangle intersection
+				// leaf: ray-triangle intersection
 				// todo
 				float t = 0.0f; // todo
 				if (t < min_t)
@@ -79,13 +135,6 @@ float rayMeshIntersections(
 	return min_t;
 }
 
-//float rayMeshIntersection(
-//	concurrency::array_view<concurrency::graphics::float_3, 1> V,
-//	concurrency::array_view<concurrency::graphics::int_3, 1> F,
-//	AABBTree aabbTree,
-//	concurrency::array_view<bool, 2> queryBool
-//) restrict(amp);
-//
 float rayTriangleIntersection(
 	float pos[3],
 	float dir[3],
@@ -130,10 +179,19 @@ float computeSDF(
 	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> bb_mins;
 	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> bb_maxs;
 	Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> elements;
+	igl::AABB<Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic>, 3> aabb;
+	aabb.init(V, F);
+	aabb.serialize(bb_mins, bb_maxs, elements);
 	// construct serialized AABB todo.
-	std::vector <concurrency::graphics::float_3> bb_mins_vec(int(bb_mins.rows()));
-	std::vector <concurrency::graphics::float_3> bb_maxs_vec(int(bb_maxs.rows()));
-	std::vector <int> elements_vec(int(elements.rows()));
+	std::vector<concurrency::graphics::float_3> bb_mins_vec(int(bb_mins.rows()));
+	std::vector<concurrency::graphics::float_3> bb_maxs_vec(int(bb_maxs.rows()));
+	std::vector<int> elements_vec(int(elements.rows()));
+	for (int bb = 0; bb < bb_mins.rows(); ++bb)
+	{
+		bb_mins_vec.at(bb) = concurrency::graphics::float_3(bb_mins(bb, 0), bb_mins(bb, 1), bb_mins(bb, 2));
+		bb_maxs_vec.at(bb) = concurrency::graphics::float_3(bb_maxs(bb, 0), bb_maxs(bb, 1), bb_maxs(bb, 2));
+		elements_vec.at(bb) = elements(bb, 0);
+	}
 	concurrency::array_view<concurrency::graphics::float_3, 1> AMP_bb_mins(int(bb_mins.rows()), bb_mins_vec);
 	concurrency::array_view<concurrency::graphics::float_3, 1> AMP_bb_maxs(int(bb_maxs.rows()), bb_maxs_vec);
 	concurrency::array_view<int, 1> AMP_elements(int(elements.rows()), elements_vec);
@@ -165,17 +223,6 @@ float computeSDF(
 		AMP_T[idx] = t;
 	});
 }
-
-//float rayMeshIntersection(
-//	concurrency::array_view<concurrency::graphics::float_3, 1> V,
-//	concurrency::array_view<concurrency::graphics::int_3, 1> F,
-//	AABBTree aabbTree,
-//	concurrency::array_view<bool, 2> queryBool
-//) restrict(amp)
-//{
-//	return 0.0f;
-//}
-//
 
 #define IGL_RAY_TRI_EPSILON 0.000001
 #define IGL_RAY_TRI_CROSS(dest,v1,v2) \
@@ -259,4 +306,27 @@ float rayTriangleIntersection(
 	//v *= inv_det;
 
 	return t;
+}
+
+float debug(
+	const Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic>& V,
+	const Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic>& F
+)
+{
+	igl::AABB<Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic>, 3> aabb;
+
+	aabb.init(V, F);
+	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> bb_mins;
+	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> bb_maxs;
+	Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> elements;
+	aabb.serialize(bb_mins, bb_maxs, elements);
+
+	std::cout << "bb_mins" << std::endl;
+	std::cout << bb_mins << std::endl << std::endl;
+	std::cout << "bb_maxs" << std::endl;
+	std::cout << bb_maxs << std::endl << std::endl;
+	std::cout << "elements: " << elements.rows() << std::endl;
+	std::cout << elements << std::endl << std::endl;
+
+	return 1.0f;
 }
