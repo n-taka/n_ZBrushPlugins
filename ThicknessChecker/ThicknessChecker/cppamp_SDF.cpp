@@ -12,7 +12,7 @@
 #include <amp_graphics.h>
 #include <amp_math.h>
 
-#define DEBUG_CPU
+//#define DEBUG_CPU
 
 ////
 // implementation
@@ -376,7 +376,6 @@ void computeSDF(
 		// write-back
 		AMP_T[idx] = t;
 	});
-	AMP_T.synchronize(); // maybe needless.
 #else
 	for (int tri = 0; tri < F.rows(); ++tri)
 	{
@@ -414,9 +413,10 @@ void computeSDF(
 			AMP_T[idx] = t;
 		}
 	}
-
 #endif
+	AMP_T.synchronize(); // maybe needless.
 
+	std::cout << "intersection done." << std::endl;
 	//for (int t = 0; t < F.rows(); ++t)
 	//{
 	//	for (int r = 0; r < RAYCOUNT; ++r) {
@@ -496,7 +496,6 @@ void computeSDF(
 			AMP_FaceSDF[idx] = -1.0f;
 		}
 	});
-	AMP_FaceSDF.synchronize(); // maybe needless.
 #else
 	for (int tri = 0; tri < F.rows(); ++tri)
 	{
@@ -564,13 +563,15 @@ void computeSDF(
 			AMP_FaceSDF[idx] = -1.0f;
 		}
 	}
-	std::cout << std::endl;
 #endif
+	AMP_FaceSDF.synchronize(); // maybe needless.
 	FaceSDF.resize(F.rows(), 1);
 	for (int f = 0; f < F.rows(); ++f)
 	{
 		FaceSDF(f, 0) = AMP_FaceSDF[f];
 	}
+
+	std::cout << "raw SDF done." << std::endl;
 
 	//////
 	// post process
@@ -614,7 +615,6 @@ void computeSDF(
 		FaceSDF_backup = FaceSDF;
 	}
 	//////
-
 }
 
 

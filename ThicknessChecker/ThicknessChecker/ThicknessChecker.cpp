@@ -40,6 +40,10 @@ extern "C" DLLEXPORT float checkThickness(char* someText, double optValue, char*
 	const float preferredThickness = float(optValue / 1024.0 - std::floor(optValue / (1024.0 * 1024.0)) * 1024.0);
 	const float height = float(optValue / (1024.0 * 1024.0) - std::floor(optValue / (1024.0 * 1024.0 * 1024.0)) * 1024.0);
 
+	std::cout << "minimumThickness: " << minimumThickness << std::endl;
+	std::cout << "preferredThickness: " << preferredThickness << std::endl;
+	std::cout << "height: " << height << std::endl << std::endl;
+
 	std::string ZBtext(someText);
 	std::string separator(",");
 	size_t separator_length = separator.length();
@@ -88,6 +92,7 @@ extern "C" DLLEXPORT float checkThickness(char* someText, double optValue, char*
 	read_OBJ(inputFileName, V, F, VC, FG);
 	// scale for make height (Y) is user-given height.
 	const double scale = (height / (V.col(1).maxCoeff() - V.col(1).minCoeff()));
+	V *= scale;
 	// [end] read triangle from file
 	////
 
@@ -136,9 +141,9 @@ extern "C" DLLEXPORT float checkThickness(char* someText, double optValue, char*
 	// jet color (update polypaint, keep polygroup)
 	Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> VC_Thicknessd;
 	Eigen::Matrix<   int, Eigen::Dynamic, Eigen::Dynamic> VC_Thicknessi;
-	//igl::jet(V_SDF, preferredThickness, minimumThickness, VC_Thicknessd);
+	igl::jet(V_SDF, preferredThickness, minimumThickness, VC_Thicknessd);
 	//std::cout << V_SDF.transpose() << std::endl;
-	igl::jet(V_SDF, V_SDF.minCoeff(), V_SDF.maxCoeff(), VC_Thicknessd);
+	//igl::jet(V_SDF, V_SDF.minCoeff(), V_SDF.maxCoeff(), VC_Thicknessd);
 	std::cout << V_SDF.minCoeff() << std::endl;
 	std::cout << V_SDF.maxCoeff() << std::endl;
 	VC_Thicknessi.resize(VC_Thicknessd.rows(), 4);
