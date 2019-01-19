@@ -4,11 +4,15 @@
 #include "ThicknessChecker.h"
 
 #include "igl/per_face_normals.h"
+#include "igl/triangle_triangle_adjacency.h"
 #include "igl/AABB.h"
 
+#include <unordered_set>
 #include <amp.h>
 #include <amp_graphics.h>
 #include <amp_math.h>
+
+#define DEBUG_CPU
 
 ////
 // implementation
@@ -220,19 +224,18 @@ float AMP_rayMeshIntersections(
 					{
 						min_t = t;
 					}
-
-					// then move to
-					// sibling (odd nodes)
-					// sibling of the parent, grand parent, ... (even nodes)
-					while (currentIdx[0] % 2 == 0 && currentIdx[0] != 0)
-					{
-						currentIdx[0] = (currentIdx[0] - 1) / 2;
-					}
-					if (currentIdx[0] == 0) {
-						break;
-					}
-					currentIdx[0] = currentIdx[0] + 1;
 				}
+				// then move to
+				// sibling (odd nodes)
+				// sibling of the parent, grand parent, ... (even nodes)
+				while (currentIdx[0] % 2 == 0 && currentIdx[0] != 0)
+				{
+					currentIdx[0] = (currentIdx[0] - 1) / 2;
+				}
+				if (currentIdx[0] == 0) {
+					break;
+				}
+				currentIdx[0] = currentIdx[0] + 1;
 			}
 		}
 		else
@@ -257,7 +260,7 @@ void computeSDF(
 	const Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic>& V,
 	const Eigen::Matrix<  int, Eigen::Dynamic, Eigen::Dynamic>& F,
 	const concurrency::accelerator& acc,
-	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> FaceSDF
+	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic>& FaceSDF
 )
 {
 	//////
@@ -329,12 +332,6 @@ void computeSDF(
 	concurrency::array_view<concurrency::graphics::float_3, 1> AMP_SW(RAYCOUNT, SW_vec);
 	//////
 
-	//for (int r = 0; r < RAYCOUNT; ++r)
-	//{
-	//	std::cout << AMP_SW[r].x << " " << AMP_SW[r].y << " " << AMP_SW[r].z << std::endl;
-	//}
-	//return;
-
 	//////
 	// #triangle x #ray array. compute ray-mesh intersection and write to this vector in parallel
 	std::vector<float> T_vec(F.rows() * RAYCOUNT, 0.0f);
@@ -344,13 +341,12 @@ void computeSDF(
 	}
 	concurrency::array_view<float, 2> AMP_T(int(F.rows()), RAYCOUNT, T_vec);
 	//////
-#if 1
+#ifndef DEBUG_CPU
 	concurrency::parallel_for_each(acc.get_default_view(),
 		AMP_T.extent,
 		[=](concurrency::index<2> idx) restrict(amp) {
 		// source point
-		concurrency::graphics::float_3 source(0.0f, 0.0f, 0.0f);
-		source =
+		concurrency::graphics::float_3 source =
 			(AMP_V[AMP_F[concurrency::index<1>(idx[0])].x]
 				+ AMP_V[AMP_F[concurrency::index<1>(idx[0])].y]
 				+ AMP_V[AMP_F[concurrency::index<1>(idx[0])].z]) / 3.0f;
@@ -387,8 +383,7 @@ void computeSDF(
 		for (int r = 0; r < RAYCOUNT; ++r) {
 			concurrency::index<2> idx(tri, r);
 			// source point
-			concurrency::graphics::float_3 source(0.0f, 0.0f, 0.0f);
-			source =
+			concurrency::graphics::float_3 source =
 				(AMP_V[AMP_F[concurrency::index<1>(idx[0])].x]
 					+ AMP_V[AMP_F[concurrency::index<1>(idx[0])].y]
 					+ AMP_V[AMP_F[concurrency::index<1>(idx[0])].z]) / 3.0f;
@@ -422,13 +417,204 @@ void computeSDF(
 
 #endif
 
-	for (int t = 0; t < F.rows(); ++t)
-	{
-		for (int r = 0; r < RAYCOUNT; ++r) {
-			std::cout << AMP_T[concurrency::index<2>(t, r)] << " ";
+	//for (int t = 0; t < F.rows(); ++t)
+	//{
+	//	for (int r = 0; r < RAYCOUNT; ++r) {
+	//		std::cout << AMP_T[concurrency::index<2>(t, r)] << " ";
+	//	}
+	//	std::cout << std::endl;
+	//}
+
+	std::vector<float> FaceSDF_vec(int(F.rows()), 0.0f);
+	concurrency::array_view<float, 1> AMP_FaceSDF(int(F.rows()), FaceSDF_vec);
+
+	const float number_of_mad = 1.5f;
+#ifndef DEBUG_CPU
+	concurrency::parallel_for_each(acc.get_default_view(),
+		AMP_FaceSDF.extent,
+		[=](concurrency::index<1> idx) restrict(amp) {
+		float avg = 0.0f;
+		float validCount = 0.0f;
+		for (int r = 0; r < RAYCOUNT; ++r)
+		{
+			if (AMP_T(idx[0], r) >= 0.0f)
+			{
+				avg += AMP_T(idx[0], r);
+				validCount += 1.0f;
+			}
 		}
-		std::cout << std::endl;
+		if (validCount < 0.5f)
+		{
+			AMP_FaceSDF[idx] = -1.0f;
+			return;
+		}
+		avg /= validCount;
+
+		// use standard deviation and ratio of 1.5; (different from CGAL (median absolute))
+		float standardDeviation = 0.0f;
+		float acceptCount = 0.0f;
+		for (int r = 0; r < RAYCOUNT; ++r)
+		{
+			if (AMP_T(idx[0], r) >= 0.0f)
+			{
+				float diff = AMP_T(idx[0], r) - avg;
+				standardDeviation += (diff * diff);
+				acceptCount += 1.0f;
+			}
+		}
+
+		if (acceptCount > 0.5f)
+		{
+			standardDeviation /= acceptCount;
+			standardDeviation = concurrency::fast_math::sqrt(standardDeviation);
+
+			float weightedSDF = 0.0f;
+			float weightSum = 0.0f;
+			for (int r = 0; r < RAYCOUNT; ++r)
+			{
+				if (AMP_T(idx[0], r) >= 0.0f)
+				{
+					const float deviation = concurrency::fast_math::fabs(AMP_T(idx[0], r) - avg);
+					if (deviation <= number_of_mad * standardDeviation)
+					{
+						weightedSDF += (AMP_SW[r].z * AMP_T(idx[0], r));
+						weightSum += AMP_SW[r].z;
+					}
+				}
+			}
+			if (weightSum > 0.0f)
+			{
+				AMP_FaceSDF[idx] = weightedSDF / weightSum;
+			}
+			else
+			{
+				AMP_FaceSDF[idx] = -1.0f;
+			}
+		}
+		else
+		{
+			AMP_FaceSDF[idx] = -1.0f;
+		}
+	});
+	AMP_FaceSDF.synchronize(); // maybe needless.
+#else
+	for (int tri = 0; tri < F.rows(); ++tri)
+	{
+		concurrency::index<1> idx(tri);
+		float avg = 0.0f;
+		float validCount = 0.0f;
+		for (int r = 0; r < RAYCOUNT; ++r)
+		{
+			if (AMP_T(idx[0], r) >= 0.0f)
+			{
+				avg += AMP_T(idx[0], r);
+				validCount += 1.0f;
+			}
+		}
+		if (validCount < 0.5f)
+		{
+			AMP_FaceSDF[idx] = -1.0f;
+			return;
+		}
+		avg /= validCount;
+
+		// use standard deviation and ratio of 1.5; (different from CGAL (median absolute))
+		float standardDeviation = 0.0f;
+		float acceptCount = 0.0f;
+		for (int r = 0; r < RAYCOUNT; ++r)
+		{
+			if (AMP_T(idx[0], r) >= 0.0f)
+			{
+				float diff = AMP_T(idx[0], r) - avg;
+				standardDeviation += (diff * diff);
+				acceptCount += 1.0f;
+			}
+		}
+
+		if (acceptCount > 0.5f)
+		{
+			standardDeviation /= acceptCount;
+			standardDeviation = concurrency::fast_math::sqrt(standardDeviation);
+
+			float weightedSDF = 0.0f;
+			float weightSum = 0.0f;
+			for (int r = 0; r < RAYCOUNT; ++r)
+			{
+				if (AMP_T(idx[0], r) >= 0.0f)
+				{
+					const float deviation = concurrency::fast_math::fabs(AMP_T(idx[0], r) - avg);
+					if (deviation <= number_of_mad * standardDeviation)
+					{
+						weightedSDF += (AMP_SW[r].z * AMP_T(idx[0], r));
+						weightSum += AMP_SW[r].z;
+					}
+				}
+			}
+			if (weightSum > 0.0f)
+			{
+				AMP_FaceSDF[idx] = weightedSDF / weightSum;
+			}
+			else
+			{
+				AMP_FaceSDF[idx] = -1.0f;
+			}
+		}
+		else
+		{
+			AMP_FaceSDF[idx] = -1.0f;
+		}
 	}
+	std::cout << std::endl;
+#endif
+	FaceSDF.resize(F.rows(), 1);
+	for (int f = 0; f < F.rows(); ++f)
+	{
+		FaceSDF(f, 0) = AMP_FaceSDF[f];
+	}
+
+	//////
+	// post process
+	Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> TT;
+	igl::triangle_triangle_adjacency(F, TT);
+
+	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> FaceSDF_backup = FaceSDF;
+	std::unordered_set<int> idSet, idSetNext;
+	for (int f = 0; f < FaceSDF.rows(); ++f)
+	{
+		if (FaceSDF(f, 0) < 0.0f)
+		{
+			idSet.insert(f);
+		}
+	}
+	while (!(idSet.empty()))
+	{
+		for (const auto& idx : idSet)
+		{
+			float val = 0.0f;
+			int count = 0;
+			for (int e = 0; e < 3; ++e)
+			{
+				if (FaceSDF_backup(TT(idx, e)) >= 0.0f)
+				{
+					val += FaceSDF_backup(TT(idx, e));
+					count++;
+				}
+			}
+			if (count > 0)
+			{
+				FaceSDF(idx, 0) = val / count;
+			}
+			else
+			{
+				idSetNext.insert(idx);
+			}
+		}
+		idSet = idSetNext;
+		idSetNext.clear();
+		FaceSDF_backup = FaceSDF;
+	}
+	//////
+
 }
 
 

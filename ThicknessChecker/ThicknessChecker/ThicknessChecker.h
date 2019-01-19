@@ -40,7 +40,7 @@ void computeSDF(
 	const Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic>& V,
 	const Eigen::Matrix<  int, Eigen::Dynamic, Eigen::Dynamic>& F,
 	const concurrency::accelerator& acc,
-	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> FaceSDF
+	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic>& FaceSDF
 );
 
 float debug(

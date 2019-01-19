@@ -4,7 +4,7 @@
 #include "ThicknessChecker.h"
 #include <vector>
 #include <iostream>
-#include <fstream>
+#include <chrono>
 
 #include "igl/jet.h"
 
@@ -98,8 +98,14 @@ extern "C" DLLEXPORT float checkThickness(char* someText, double optValue, char*
 
 	////
 	// compute shape diameter function
+	std::chrono::system_clock::time_point start, end;
+	start = std::chrono::system_clock::now();
 	computeSDF(V, F, acc, F_RAWSDF);
-	return 0.0f;
+	end = std::chrono::system_clock::now();
+	double elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+	std::cout << "elapsed time for computation: " << elapsed << " [ms]" << std::endl;
+	//std::cout << F_RAWSDF << std::endl;
+	//return 0.0f;
 	// todo
 	////
 
@@ -130,7 +136,11 @@ extern "C" DLLEXPORT float checkThickness(char* someText, double optValue, char*
 	// jet color (update polypaint, keep polygroup)
 	Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> VC_Thicknessd;
 	Eigen::Matrix<   int, Eigen::Dynamic, Eigen::Dynamic> VC_Thicknessi;
-	igl::jet(V_SDF, preferredThickness, minimumThickness, VC_Thicknessd);
+	//igl::jet(V_SDF, preferredThickness, minimumThickness, VC_Thicknessd);
+	//std::cout << V_SDF.transpose() << std::endl;
+	igl::jet(V_SDF, V_SDF.minCoeff(), V_SDF.maxCoeff(), VC_Thicknessd);
+	std::cout << V_SDF.minCoeff() << std::endl;
+	std::cout << V_SDF.maxCoeff() << std::endl;
 	VC_Thicknessi.resize(VC_Thicknessd.rows(), 4);
 	for (int v = 0; v < V.rows(); ++v)
 	{

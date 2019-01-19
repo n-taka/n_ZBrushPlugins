@@ -8,7 +8,7 @@
 
 int main(int argc, char* argv[])
 {
-	char dummyc0[100] = "../../testModels/,cube2.obj,thickness.obj,Radeon RX Vega M GH Graphics\0";
+	char dummyc0[100] = "../../testModels/,Dog.OBJ,thickness.obj,Radeon RX Vega M GH Graphics\0";
 	char dummyc1[4096], dummyc2[4096];
 	char dummyc3[] = "hello";
 	double dummyd = 50;
