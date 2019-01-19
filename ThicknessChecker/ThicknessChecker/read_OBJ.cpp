@@ -23,7 +23,7 @@ bool read_OBJ(
 )
 {
 	// currently assume triangle mesh.
-    std::cout << fileName << std::endl;
+    //std::cout << fileName << std::endl;
 
 	FILE * obj_file = fopen(fileName.c_str(), "r");
 	if (NULL == obj_file)

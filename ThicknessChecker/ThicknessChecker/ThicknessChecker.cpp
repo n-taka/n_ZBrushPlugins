@@ -66,10 +66,14 @@ extern "C" DLLEXPORT float checkThickness(char* someText, double optValue, char*
 		tmp = ZBtextList.at(i);
 		ZBtextList.at(i) = ZBtextList.at(0) + tmp;
 	}
-	for (const auto& s : ZBtextList)
-	{
-		std::cout << s << std::endl;
-	}
+
+	const std::string& inputFileName = ZBtextList.at(1);
+	const std::string& outputFileName = ZBtextList.at(2);
+	const std::string& acceleratorName = ZBtextList.at(3);
+
+	std::cout << "Input file: " << inputFileName << std::endl;
+	std::cout << "Output file: " << outputFileName << std::endl;
+	std::cout << "Accelerator: " << acceleratorName << std::endl << std::endl;
 	// [end] parameter decoding end.
 	////
 
@@ -81,15 +85,20 @@ extern "C" DLLEXPORT float checkThickness(char* someText, double optValue, char*
 	Eigen::Matrix<  int, Eigen::Dynamic, Eigen::Dynamic> FG;
 	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> F_RAWSDF;
 
-	read_OBJ(ZBtextList.at(1), V, F, VC, FG);
+	read_OBJ(inputFileName, V, F, VC, FG);
 	// scale for make height (Y) is user-given height.
 	const double scale = (height / (V.col(1).maxCoeff() - V.col(1).minCoeff()));
 	// [end] read triangle from file
 	////
 
 	////
+	// set up accelerator
+	concurrency::accelerator acc = selectAccelerator(acceleratorName);
+	////
+
+	////
 	// compute shape diameter function
-	computeSDF(V, F, F_RAWSDF);
+	computeSDF(V, F, acc, F_RAWSDF);
 	return 0.0f;
 	// todo
 	////
@@ -130,7 +139,7 @@ extern "C" DLLEXPORT float checkThickness(char* someText, double optValue, char*
 		VC_Thicknessi(v, 2) = int(VC_Thicknessd(v, 1) * 255); // G
 		VC_Thicknessi(v, 3) = int(VC_Thicknessd(v, 2) * 255); // B
 	}
-	write_OBJ(ZBtextList.at(3), V, F, VC_Thicknessi, FG);
+	write_OBJ(outputFileName, V, F, VC_Thicknessi, FG);
 	////
 
 	return 0.0f;

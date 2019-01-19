@@ -8,13 +8,20 @@
 
 #include <amp.h>
 #include <amp_graphics.h>
+#include <amp_math.h>
 
 ////
 // implementation
 ////
-#define RAYCOUNT (1)
+#define PI (3.14159265359)
+// 30: original paper
+// 25: CGAL implementation
+#define RAYCOUNT (25)
+//
+// [0, pi]
+#define CONE_OPENING_ANGLE (2.0f / 3.0f * PI)
 
-bool rayBoxIntersection(
+bool AMP_rayBoxIntersection(
 	const concurrency::graphics::float_3& orig,
 	const concurrency::graphics::float_3& dir,
 	const concurrency::graphics::float_3& bb_min,
@@ -86,16 +93,20 @@ bool rayBoxIntersection(
 
 #define IGL_RAY_TRI_EPSILON 0.000001
 #define IGL_RAY_TRI_CROSS(dest,v1,v2) \
-          dest.x=v1.y*v2.z-v1.z*v2.y; \
-          dest.y=v1.z*v2.x-v1.x*v2.z; \
-          dest.z=v1.x*v2.y-v1.y*v2.x;
-#define IGL_RAY_TRI_DOT(v1,v2) (v1.x*v2.x+v1.y*v2.y+v1.z*v2.z)
+          dest.x=(v1).y*(v2).z-(v1).z*(v2).y; \
+          dest.y=(v1).z*(v2).x-(v1).x*(v2).z; \
+          dest.z=(v1).x*(v2).y-(v1).y*(v2).x;
+#define IGL_RAY_TRI_DOT(v1,v2) ((v1).x*(v2).x+(v1).y*(v2).y+(v1).z*(v2).z)
+#define RAY_TRI_ADD(dest,v1,v2) \
+          dest.x=(v1).x+(v2).x; \
+          dest.y=(v1).y+(v2).y; \
+          dest.z=(v1).z+(v2).z; 
 #define IGL_RAY_TRI_SUB(dest,v1,v2) \
-          dest.x=v1.x-v2.x; \
-          dest.y=v1.y-v2.y; \
-          dest.z=v1.z-v2.z; 
+          dest.x=(v1).x-(v2).x; \
+          dest.y=(v1).y-(v2).y; \
+          dest.z=(v1).z-(v2).z; 
 
-float rayTriangleIntersection(
+float AMP_rayTriangleIntersection(
 	concurrency::graphics::float_3 orig,
 	concurrency::graphics::float_3 dir,
 	concurrency::graphics::float_3 vert0,
@@ -169,15 +180,15 @@ float rayTriangleIntersection(
 	return t;
 }
 
-float rayMeshIntersections(
-	const int& origId,
+float AMP_rayMeshIntersections(
 	const concurrency::graphics::float_3& orig,
 	const concurrency::graphics::float_3& dir,
 	const concurrency::array_view<concurrency::graphics::float_3, 1>& bb_mins,
 	const concurrency::array_view<concurrency::graphics::float_3, 1>& bb_maxs,
 	const concurrency::array_view<int, 1>& elements,
 	const concurrency::array_view<concurrency::graphics::float_3, 1>& V,
-	const concurrency::array_view<concurrency::graphics::int_3, 1>& F
+	const concurrency::array_view<concurrency::graphics::int_3, 1>& F,
+	const concurrency::array_view<concurrency::graphics::float_3, 1>& FN
 ) restrict(amp, cpu)
 {
 	float min_t = -1.0;
@@ -186,7 +197,7 @@ float rayMeshIntersections(
 	while (unsigned(currentIdx[0]) < bb_mins.get_extent().size())
 	{
 		// check ray-box intersection (currentIdx)
-		if (rayBoxIntersection(orig, dir, bb_mins[currentIdx], bb_maxs[currentIdx]))
+		if (AMP_rayBoxIntersection(orig, dir, bb_mins[currentIdx], bb_maxs[currentIdx]))
 		{
 			// check this box is leaf or non-leaf
 			if (elements[currentIdx] < 0)
@@ -197,12 +208,14 @@ float rayMeshIntersections(
 			else
 			{
 				// leaf: ray-triangle intersection
-				if (elements[currentIdx[0]] != origId)
+				// ignore false intersection (see original paper)
+				// as bonus, intersection with itself is also ignored.
+				if (IGL_RAY_TRI_DOT(FN[elements[currentIdx]], dir) > 0.0f)
 				{
 					const concurrency::graphics::float_3& vert0 = V[F[elements[currentIdx]].x];
 					const concurrency::graphics::float_3& vert1 = V[F[elements[currentIdx]].y];
 					const concurrency::graphics::float_3& vert2 = V[F[elements[currentIdx]].z];
-					float t = rayTriangleIntersection(orig, dir, vert0, vert1, vert2);
+					float t = AMP_rayTriangleIntersection(orig, dir, vert0, vert1, vert2);
 					if (t > 0.0 && (t < min_t || min_t < 0.0))
 					{
 						min_t = t;
@@ -243,6 +256,7 @@ float rayMeshIntersections(
 void computeSDF(
 	const Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic>& V,
 	const Eigen::Matrix<  int, Eigen::Dynamic, Eigen::Dynamic>& F,
+	const concurrency::accelerator& acc,
 	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> FaceSDF
 )
 {
@@ -281,7 +295,7 @@ void computeSDF(
 	igl::AABB<Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic>, 3> aabb;
 	aabb.init(V, F);
 	aabb.serialize(bb_mins, bb_maxs, elements);
-	// construct serialized AABB todo.
+	// construct serialized AABB
 	std::vector<concurrency::graphics::float_3> bb_mins_vec(int(bb_mins.rows()));
 	std::vector<concurrency::graphics::float_3> bb_maxs_vec(int(bb_maxs.rows()));
 	std::vector<int> elements_vec(int(elements.rows()));
@@ -297,6 +311,31 @@ void computeSDF(
 	//////
 
 	//////
+	// generate uniform disk sampling (with weighting) (similar to the CGAL)
+	//Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> SW;
+	//SW.resize(RAYCOUNT, 3);
+	std::vector<concurrency::graphics::float_3> SW_vec(RAYCOUNT);
+	const float golden_ratio = 3.0 - std::sqrt(5.0);
+	const float diskRadius = tan(CONE_OPENING_ANGLE / 2.0f);
+	for (int sw = 0; sw < RAYCOUNT; ++sw) {
+		float Q = sw * golden_ratio * PI;
+		float R = std::sqrt(static_cast<float>(sw) / RAYCOUNT);
+		float weight = exp(-0.5f * (std::pow(R / 3.0f, 2)));
+
+		SW_vec.at(sw).x = diskRadius * R * cos(Q);
+		SW_vec.at(sw).y = diskRadius * R * sin(Q);
+		SW_vec.at(sw).z = weight;
+	}
+	concurrency::array_view<concurrency::graphics::float_3, 1> AMP_SW(RAYCOUNT, SW_vec);
+	//////
+
+	//for (int r = 0; r < RAYCOUNT; ++r)
+	//{
+	//	std::cout << AMP_SW[r].x << " " << AMP_SW[r].y << " " << AMP_SW[r].z << std::endl;
+	//}
+	//return;
+
+	//////
 	// #triangle x #ray array. compute ray-mesh intersection and write to this vector in parallel
 	std::vector<float> T_vec(F.rows() * RAYCOUNT, 0.0f);
 	for (int i = 0; i < T_vec.size(); ++i)
@@ -305,47 +344,76 @@ void computeSDF(
 	}
 	concurrency::array_view<float, 2> AMP_T(int(F.rows()), RAYCOUNT, T_vec);
 	//////
-
-#if 0
-	concurrency::parallel_for_each(
+#if 1
+	concurrency::parallel_for_each(acc.get_default_view(),
 		AMP_T.extent,
 		[=](concurrency::index<2> idx) restrict(amp) {
 		// source point
 		concurrency::graphics::float_3 source(0.0f, 0.0f, 0.0f);
 		source =
-			AMP_V[concurrency::index<1>(AMP_F[concurrency::index<1>(idx[0])].x)]
-			+ AMP_V[concurrency::index<1>(AMP_F[concurrency::index<1>(idx[0])].y)]
-			+ AMP_V[concurrency::index<1>(AMP_F[concurrency::index<1>(idx[0])].z)];
+			(AMP_V[AMP_F[concurrency::index<1>(idx[0])].x]
+				+ AMP_V[AMP_F[concurrency::index<1>(idx[0])].y]
+				+ AMP_V[AMP_F[concurrency::index<1>(idx[0])].z]) / 3.0f;
 
 		// generate dir (use pre-defined??)
 		concurrency::graphics::float_3 dir = -AMP_FN[idx[0]];
+		// directions on disk
+		concurrency::graphics::float_3 base1, base2;
+		IGL_RAY_TRI_SUB(base1, AMP_V[concurrency::index<1>(AMP_F[concurrency::index<1>(idx[0])].x)], source);
+		float norm2_1 = IGL_RAY_TRI_DOT(base1, base1);
+		float norm_1 = concurrency::fast_math::sqrtf(norm2_1);
+		base1 /= norm_1;
+		IGL_RAY_TRI_CROSS(base2, dir, base1);
+		base1 *= AMP_SW[idx[1]].x;
+		base2 *= AMP_SW[idx[1]].y;
+
+		RAY_TRI_ADD(dir, dir, base1);
+		RAY_TRI_ADD(dir, dir, base2);
+
+		float norm2_d = IGL_RAY_TRI_DOT(dir, dir);
+		float norm_d = concurrency::fast_math::sqrtf(norm2_d);
+		dir /= norm_d;
 
 		// do computation
-		float t = rayMeshIntersections(idx[0], source, dir, AMP_bb_mins, AMP_bb_maxs, AMP_elements, AMP_V, AMP_F);
+		float t = AMP_rayMeshIntersections(source, dir, AMP_bb_mins, AMP_bb_maxs, AMP_elements, AMP_V, AMP_F, AMP_FN);
 
 		// write-back
 		AMP_T[idx] = t;
-});
+	});
+	AMP_T.synchronize(); // maybe needless.
 #else
 	for (int tri = 0; tri < F.rows(); ++tri)
 	{
-		std::cout << tri << std::endl;
 		for (int r = 0; r < RAYCOUNT; ++r) {
 			concurrency::index<2> idx(tri, r);
 			// source point
 			concurrency::graphics::float_3 source(0.0f, 0.0f, 0.0f);
 			source =
-				(AMP_V[concurrency::index<1>(AMP_F[idx[0]].x)]
-					+ AMP_V[concurrency::index<1>(AMP_F[idx[0]].y)]
-					+ AMP_V[concurrency::index<1>(AMP_F[idx[0]].z)]) / 3.0;
+				(AMP_V[AMP_F[concurrency::index<1>(idx[0])].x]
+					+ AMP_V[AMP_F[concurrency::index<1>(idx[0])].y]
+					+ AMP_V[AMP_F[concurrency::index<1>(idx[0])].z]) / 3.0f;
 
 			// generate dir (use pre-defined??)
 			concurrency::graphics::float_3 dir = -AMP_FN[idx[0]];
+			// directions on disk
+			concurrency::graphics::float_3 base1, base2;
+			IGL_RAY_TRI_SUB(base1, AMP_V[concurrency::index<1>(AMP_F[concurrency::index<1>(idx[0])].x)], source);
+			float norm2_1 = IGL_RAY_TRI_DOT(base1, base1);
+			float norm_1 = sqrt(norm2_1);
+			base1 /= norm_1;
+			IGL_RAY_TRI_CROSS(base2, dir, base1);
+			base1 *= AMP_SW[idx[1]].x;
+			base2 *= AMP_SW[idx[1]].y;
 
-			std::cout << source.x << " " << source.y << " " << source.z << std::endl;
-			std::cout << dir.x << " " << dir.y << " " << dir.z << std::endl;
+			RAY_TRI_ADD(dir, dir, base1);
+			RAY_TRI_ADD(dir, dir, base2);
+
+			float norm2_d = IGL_RAY_TRI_DOT(dir, dir);
+			float norm_d = sqrt(norm2_d);
+			dir /= norm_d;
+
 			// do computation
-			float t = rayMeshIntersections(idx[0], source, dir, AMP_bb_mins, AMP_bb_maxs, AMP_elements, AMP_V, AMP_F);
+			float t = AMP_rayMeshIntersections(source, dir, AMP_bb_mins, AMP_bb_maxs, AMP_elements, AMP_V, AMP_F, AMP_FN);
 
 			// write-back
 			AMP_T[idx] = t;

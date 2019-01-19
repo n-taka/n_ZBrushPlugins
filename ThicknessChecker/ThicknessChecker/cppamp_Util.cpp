@@ -28,7 +28,7 @@ namespace {
 	}
 }
 
-extern "C" DLLEXPORT float AMP_getAccelerator(char* someText, double optValue, char* outputBuffer, int optBuffer1Size, char* pOptBuffer2, int optBuffer2Size, char** zData)
+extern "C" DLLEXPORT float getAccelerator(char* someText, double optValue, char* outputBuffer, int optBuffer1Size, char* pOptBuffer2, int optBuffer2Size, char** zData)
 {
 	std::vector<concurrency::accelerator> accels;
 	accels = concurrency::accelerator::get_all();
@@ -70,7 +70,7 @@ extern "C" DLLEXPORT float AMP_getAccelerator(char* someText, double optValue, c
 		// CPU shared memory
 		str += "CPU shared memory: ";
 		str += (acc.get_supports_cpu_shared_memory() ? "yes" : "no");
-		str += "\n";
+		//str += "\n";
 
 		if (accIdx < accels.size() - 1)
 		{
@@ -81,4 +81,34 @@ extern "C" DLLEXPORT float AMP_getAccelerator(char* someText, double optValue, c
 	sprintf(outputBuffer, "%s", str.c_str());
 
 	return 0.0f;
+}
+
+concurrency::accelerator selectAccelerator(const std::string& acceleratorName)
+{
+	std::vector<concurrency::accelerator> accels;
+	accels = concurrency::accelerator::get_all();
+
+	accels.erase(std::remove_if(accels.begin(), accels.end(), [](const concurrency::accelerator& accel) {return accel.get_is_emulated(); }), accels.end());
+
+	for (int accIdx = 0; accIdx < accels.size(); ++accIdx)
+	{
+		concurrency::accelerator& acc = accels.at(accIdx);
+
+		// accelerator name
+		std::wstring wstr = acc.get_description();
+		std::string tmpStr(wstr.begin(), wstr.end());
+		if (tmpStr == acceleratorName)
+		{
+			std::cout << "[[ selected accelerator ]]" << std::endl;
+			getAccelDiscription(acc);
+
+			return acc;
+		}
+	}
+
+
+	concurrency::accelerator defaultAcc = concurrency::accelerator(concurrency::accelerator::default_accelerator);
+	std::cout << "[[ selected accelerator ]]" << std::endl;
+	getAccelDiscription(defaultAcc);
+	return defaultAcc;
 }

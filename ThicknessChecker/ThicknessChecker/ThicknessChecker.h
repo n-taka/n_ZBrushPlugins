@@ -1,6 +1,7 @@
 #pragma once
 #if defined(_WIN32) || defined(_WIN64)
 #include <Windows.h>
+#include <amp.h>
 #endif
 
 #include "Eigen/Core"
@@ -13,9 +14,11 @@
 
 extern "C" DLLEXPORT float version(char* someText, double optValue, char* outputBuffer, int optBuffer1Size, char* pOptBuffer2, int optBuffer2Size, char** zData);
 
-extern "C" DLLEXPORT float AMP_getAccelerator(char* someText, double optValue, char* outputBuffer, int optBuffer1Size, char* pOptBuffer2, int optBuffer2Size, char** zData);
-
 extern "C" DLLEXPORT float checkThickness(char* someText, double optValue, char* outputBuffer, int optBuffer1Size, char* pOptBuffer2, int optBuffer2Size, char** zData);
+
+extern "C" DLLEXPORT float getAccelerator(char* someText, double optValue, char* outputBuffer, int optBuffer1Size, char* pOptBuffer2, int optBuffer2Size, char** zData);
+
+concurrency::accelerator selectAccelerator(const std::string& acceleratorName);
 
 bool read_OBJ(
 	const std::string& fileName,
@@ -36,6 +39,7 @@ bool write_OBJ(
 void computeSDF(
 	const Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic>& V,
 	const Eigen::Matrix<  int, Eigen::Dynamic, Eigen::Dynamic>& F,
+	const concurrency::accelerator& acc,
 	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> FaceSDF
 );
 

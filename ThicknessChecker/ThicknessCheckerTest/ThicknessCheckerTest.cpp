@@ -8,14 +8,19 @@
 
 int main(int argc, char* argv[])
 {
-	char dummyc0[100] = "../../testModels/,cube2.obj,thickness.obj,dymmy...";
+	char dummyc0[100] = "../../testModels/,cube2.obj,thickness.obj,Radeon RX Vega M GH Graphics\0";
 	char dummyc1[4096], dummyc2[4096];
 	char dummyc3[] = "hello";
 	double dummyd = 50;
 	int dummyi0 = 0;
 	int dummyi1 = 0;
+
+	// "Intel(R) HD Graphics 630"
+	// "Radeon RX Vega M GH Graphics"
+	
 	checkThickness(dummyc0, dummyd, dummyc1, dummyi0, dummyc2, dummyi1, (char**)&dummyc3);
-	//AMP_getAccelerator(dummyc0, dummyd, dummyc1, dummyi0, dummyc2, dummyi1, (char**)&dummyc3);
+	
+	//getAccelerator(dummyc0, dummyd, dummyc1, dummyi0, dummyc2, dummyi1, (char**)&dummyc3);
 	//std::cout << dummyc1 << std::endl;
 }
 
