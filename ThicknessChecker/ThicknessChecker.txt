@@ -18,7 +18,7 @@
 [VarDef, doubleParam]
 [MemCreate, acceleratorTextMem, 256, 0]
 [VarDef, acceleratorText, ""]
-[VarDef, chosenAccelerator, ""]
+[VarDef, chosenAccelerator, "dummy"]
 
 // check if this plugin is correctly installed
 // from http://docs.pixologic.com/user-guide/customizing-zbrush/zscripting/zfileutils/#dllPath
@@ -104,7 +104,7 @@
 
 [ISubPalette, "ZPlugin:ThicknessChecker:GPU"]
 
-[ISwitch, [StrMerge, "ZPlugin:ThicknessChecker:GPU:", [Var, acceleratorNames(0)]], 0, [Var, acceleratorSpecs(0)],
+[ISwitch, [StrMerge, "ZPlugin:ThicknessChecker:GPU:", [Var, acceleratorNames(0)]], 1, [Var, acceleratorSpecs(0)],
     [VarSet, chosenAccelerator, [Var, acceleratorNames(0)]]
     [RoutineCall, oneHot]
     ,
@@ -145,6 +145,9 @@
     loopCount
 ]
 
+[VarSet, chosenAccelerator,  [Var, acceleratorNames(0)]]
+
+
 [IButton, "ZPlugin:ThicknessChecker:Compute", "Compute thickness",
     [If, [IExists, Tool:Export],
         [RoutineCall, CheckSystem]
@@ -183,22 +186,27 @@
 
         // "../../testModels/,Dog.obj,thickness.obj,Radeon RX Vega M GH Graphics\0"
         [VarDef, textForDll, [StrMerge, [Var, dataDirPath], ",", [Var, tmpFile], ",", [Var, colorOBJFile], ",", [Var, chosenAccelerator]]]
-        [VarDef, doubleForDll, [Var, height] * 1024.0 * 1024.0 + [Var, [preferredThickness] * 1024.0] + [Var, minimumThickness]]
-        [FileExecute, [Var, dllPath], "checkThickness", textForDll, doubleForDll]
+        [MVarDef, mem, 3, 0]
+        [MVarSet, mem, 0, [Var, height]]
+        [MVarSet, mem, 1, [Var, preferredThickness]]
+        [MVarSet, mem, 2, [Var, minimumThickness]]
+        // [VarDef, doubleForDll, ([Var, height] * 1024.0 * 1024.0) + ([Var, preferredThickness] * 1024.0) + [Var, minimumThickness]]
+        [VarDef, result, [FileExecute, [Var, dllPath], "checkThickness", textForDll, 0, mem]]
 
+        [If, result,
+            // import to Tool
+            [IPress,Tool:PolyMesh3D]
+            [FileNameSetNext, [StrMerge, [Var, dataDirPath], [Var, colorOBJFile]]]
+            [IPress,"Tool:Import"]
 
-        // import to Tool
-        [IPress,Tool:PolyMesh3D]
-        [FileNameSetNext, [StrMerge, [Var, dataDirPath], [Var, colorOBJFile]]]
-        [IPress,"Tool:Import"]
-
-        // erase temporary file.
-        [FileDelete, [StrMerge, [Var, dataDirPath], [Var, memFile]]]
-        [FileDelete, [StrMerge, [Var, dataDirPath], [Var, tmpFile]]]
-        [FileDelete, [StrMerge, [Var, dataDirPath], [Var, colorOBJFile]]]
-
-        [FileDelete, [StrMerge, [Var, dataDirPath], [Var, tmpFile]]]
+            // erase temporary file.
+            [FileDelete, [StrMerge, [Var, dataDirPath], [Var, tmpFile]]]
+            [FileDelete, [StrMerge, [Var, dataDirPath], [Var, colorOBJFile]]]
         ,
+            [Note, "Sorry, there is some error..."]
+        ]
     ]
-    [Note, [Var, chosenAccelerator]]
+    ,
+    0,
+    1
 ]
