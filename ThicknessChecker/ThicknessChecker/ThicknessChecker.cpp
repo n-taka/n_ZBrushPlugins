@@ -87,9 +87,10 @@ extern "C" DLLEXPORT float checkThickness(char* someText, double optValue, char*
 	// [end] read triangle from file
 	////
 
-	debug(V, F);
 	////
 	// compute shape diameter function
+	computeSDF(V, F, F_RAWSDF);
+	return 0.0f;
 	// todo
 	////
 

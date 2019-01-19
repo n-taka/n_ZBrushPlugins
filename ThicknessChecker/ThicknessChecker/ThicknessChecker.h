@@ -33,9 +33,10 @@ bool write_OBJ(
 	const Eigen::Matrix<  int, Eigen::Dynamic, Eigen::Dynamic>& FG
 );
 
-float computeSDF(
+void computeSDF(
 	const Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic>& V,
-	const Eigen::Matrix<  int, Eigen::Dynamic, Eigen::Dynamic>& F
+	const Eigen::Matrix<  int, Eigen::Dynamic, Eigen::Dynamic>& F,
+	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> FaceSDF
 );
 
 float debug(

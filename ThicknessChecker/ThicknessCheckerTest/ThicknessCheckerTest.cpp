@@ -8,7 +8,7 @@
 
 int main(int argc, char* argv[])
 {
-	char dummyc0[100] = "../../testModels/,cube.obj,thickness.obj,dymmy...";
+	char dummyc0[100] = "../../testModels/,cube2.obj,thickness.obj,dymmy...";
 	char dummyc1[4096], dummyc2[4096];
 	char dummyc3[] = "hello";
 	double dummyd = 50;
@@ -16,7 +16,7 @@ int main(int argc, char* argv[])
 	int dummyi1 = 0;
 	checkThickness(dummyc0, dummyd, dummyc1, dummyi0, dummyc2, dummyi1, (char**)&dummyc3);
 	//AMP_getAccelerator(dummyc0, dummyd, dummyc1, dummyi0, dummyc2, dummyi1, (char**)&dummyc3);
-	std::cout << dummyc1 << std::endl;
+	//std::cout << dummyc1 << std::endl;
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu

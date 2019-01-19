@@ -12,17 +12,31 @@
 ////
 // implementation
 ////
-#define RAYCOUNT (25)
+#define RAYCOUNT (1)
 
 bool rayBoxIntersection(
 	const concurrency::graphics::float_3& orig,
 	const concurrency::graphics::float_3& dir,
 	const concurrency::graphics::float_3& bb_min,
 	const concurrency::graphics::float_3& bb_max
-) restrict(amp)
+) restrict(amp, cpu)
 {
 	// This should be precomputed and provided as input
 	concurrency::graphics::float_3 inv_dir(1.0f / dir.x, 1.0f / dir.y, 1.0f / dir.z);
+	//concurrency::graphics::float_3 nonZerodir(dir);
+	//if (dir.x == 0.0f)
+	//{
+	//	nonZerodir.x = 1.0e-16;
+	//}
+	//if (dir.y == 0.0f)
+	//{
+	//	nonZerodir.y = 1.0e-16;
+	//}
+	//if (dir.z == 0.0f)
+	//{
+	//	nonZerodir.z = 1.0e-16;
+	//}
+	//concurrency::graphics::float_3 inv_dir(1.0f / nonZerodir.x, 1.0f / nonZerodir.y, 1.0f / nonZerodir.z);
 	bool signX, signY, signZ;
 	signX = (inv_dir.x < 0.0f);
 	signY = (inv_dir.y < 0.0f);
@@ -70,180 +84,27 @@ bool rayBoxIntersection(
 	return true;
 }
 
-float rayMeshIntersections(
-	const concurrency::graphics::float_3& orig,
-	const concurrency::graphics::float_3& dir,
-	const concurrency::array_view<concurrency::graphics::float_3, 1>& bb_mins,
-	const concurrency::array_view<concurrency::graphics::float_3, 1>& bb_maxs,
-	const concurrency::array_view<int, 1>& elements,
-	const concurrency::array_view<concurrency::graphics::float_3, 1>& V,
-	const concurrency::array_view<concurrency::graphics::int_3, 1>& F
-) restrict(amp)
-{
-	float min_t = -1.0;
-	concurrency::index<1> currentIdx(0);
-	// do traverse...
-	while (unsigned(currentIdx[0]) < bb_mins.get_extent().size())
-	{
-		// check ray-box intersection (currentIdx)
-		if (rayBoxIntersection(orig, dir, bb_mins[currentIdx], bb_maxs[currentIdx]))
-		{
-			// check this box is leaf or non-leaf
-			if (elements[currentIdx] < 0)
-			{
-				// non-leaf: traverse
-				currentIdx[0] = currentIdx[0] * 2 + 1;
-			}
-			else
-			{
-				// leaf: ray-triangle intersection
-				// todo
-				float t = 0.0f; // todo
-				if (t < min_t)
-				{
-					min_t = t;
-				}
-
-				// then move to
-				// sibling (odd nodes)
-				// sibling of the parent, grand parent, ... (even nodes)
-				while (currentIdx[0] % 2 == 0 && currentIdx[0] != 0)
-				{
-					currentIdx[0] = (currentIdx[0] - 1) / 2;
-				}
-				if (currentIdx[0] == 0) {
-					break;
-				}
-				currentIdx += 1;
-			}
-		}
-		else
-		{
-			// then move to
-			// sibling (odd nodes)
-			// sibling of the parent, grand parent, ... (even nodes)
-			while (currentIdx[0] % 2 == 0 && currentIdx[0] != 0)
-			{
-				currentIdx[0] = (currentIdx[0] - 1) / 2;
-			}
-			if (currentIdx[0] == 0) {
-				break;
-			}
-			currentIdx += 1;
-		}
-	}
-	return min_t;
-}
-
-float rayTriangleIntersection(
-	float pos[3],
-	float dir[3],
-	float v0[3],
-	float v1[3],
-	float v2[3]
-) restrict(amp);
-
-float computeSDF(
-	const Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic>& V,
-	const Eigen::Matrix<  int, Eigen::Dynamic, Eigen::Dynamic>& F
-)
-{
-	//////
-	// setup buffers for parallel computation
-	std::vector< concurrency::graphics::float_3 > V_vec(V.rows());
-	for (int v = 0; v < V.rows(); ++v)
-	{
-		V_vec.at(v) = concurrency::graphics::float_3(V(v, 0), V(v, 1), V(v, 2));
-	}
-	concurrency::array_view<concurrency::graphics::float_3, 1> AMP_V(int(V.rows()), V_vec);
-
-	std::vector<concurrency::graphics::int_3> F_vec(F.rows());
-	for (int f = 0; f < F.rows(); ++f)
-	{
-		F_vec.at(f) = concurrency::graphics::int_3(F(f, 0), F(f, 1), F(f, 2));
-	}
-	concurrency::array_view<concurrency::graphics::int_3, 1> AMP_F(int(F.rows()), F_vec);
-
-	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> FN;
-	igl::per_face_normals(V, F, FN);
-	std::vector<concurrency::graphics::float_3> FN_vec(int(FN.rows()));
-	for (int fn = 0; fn < FN.rows(); ++fn)
-	{
-		FN_vec.at(fn) = concurrency::graphics::float_3(FN(fn, 0), FN(fn, 1), FN(fn, 2));
-	}
-	// end setup.
-	//////
-
-	//////
-	// construct AABBTree
-	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> bb_mins;
-	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> bb_maxs;
-	Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> elements;
-	igl::AABB<Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic>, 3> aabb;
-	aabb.init(V, F);
-	aabb.serialize(bb_mins, bb_maxs, elements);
-	// construct serialized AABB todo.
-	std::vector<concurrency::graphics::float_3> bb_mins_vec(int(bb_mins.rows()));
-	std::vector<concurrency::graphics::float_3> bb_maxs_vec(int(bb_maxs.rows()));
-	std::vector<int> elements_vec(int(elements.rows()));
-	for (int bb = 0; bb < bb_mins.rows(); ++bb)
-	{
-		bb_mins_vec.at(bb) = concurrency::graphics::float_3(bb_mins(bb, 0), bb_mins(bb, 1), bb_mins(bb, 2));
-		bb_maxs_vec.at(bb) = concurrency::graphics::float_3(bb_maxs(bb, 0), bb_maxs(bb, 1), bb_maxs(bb, 2));
-		elements_vec.at(bb) = elements(bb, 0);
-	}
-	concurrency::array_view<concurrency::graphics::float_3, 1> AMP_bb_mins(int(bb_mins.rows()), bb_mins_vec);
-	concurrency::array_view<concurrency::graphics::float_3, 1> AMP_bb_maxs(int(bb_maxs.rows()), bb_maxs_vec);
-	concurrency::array_view<int, 1> AMP_elements(int(elements.rows()), elements_vec);
-	//////
-
-	//////
-	// #triangle x #ray array. compute ray-mesh intersection and write to this vector in parallel
-	std::vector<float> T_vec(F.rows() * RAYCOUNT, 0.0f);
-	concurrency::array_view<float, 2> AMP_T(int(F.rows()), RAYCOUNT, T_vec);
-	//////
-
-	concurrency::parallel_for_each(
-		AMP_T.extent,
-		[=](concurrency::index<2> idx) restrict(amp) {
-		// source point
-		concurrency::graphics::float_3 source(0.0f, 0.0f, 0.0f);
-		source =
-			AMP_V[concurrency::index<1>(AMP_F[concurrency::index<1>(idx[0])].x)]
-			+ AMP_V[concurrency::index<1>(AMP_F[concurrency::index<1>(idx[0])].y)]
-			+ AMP_V[concurrency::index<1>(AMP_F[concurrency::index<1>(idx[0])].z)];
-
-		// generate dir (use pre-defined??)
-		concurrency::graphics::float_3 dir(0.0f, 0.0f, 0.0f);
-
-		// do computation
-		float t = rayMeshIntersections(source, dir, AMP_bb_mins, AMP_bb_maxs, AMP_elements, AMP_V, AMP_F);
-
-		// write-back
-		AMP_T[idx] = t;
-	});
-}
-
 #define IGL_RAY_TRI_EPSILON 0.000001
 #define IGL_RAY_TRI_CROSS(dest,v1,v2) \
-          dest[0]=v1[1]*v2[2]-v1[2]*v2[1]; \
-          dest[1]=v1[2]*v2[0]-v1[0]*v2[2]; \
-          dest[2]=v1[0]*v2[1]-v1[1]*v2[0];
-#define IGL_RAY_TRI_DOT(v1,v2) (v1[0]*v2[0]+v1[1]*v2[1]+v1[2]*v2[2])
+          dest.x=v1.y*v2.z-v1.z*v2.y; \
+          dest.y=v1.z*v2.x-v1.x*v2.z; \
+          dest.z=v1.x*v2.y-v1.y*v2.x;
+#define IGL_RAY_TRI_DOT(v1,v2) (v1.x*v2.x+v1.y*v2.y+v1.z*v2.z)
 #define IGL_RAY_TRI_SUB(dest,v1,v2) \
-          dest[0]=v1[0]-v2[0]; \
-          dest[1]=v1[1]-v2[1]; \
-          dest[2]=v1[2]-v2[2]; 
+          dest.x=v1.x-v2.x; \
+          dest.y=v1.y-v2.y; \
+          dest.z=v1.z-v2.z; 
 
 float rayTriangleIntersection(
-	float orig[3],
-	float dir[3],
-	float vert0[3],
-	float vert1[3],
-	float vert2[3]) restrict(amp)
+	concurrency::graphics::float_3 orig,
+	concurrency::graphics::float_3 dir,
+	concurrency::graphics::float_3 vert0,
+	concurrency::graphics::float_3 vert1,
+	concurrency::graphics::float_3 vert2
+) restrict(amp, cpu)
 {
 	float t, u, v;
-	float edge1[3], edge2[3], tvec[3], pvec[3], qvec[3];
+	concurrency::graphics::float_3 edge1, edge2, tvec, pvec, qvec;
 	float det, inv_det;
 
 	/* find vectors for two edges sharing vert0 */
@@ -307,6 +168,201 @@ float rayTriangleIntersection(
 
 	return t;
 }
+
+float rayMeshIntersections(
+	const int& origId,
+	const concurrency::graphics::float_3& orig,
+	const concurrency::graphics::float_3& dir,
+	const concurrency::array_view<concurrency::graphics::float_3, 1>& bb_mins,
+	const concurrency::array_view<concurrency::graphics::float_3, 1>& bb_maxs,
+	const concurrency::array_view<int, 1>& elements,
+	const concurrency::array_view<concurrency::graphics::float_3, 1>& V,
+	const concurrency::array_view<concurrency::graphics::int_3, 1>& F
+) restrict(amp, cpu)
+{
+	float min_t = -1.0;
+	concurrency::index<1> currentIdx(0);
+	// do traverse...
+	while (unsigned(currentIdx[0]) < bb_mins.get_extent().size())
+	{
+		// check ray-box intersection (currentIdx)
+		if (rayBoxIntersection(orig, dir, bb_mins[currentIdx], bb_maxs[currentIdx]))
+		{
+			// check this box is leaf or non-leaf
+			if (elements[currentIdx] < 0)
+			{
+				// non-leaf: traverse
+				currentIdx[0] = currentIdx[0] * 2 + 1;
+			}
+			else
+			{
+				// leaf: ray-triangle intersection
+				if (elements[currentIdx[0]] != origId)
+				{
+					const concurrency::graphics::float_3& vert0 = V[F[elements[currentIdx]].x];
+					const concurrency::graphics::float_3& vert1 = V[F[elements[currentIdx]].y];
+					const concurrency::graphics::float_3& vert2 = V[F[elements[currentIdx]].z];
+					float t = rayTriangleIntersection(orig, dir, vert0, vert1, vert2);
+					if (t > 0.0 && (t < min_t || min_t < 0.0))
+					{
+						min_t = t;
+					}
+
+					// then move to
+					// sibling (odd nodes)
+					// sibling of the parent, grand parent, ... (even nodes)
+					while (currentIdx[0] % 2 == 0 && currentIdx[0] != 0)
+					{
+						currentIdx[0] = (currentIdx[0] - 1) / 2;
+					}
+					if (currentIdx[0] == 0) {
+						break;
+					}
+					currentIdx[0] = currentIdx[0] + 1;
+				}
+			}
+		}
+		else
+		{
+			// then move to
+			// sibling (odd nodes)
+			// sibling of the parent, grand parent, ... (even nodes)
+			while (currentIdx[0] % 2 == 0 && currentIdx[0] != 0)
+			{
+				currentIdx[0] = (currentIdx[0] - 1) / 2;
+			}
+			if (currentIdx[0] == 0) {
+				break;
+			}
+			currentIdx += 1;
+		}
+	}
+	return min_t;
+}
+
+void computeSDF(
+	const Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic>& V,
+	const Eigen::Matrix<  int, Eigen::Dynamic, Eigen::Dynamic>& F,
+	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> FaceSDF
+)
+{
+	//////
+	// setup buffers for parallel computation
+	std::vector< concurrency::graphics::float_3 > V_vec(V.rows());
+	for (int v = 0; v < V.rows(); ++v)
+	{
+		V_vec.at(v) = concurrency::graphics::float_3(V(v, 0), V(v, 1), V(v, 2));
+	}
+	concurrency::array_view<concurrency::graphics::float_3, 1> AMP_V(int(V.rows()), V_vec);
+
+	std::vector<concurrency::graphics::int_3> F_vec(F.rows());
+	for (int f = 0; f < F.rows(); ++f)
+	{
+		F_vec.at(f) = concurrency::graphics::int_3(F(f, 0), F(f, 1), F(f, 2));
+	}
+	concurrency::array_view<concurrency::graphics::int_3, 1> AMP_F(int(F.rows()), F_vec);
+
+	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> FN;
+	igl::per_face_normals(V, F, FN);
+	std::vector<concurrency::graphics::float_3> FN_vec(int(FN.rows()));
+	for (int fn = 0; fn < FN.rows(); ++fn)
+	{
+		FN_vec.at(fn) = concurrency::graphics::float_3(FN(fn, 0), FN(fn, 1), FN(fn, 2));
+	}
+	concurrency::array_view<concurrency::graphics::float_3, 1> AMP_FN(int(FN.rows()), FN_vec);
+	// end setup.
+	//////
+
+	//////
+	// construct AABBTree
+	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> bb_mins;
+	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> bb_maxs;
+	Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> elements;
+	igl::AABB<Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic>, 3> aabb;
+	aabb.init(V, F);
+	aabb.serialize(bb_mins, bb_maxs, elements);
+	// construct serialized AABB todo.
+	std::vector<concurrency::graphics::float_3> bb_mins_vec(int(bb_mins.rows()));
+	std::vector<concurrency::graphics::float_3> bb_maxs_vec(int(bb_maxs.rows()));
+	std::vector<int> elements_vec(int(elements.rows()));
+	for (int bb = 0; bb < bb_mins.rows(); ++bb)
+	{
+		bb_mins_vec.at(bb) = concurrency::graphics::float_3(bb_mins(bb, 0), bb_mins(bb, 1), bb_mins(bb, 2));
+		bb_maxs_vec.at(bb) = concurrency::graphics::float_3(bb_maxs(bb, 0), bb_maxs(bb, 1), bb_maxs(bb, 2));
+		elements_vec.at(bb) = elements(bb, 0);
+	}
+	concurrency::array_view<concurrency::graphics::float_3, 1> AMP_bb_mins(int(bb_mins.rows()), bb_mins_vec);
+	concurrency::array_view<concurrency::graphics::float_3, 1> AMP_bb_maxs(int(bb_maxs.rows()), bb_maxs_vec);
+	concurrency::array_view<int, 1> AMP_elements(int(elements.rows()), elements_vec);
+	//////
+
+	//////
+	// #triangle x #ray array. compute ray-mesh intersection and write to this vector in parallel
+	std::vector<float> T_vec(F.rows() * RAYCOUNT, 0.0f);
+	for (int i = 0; i < T_vec.size(); ++i)
+	{
+		T_vec.at(i) = float(i);
+	}
+	concurrency::array_view<float, 2> AMP_T(int(F.rows()), RAYCOUNT, T_vec);
+	//////
+
+#if 0
+	concurrency::parallel_for_each(
+		AMP_T.extent,
+		[=](concurrency::index<2> idx) restrict(amp) {
+		// source point
+		concurrency::graphics::float_3 source(0.0f, 0.0f, 0.0f);
+		source =
+			AMP_V[concurrency::index<1>(AMP_F[concurrency::index<1>(idx[0])].x)]
+			+ AMP_V[concurrency::index<1>(AMP_F[concurrency::index<1>(idx[0])].y)]
+			+ AMP_V[concurrency::index<1>(AMP_F[concurrency::index<1>(idx[0])].z)];
+
+		// generate dir (use pre-defined??)
+		concurrency::graphics::float_3 dir = -AMP_FN[idx[0]];
+
+		// do computation
+		float t = rayMeshIntersections(idx[0], source, dir, AMP_bb_mins, AMP_bb_maxs, AMP_elements, AMP_V, AMP_F);
+
+		// write-back
+		AMP_T[idx] = t;
+});
+#else
+	for (int tri = 0; tri < F.rows(); ++tri)
+	{
+		std::cout << tri << std::endl;
+		for (int r = 0; r < RAYCOUNT; ++r) {
+			concurrency::index<2> idx(tri, r);
+			// source point
+			concurrency::graphics::float_3 source(0.0f, 0.0f, 0.0f);
+			source =
+				(AMP_V[concurrency::index<1>(AMP_F[idx[0]].x)]
+					+ AMP_V[concurrency::index<1>(AMP_F[idx[0]].y)]
+					+ AMP_V[concurrency::index<1>(AMP_F[idx[0]].z)]) / 3.0;
+
+			// generate dir (use pre-defined??)
+			concurrency::graphics::float_3 dir = -AMP_FN[idx[0]];
+
+			std::cout << source.x << " " << source.y << " " << source.z << std::endl;
+			std::cout << dir.x << " " << dir.y << " " << dir.z << std::endl;
+			// do computation
+			float t = rayMeshIntersections(idx[0], source, dir, AMP_bb_mins, AMP_bb_maxs, AMP_elements, AMP_V, AMP_F);
+
+			// write-back
+			AMP_T[idx] = t;
+		}
+	}
+
+#endif
+
+	for (int t = 0; t < F.rows(); ++t)
+	{
+		for (int r = 0; r < RAYCOUNT; ++r) {
+			std::cout << AMP_T[concurrency::index<2>(t, r)] << " ";
+		}
+		std::cout << std::endl;
+	}
+}
+
 
 float debug(
 	const Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic>& V,
