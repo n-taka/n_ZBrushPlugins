@@ -80,7 +80,7 @@ extern "C" DLLEXPORT float getAccelerator(char* someText, double optValue, char*
 
 	sprintf(outputBuffer, "%s", str.c_str());
 
-	return 0.0f;
+	return 1.0f;
 }
 
 concurrency::accelerator selectAccelerator(const std::string& acceleratorName)

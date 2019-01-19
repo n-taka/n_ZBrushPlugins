@@ -157,5 +157,5 @@ extern "C" DLLEXPORT float checkThickness(char* someText, double optValue, char*
 	write_OBJ(outputFileName, V, F, VC_Thicknessi, FG);
 	////
 
-	return 0.0f;
+	return 1.0f;
 }
