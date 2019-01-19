@@ -13,8 +13,8 @@
 [VarDef, colorOBJFile, "thickness.obj"]
 
 [VarDef, height, 100.0]
-[VarDef, preferredThickness, 3.0]
-[VarDef, minimumThickness, 1.0]
+[VarDef, preferredThickness, 5.0]
+[VarDef, minimumThickness, 3.0]
 [VarDef, doubleParam]
 [MemCreate, acceleratorTextMem, 256, 0]
 [VarDef, acceleratorText, ""]
@@ -55,10 +55,10 @@
 [ISlider, "ZPlugin:ThicknessChecker:Height (Y)", 100.0, 0.001, 0, 1000, "Set height (Y)",
     [VarSet, height, [IGet, "ZPlugin:ThicknessChecker:Height (Y)"]]
 ]
-[ISlider, "ZPlugin:ThicknessChecker:Preferred thickness", 3.0, 0.001, 0, 1000, "Set preferred thickness",
+[ISlider, "ZPlugin:ThicknessChecker:Preferred thickness", 5.0, 0.001, 0, 100, "Set preferred thickness",
     [VarSet, preferredThickness, [IGet, "ZPlugin:ThicknessChecker:Preferred thickness"]]
 ]
-[ISlider, "ZPlugin:ThicknessChecker:Minimum thickness", 1.0, 0.001, 0, 1000, "Set minimum required thickness",
+[ISlider, "ZPlugin:ThicknessChecker:Minimum thickness", 3.0, 0.001, 0, 50, "Set minimum required thickness",
     [VarSet, minimumThickness, [IGet, "ZPlugin:ThicknessChecker:Minimum thickness"]]
 ]
 
