@@ -8,7 +8,7 @@
 
 int main(int argc, char* argv[])
 {
-	char dummyc0[100] = "../../testModels/,Dog.obj,thickness.obj,Radeon RX Vega M GH Graphics\0";
+	char dummyc0[100] = "../../testModels/,dog_high.obj,thickness.obj,Radeon RX Vega M GH Graphics\0";
 	char dummyc1[4096], dummyc2[4096];
 	char dummyc3[] = "hello";
 	const double height = 100.0;
@@ -17,6 +17,16 @@ int main(int argc, char* argv[])
 	double dummyd = height * 1024.0*1024.0 + preferThickness * 1024.0 + minThickness;
 	int dummyi0 = 0;
 	int dummyi1 = 0;
+	union {
+		char c[sizeof(float)];
+		float f;
+	} loader;
+	loader.f = height;
+	memcpy(dummyc1, loader.c, sizeof(float));
+	loader.f = preferThickness;
+	memcpy(dummyc1 + sizeof(float), loader.c, sizeof(float));
+	loader.f = minThickness;
+	memcpy(dummyc1 + sizeof(float) + sizeof(float), loader.c, sizeof(float));
 
 	// "Intel(R) HD Graphics 630"
 	// "Radeon RX Vega M GH Graphics"
