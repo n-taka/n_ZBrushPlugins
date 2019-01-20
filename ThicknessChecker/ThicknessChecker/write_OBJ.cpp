@@ -14,16 +14,16 @@
 
 bool write_OBJ(
 	const std::string& fileName,
-	const Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>& V,
-	const Eigen::Matrix<   int, Eigen::Dynamic, Eigen::Dynamic>& F,
-	const Eigen::Matrix<   int, Eigen::Dynamic, Eigen::Dynamic>& VC,
-	const Eigen::Matrix<   int, Eigen::Dynamic, Eigen::Dynamic>& FG
+	const Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic>& V,
+	const Eigen::Matrix<  int, Eigen::Dynamic, Eigen::Dynamic>& F,
+	const Eigen::Matrix<  int, Eigen::Dynamic, Eigen::Dynamic>& VC,
+	const Eigen::Matrix<  int, Eigen::Dynamic, Eigen::Dynamic>& FG
 )
 {
-	Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> TC;
-	Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> CN;
-	Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> FTC;
-	Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> FN;
+	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> TC;
+	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> CN;
+	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> FTC;
+	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> FN;
 
 	FILE * obj_file = fopen(fileName.c_str(), "w");
 	if (NULL == obj_file)

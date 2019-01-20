@@ -16,14 +16,14 @@
 
 bool read_OBJ(
 	const std::string& fileName,
-	Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>& V,
-	Eigen::Matrix<   int, Eigen::Dynamic, Eigen::Dynamic>& F,
-	Eigen::Matrix<   int, Eigen::Dynamic, Eigen::Dynamic>& VC,
-	Eigen::Matrix<   int, Eigen::Dynamic, Eigen::Dynamic>& FG
+	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic>& V,
+	Eigen::Matrix<  int, Eigen::Dynamic, Eigen::Dynamic>& F,
+	Eigen::Matrix<  int, Eigen::Dynamic, Eigen::Dynamic>& VC,
+	Eigen::Matrix<  int, Eigen::Dynamic, Eigen::Dynamic>& FG
 )
 {
 	// currently assume triangle mesh.
-    std::cout << fileName << std::endl;
+    //std::cout << fileName << std::endl;
 
 	FILE * obj_file = fopen(fileName.c_str(), "r");
 	if (NULL == obj_file)
@@ -33,7 +33,7 @@ bool read_OBJ(
 		return false;
 	}
 
-	std::vector<std::vector<double> > vV, vTC, vN;
+	std::vector<std::vector<float> > vV, vTC, vN;
 	std::string C("");
 	std::vector<std::vector<int> > vF, vFTC, vFN;
 	std::string currentGroupStr("Default");
@@ -74,7 +74,7 @@ bool read_OBJ(
 			if (type == v)
 			{
 				std::istringstream ls(&line[1]);
-				std::vector<double> vertex{ std::istream_iterator<double>(ls), std::istream_iterator<double>() };
+				std::vector<float> vertex{ std::istream_iterator<float>(ls), std::istream_iterator<float>() };
 
 				if (vertex.size() < 3)
 				{
@@ -89,9 +89,9 @@ bool read_OBJ(
 			}
 			else if (type == vn)
 			{
-				double x[3];
+				float x[3];
 				int count =
-					sscanf(l, "%lf %lf %lf\n", &x[0], &x[1], &x[2]);
+					sscanf(l, "%f %f %f\n", &x[0], &x[1], &x[2]);
 				if (count != 3)
 				{
 					fprintf(stderr,
@@ -100,7 +100,7 @@ bool read_OBJ(
 					fclose(obj_file);
 					return false;
 				}
-				std::vector<double> normal(count);
+				std::vector<float> normal(count);
 				for (int i = 0; i < count; i++)
 				{
 					normal[i] = x[i];
@@ -109,9 +109,9 @@ bool read_OBJ(
 			}
 			else if (type == vt)
 			{
-				double x[3];
+				float x[3];
 				int count =
-					sscanf(l, "%lf %lf %lf\n", &x[0], &x[1], &x[2]);
+					sscanf(l, "%f %f %f\n", &x[0], &x[1], &x[2]);
 				if (count != 2 && count != 3)
 				{
 					fprintf(stderr,
@@ -121,7 +121,7 @@ bool read_OBJ(
 					fclose(obj_file);
 					return false;
 				}
-				std::vector<double> tex(count);
+				std::vector<float> tex(count);
 				for (int i = 0; i < count; i++)
 				{
 					tex[i] = x[i];
@@ -248,10 +248,10 @@ bool read_OBJ(
 
 	//////////////////////////////////
 	// convert to Eigen Matrix Style
-	Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> TC;
-	Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> CN;
-	Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> FTC;
-	Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> FN;
+	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> TC;
+	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> CN;
+	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> FTC;
+	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> FN;
 
 	bool V_rect = igl::list_to_matrix(vV, V);
 	const char * format = "Failed to cast %s to matrix: min (%d) != max (%d)\n";

@@ -5,10 +5,10 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
+#include <chrono>
 
 #include "igl/jet.h"
 
-// see https://github.com/ephtracy/voxel-model/blob/master/MagicaVoxel-file-format-vox.txt
 ////
 // implementation
 ////
@@ -18,21 +18,28 @@
 #define DLLEXPORT __attribute__((visibility("default")))
 #endif
 
-extern "C" DLLEXPORT float detectThickness(char* someText, double optValue, char* pOptBuffer1, int optBuffer1Size, char* pOptBuffer2, int optBuffer2Size, char** zData)
+
+extern "C" DLLEXPORT float version(char* someText, double optValue, char* outputBuffer, int optBuffer1Size, char* pOptBuffer2, int optBuffer2Size, char** zData)
+{
+	return 1.0f;
+}
+
+extern "C" DLLEXPORT float checkThickness(char* someText, double optValue, char* outputBuffer, int optBuffer1Size, char* pOptBuffer2, int optBuffer2Size, char** zData)
 {
 	//// input
 	// someText: file name to be opened
-	// input filename, output filename (thickness as color), outputfilename (thickness (segment) as group)
+	// [0]: dir name
+	// [1]: input filename
+	// [2]: output filename (thickness as color)
+	// [3]: accelerator name (optional)
 	// optValue: encoded value for minimumThickness, betterThickness, height
 	////
-	// decode parameters
-	//const double minimumThickness = optValue - std::floor(optValue / 1024) * 1024;
-	//const double preferredThickness = optValue / 1024.0 - std::floor(optValue / (1024.0 * 1024.0)) * 1024.0;
-	//const double height = optValue / (1024.0 * 1024.0) - std::floor(optValue / (1024.0 * 1024.0 * 1024.0)) * 1024.0;
+
+	////
+	// [begin] decode parameters
 	std::string ZBtext(someText);
 	std::string separator(",");
 	size_t separator_length = separator.length();
-
 	std::vector<std::string> ZBtextList({});
 
 	if (separator_length == 0) {
@@ -50,43 +57,84 @@ extern "C" DLLEXPORT float detectThickness(char* someText, double optValue, char
 			offset = pos + separator_length;
 		}
 	}
-
 	std::string tmp;
-	for (int i = 1; i < 5; ++i)
+	for (int i = 1; i < 3; ++i)
 	{
 		tmp = ZBtextList.at(i);
 		ZBtextList.at(i) = ZBtextList.at(0) + tmp;
 	}
-    
-	std::ifstream ifs(ZBtextList.at(2), std::ios::in | std::ios::binary);
-	if (!ifs)
-	{
-		std::cerr << "some error in opening file..." << std::endl;
-	}
-	float height;
-	float preferredThickness;
-	float minimumThickness;
 
-	ifs.read((char*)&height, sizeof(float));
-	ifs.read((char*)&preferredThickness, sizeof(float));
-	ifs.read((char*)&minimumThickness, sizeof(float));
-	ifs.close();
+	std::ofstream logFile(ZBtextList.at(0) + "log.txt");
 
-	Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> V;
-	Eigen::Matrix<   int, Eigen::Dynamic, Eigen::Dynamic> VC;
-	Eigen::Matrix<   int, Eigen::Dynamic, Eigen::Dynamic> F;
-	Eigen::Matrix<   int, Eigen::Dynamic, Eigen::Dynamic> FG;
-	Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> F_RAWSDF;
-	Eigen::Matrix<   int, Eigen::Dynamic, Eigen::Dynamic> F_Segment;
+	const std::string& inputFileName = ZBtextList.at(1);
+	const std::string& outputFileName = ZBtextList.at(2);
+	const std::string& acceleratorName = ZBtextList.at(3);
 
-	// read triangle from file
-	read_OBJ(ZBtextList.at(1), V, F, VC, FG);
+	std::cout << "Input file: " << inputFileName << std::endl;
+	std::cout << "Output file: " << outputFileName << std::endl;
+	std::cout << "Accelerator: " << acceleratorName << std::endl << std::endl;
+	logFile << "Input file: " << inputFileName << std::endl;
+	logFile << "Output file: " << outputFileName << std::endl;
+	logFile << "Accelerator: " << acceleratorName << std::endl << std::endl;
+	// [end] parameter decoding end.
+	////
 
+	////
+	// [begin] read triangle from file
+	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> V;
+	Eigen::Matrix<  int, Eigen::Dynamic, Eigen::Dynamic> F;
+	Eigen::Matrix<  int, Eigen::Dynamic, Eigen::Dynamic> VC;
+	Eigen::Matrix<  int, Eigen::Dynamic, Eigen::Dynamic> FG;
+	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> F_RAWSDF;
+
+	read_OBJ(inputFileName, V, F, VC, FG);
+
+	//const float minimumThickness = float(optValue - std::floor(optValue / 1024.0) * 1024.0);
+	//const float preferredThickness = float(optValue / 1024.0 - std::floor(optValue / (1024.0 * 1024.0)) * 1024.0);
+	//const float height = float(optValue / (1024.0 * 1024.0) - std::floor(optValue / (1024.0 * 1024.0 * 1024.0)) * 1024.0);
+	union {
+		char c[sizeof(float)];
+		float f;
+	} loader;
+	memcpy(loader.c, outputBuffer, sizeof(float));
+	const float height = loader.f;
+	memcpy(loader.c, outputBuffer + sizeof(float), sizeof(float));
+	const float preferredThickness = loader.f;
+	memcpy(loader.c, outputBuffer + sizeof(float) + sizeof(float), sizeof(float));
+	const float minimumThickness = loader.f;
+
+	std::cout << "minimumThickness: " << minimumThickness << std::endl;
+	std::cout << "preferredThickness: " << preferredThickness << std::endl;
+	std::cout << "height: " << height << std::endl << std::endl;
+	logFile << "minimumThickness: " << minimumThickness << std::endl;
+	logFile << "preferredThickness: " << preferredThickness << std::endl;
+	logFile << "height: " << height << std::endl << std::endl;
 	// scale for make height (Y) is user-given height.
 	const double scale = (height / (V.col(1).maxCoeff() - V.col(1).minCoeff()));
+	V *= scale;
+	// [end] read triangle from file
+	////
 
-	CGAL_SDF(V*scale, F, F_RAWSDF, F_Segment);
+	////
+	// set up accelerator
+	concurrency::accelerator acc = selectAccelerator(acceleratorName);
+	////
 
+	////
+	// compute shape diameter function
+	std::chrono::system_clock::time_point start, end;
+	start = std::chrono::system_clock::now();
+	computeSDF(V, F, acc, F_RAWSDF);
+	end = std::chrono::system_clock::now();
+	double elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+	std::cout << "elapsed time for computation: " << elapsed << " [ms]" << std::endl;
+	logFile << "elapsed time for computation: " << elapsed << " [ms]" << std::endl;
+	//std::cout << F_RAWSDF << std::endl;
+	//return 0.0f;
+	// todo
+	////
+
+	////
 	// convert F_SDF to V_SDF (simple average)
 	Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> V_SDF;
 	Eigen::Matrix<   int, Eigen::Dynamic, Eigen::Dynamic> V_Count;
@@ -106,14 +154,18 @@ extern "C" DLLEXPORT float detectThickness(char* someText, double optValue, char
 	{
 		V_SDF(v, 0) /= double(V_Count(v, 0));
 	}
+	////
 
+	////
 	// export with
 	// jet color (update polypaint, keep polygroup)
-	// segment   (update polygroup, keep polypaint)
-
 	Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> VC_Thicknessd;
 	Eigen::Matrix<   int, Eigen::Dynamic, Eigen::Dynamic> VC_Thicknessi;
 	igl::jet(V_SDF, preferredThickness, minimumThickness, VC_Thicknessd);
+	//std::cout << V_SDF.transpose() << std::endl;
+	//igl::jet(V_SDF, V_SDF.minCoeff(), V_SDF.maxCoeff(), VC_Thicknessd);
+	std::cout << V_SDF.minCoeff() << std::endl;
+	std::cout << V_SDF.maxCoeff() << std::endl;
 	VC_Thicknessi.resize(VC_Thicknessd.rows(), 4);
 	for (int v = 0; v < V.rows(); ++v)
 	{
@@ -122,9 +174,10 @@ extern "C" DLLEXPORT float detectThickness(char* someText, double optValue, char
 		VC_Thicknessi(v, 2) = int(VC_Thicknessd(v, 1) * 255); // G
 		VC_Thicknessi(v, 3) = int(VC_Thicknessd(v, 2) * 255); // B
 	}
+	V /= scale;
+	write_OBJ(outputFileName, V, F, VC_Thicknessi, FG);
+	////
+	logFile.close();
 
-	write_OBJ(ZBtextList.at(3), V, F, VC_Thicknessi, FG);
-	write_OBJ(ZBtextList.at(4), V, F, VC, F_Segment);
-
-	return 0.0f;
+	return 1.0f;
 }
