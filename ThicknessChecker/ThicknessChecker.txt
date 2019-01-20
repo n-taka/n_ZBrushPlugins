@@ -32,9 +32,9 @@
     // Make sure we have the dll and set its path
     [If, [ZBrushInfo, 6]==0,//windows
         //use the path below for testing only
-        [VarSet, dllPath, "ThicknessCheckerData\ThicknessChecker.dll"]
+        //[VarSet, dllPath, "ThicknessCheckerData\ThicknessChecker.dll"]
         //use the path below for installed plugins
-        //[VarSet, dllPath, "ZBRUSH_ZSTARTUP\ZPlugs64\ThicknessCheckerData\ThicknessChecker.dll"]
+        [VarSet, dllPath, "ZBRUSH_ZSTARTUP\ZPlugs64\ThicknessCheckerData\ThicknessChecker.dll"]
         ,
         //use the path below for testing only
         //[VarSet, dllPath, "ThicknessCheckerData/ThicknessChecker.lib"]
