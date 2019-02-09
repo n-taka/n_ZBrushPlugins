@@ -1,0 +1,38 @@
+<buttons>
+  <button path="ZPlugin:ThicknessChecker">
+    <title text="ThicknessChecker" trans=""/>
+  </button>
+  <button path="ZPlugin:ThicknessChecker:Height (Y)">
+    <title text="Height (Y)" trans=""/>
+    <info text="Height along with Y direction" trans=""/>
+  </button>
+  <button path="ZPlugin:ThicknessChecker:Preferred thickness">
+    <title text="Preferred thickness" trans=""/>
+    <info text="The region thicker than this value, it will be colored in blue" trans=""/>
+  </button>
+  <button path="ZPlugin:ThicknessChecker:Minimum thickness">
+    <title text="Minimum thickness" trans=""/>
+    <info text="The region thinner than this value, it will be colored in red" trans=""/>
+  </button>
+  <button path="ZPlugin:ThicknessChecker:GPU">
+    <title text="GPU" trans=""/>
+  </button>
+  <button path="ZPlugin:ThicknessChecker:Compute">
+    <title text="Compute" trans=""/>
+    <info text="Start thickness computation" trans=""/>
+  </button>
+  <!-- <button tag="">
+    <title text="" trans=""/>
+    <info text="" trans=""/>
+  </button>  -->
+</buttons>
+
+<messages>
+  <!-- <message tag="ZFU_RENAME_SUBTOOL_CONFIRMATION">
+    <info text="You are about to rename current SubTool as %arg1%.\nAre your sure you really want to name it %arg1%?" trans=""/>
+  </message> -->
+  <!-- <message tag="">
+    <title text="" trans=""/>
+    <info text="" trans=""/>
+  </message> -->
+</messages>

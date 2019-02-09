@@ -1,0 +1,38 @@
+<buttons>
+  <button path="ZPlugin:ThicknessChecker">
+    <title text="ThicknessChecker" trans="太さ・厚さチェッカー"/>
+  </button>
+  <button path="ZPlugin:ThicknessChecker:Height (Y)">
+    <title text="Height (Y)" trans="高さ (Y)"/>
+    <info text="Height along with Y direction" trans="Y軸に沿った高さ"/>
+  </button>
+  <button path="ZPlugin:ThicknessChecker:Preferred thickness">
+    <title text="Preferred thickness" trans="安定して造形できる太さ・厚さ"/>
+    <info text="The region thicker than this value, it will be colored in blue" trans="この値より太い・厚い部分は青色で表示されます"/>
+  </button>
+  <button path="ZPlugin:ThicknessChecker:Minimum thickness">
+    <title text="Minimum thickness" trans="最低限必要な太さ・厚さ"/>
+    <info text="The region thinner than this value, it will be colored in red" trans="この値より細い・薄い部分は赤色で表示されます"/>
+  </button>
+  <button path="ZPlugin:ThicknessChecker:GPU">
+    <title text="GPU" trans="GPU"/>
+  </button>
+  <button path="ZPlugin:ThicknessChecker:Compute">
+    <title text="Compute" trans="計算開始"/>
+    <info text="Start thickness computation" trans="太さ・厚さの計算を開始します"/>
+  </button>
+  <!-- <button tag="">
+    <title text="" trans=""/>
+    <info text="" trans=""/>
+  </button>  -->
+</buttons>
+
+<messages>
+  <!-- <message tag="ZFU_RENAME_SUBTOOL_CONFIRMATION">
+    <info text="You are about to rename current SubTool as %arg1%.\nAre your sure you really want to name it %arg1%?" trans=""/>
+  </message> -->
+  <!-- <message tag="">
+    <title text="" trans=""/>
+    <info text="" trans=""/>
+  </message> -->
+</messages>
