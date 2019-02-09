@@ -1,17 +1,34 @@
+//////
 // variable definitions
+//////
+////
+// export setting
+////
 [VarDef, Tool_Export_Tri]
 [VarDef, Tool_Polypaint_Colorize]
 [VarDef, Tool_Export_Txr]
 [VarDef, Tool_Export_Flp]
 [VarDef, Tool_Export_Mrg]
 [VarDef, Tool_Export_Grp]
-
+////
+// dll path, language
+////
+[VarDef, zfutilPath, "dummy"]
 [VarDef, dllPath, "dummy"]
-// hard coded...
+[VarDef, enLangFilePath, "dummy"]
+[VarDef, language]
+// debug
+//[VarDef, dataDirPath, [fileNameResolvePath, "ThicknessCheckerData\"]]
+// install
 [VarDef, dataDirPath, [fileNameResolvePath, "ZBRUSH_ZSTARTUP\ZPlugs64\ThicknessCheckerData\"]]
+////
+// temporary files
+////
 [VarDef, tmpFile, "tmp.obj"]
 [VarDef, colorOBJFile, "thickness.obj"]
-
+////
+// parameters for computation
+////
 [VarDef, height, 100.0]
 [VarDef, preferredThickness, 5.0]
 [VarDef, minimumThickness, 3.0]
@@ -19,9 +36,12 @@
 [MemCreate, acceleratorTextMem, 256, 0]
 [VarDef, acceleratorText, ""]
 [VarDef, chosenAccelerator, "dummy"]
+//////
 
-// check if this plugin is correctly installed
+//////
+// search dlls
 // from http://docs.pixologic.com/user-guide/customizing-zbrush/zscripting/zfileutils/#dllPath
+//////
 [RoutineDef, CheckSystem,
     //check ZBrush version
     [VarSet,Zvers,[ZBrushInfo,0]]
@@ -33,13 +53,21 @@
     [If, [ZBrushInfo, 6]==0,//windows
         //use the path below for testing only
         //[VarSet, dllPath, "ThicknessCheckerData\ThicknessChecker.dll"]
+        //[VarSet, zfutilPath, "ThicknessCheckerData\ZFileUtils64.dll"]
+        //[VarSet, enLangFilePath, "ThicknessCheckerData\lang\ThicknessChecker_en.xml"]
         //use the path below for installed plugins
         [VarSet, dllPath, "ZBRUSH_ZSTARTUP\ZPlugs64\ThicknessCheckerData\ThicknessChecker.dll"]
+        [VarSet, zfutilPath, "ZBRUSH_ZSTARTUP\ZPlugs64\ThicknessCheckerData\ZFileUtils64.dll"]
+        [VarSet, enLangFilePath, "ZBRUSH_ZSTARTUP\ZPlugs64\ThicknessCheckerData\lang\ThicknessChecker_en.xml"]
         ,
         //use the path below for testing only
         //[VarSet, dllPath, "ThicknessCheckerData/ThicknessChecker.lib"]
+        //[VarSet, zfutilPath, "ThicknessCheckerData/ZFileUtils.lib"]
+        //[VarSet, enLangFilePath, "ThicknessCheckerData/lang/ThicknessChecker_en.xml"]
         //use the path below for installed plugins
         [VarSet, dllPath, "ZBRUSH_ZSTARTUP/ZPlugs64/ThicknessCheckerData/ThicknessChecker.lib"]
+        [VarSet, zfutilPath, "ZBRUSH_ZSTARTUP/ZPlugs64/ThicknessCheckerData/ZFileUtils.lib"]
+        [VarSet, enLangFilePath, "ZBRUSH_ZSTARTUP/ZPlugs64/ThicknessCheckerData/lang/ThicknessChecker_en.xml"]
     ]
     // check if there are dll/lib exists
     [If, [FileExists, [Var,dllPath]],
@@ -47,31 +75,26 @@
     [Note,"\Cff9923Note :\Cc0c0c0 The \Cff9923 ThicknessChecker plugin \Cffffffdll/lib\Cc0c0c0 could not be found at the correct location.  Please re-install the plugin, making sure the relevant files and folders are in the \CffffffZStartup/ZPlugs\Cc0c0c0 folder."]
     [Exit]
     ]
-]//end routine
+]
+//////
 
-////
-// main processing
-[ISubPalette, "ZPlugin:ThicknessChecker"]
-[ISlider, "ZPlugin:ThicknessChecker:Height (Y)", 100.0, 0.001, 0, 1000, "Set height (Y)",
-    [VarSet, height, [IGet, "ZPlugin:ThicknessChecker:Height (Y)"]],
-    0,
-    1
-]
-[ISlider, "ZPlugin:ThicknessChecker:Preferred thickness", 5.0, 0.001, 0, 100, "Set preferred thickness",
-    [VarSet, preferredThickness, [IGet, "ZPlugin:ThicknessChecker:Preferred thickness"]],
-    0,
-    1
-]
-[ISlider, "ZPlugin:ThicknessChecker:Minimum thickness", 3.0, 0.001, 0, 50, "Set minimum required thickness",
-    [VarSet, minimumThickness, [IGet, "ZPlugin:ThicknessChecker:Minimum thickness"]],
-    0,
-    1
-]
+//////
+// translation routine
+// from http://docs.pixologic.com/user-guide/customizing-zbrush/zscripting/zfileutils/localization/
+//////
+[RoutineDef, ZFU_RegisterLocalizationFile,
+	[FileExecute, [Var, zfutilPath], RegisterLocalizationFile, enFilePath]
+, enFilePath]
+//////
 
-// on startup,
+//////
+// startup
+//////
 // + search dll
 // + get accelerators
 [RoutineCall, CheckSystem]
+//[RoutineCall, ZFU_GetCurrentLanguage, language]
+[RoutineCall, ZFU_RegisterLocalizationFile, [FileNameResolvePath, [Var, enLangFilePath]]]
 [FileExecute, [Var, dllPath], "getAccelerator", , , acceleratorTextMem]
 [MemReadString, acceleratorTextMem, acceleratorText]
 // 4 is hard coded...
@@ -106,6 +129,27 @@
     [ISet, [StrMerge, "ZPlugin:ThicknessChecker:GPU:", [Var, acceleratorNames(1)]], [StrFind, [Var, acceleratorNames(1)], [Var, chosenAccelerator]] == 0]
     [ISet, [StrMerge, "ZPlugin:ThicknessChecker:GPU:", [Var, acceleratorNames(2)]], [StrFind, [Var, acceleratorNames(2)], [Var, chosenAccelerator]] == 0]
     [ISet, [StrMerge, "ZPlugin:ThicknessChecker:GPU:", [Var, acceleratorNames(3)]], [StrFind, [Var, acceleratorNames(3)], [Var, chosenAccelerator]] == 0]
+]
+
+//////
+// UI
+//////
+[ISubPalette, "ZPlugin:ThicknessChecker"]
+
+[ISlider, "ZPlugin:ThicknessChecker:Height (Y)", 100.0, 0.001, 0.0, 300.0, "Height along with Y direction",
+    [VarSet, height, [IGet, "ZPlugin:ThicknessChecker:Height (Y)"]],
+    0,
+    1
+]
+[ISlider, "ZPlugin:ThicknessChecker:Preferred thickness", 5.0, 0.001, 0, 10.0, "The region thicker than this value, it will be colored in blue",
+    [VarSet, preferredThickness, [IGet, "ZPlugin:ThicknessChecker:Preferred thickness"]],
+    0,
+    1
+]
+[ISlider, "ZPlugin:ThicknessChecker:Minimum thickness", 3.0, 0.001, 0, 10.0, "The region thinner than this value, it will be colored in red",
+    [VarSet, minimumThickness, [IGet, "ZPlugin:ThicknessChecker:Minimum thickness"]],
+    0,
+    1
 ]
 
 [ISubPalette, "ZPlugin:ThicknessChecker:GPU"]
@@ -154,7 +198,7 @@
 [VarSet, chosenAccelerator,  [Var, acceleratorNames(0)]]
 
 
-[IButton, "ZPlugin:ThicknessChecker:Compute", "Compute thickness",
+[IButton, "ZPlugin:ThicknessChecker:Compute", "Start thickness computation",
     [If, [IExists, Tool:Export],
         [RoutineCall, CheckSystem]
         // store current export settings
@@ -190,24 +234,24 @@
         [ISet, Tool:Export:Grp, [Var, Tool_Export_Grp]]
         ////
 
-        // "../../testModels/,Dog.obj,thickness.obj,Radeon RX Vega M GH Graphics\0"
         [VarDef, textForDll, [StrMerge, [Var, dataDirPath], ",", [Var, tmpFile], ",", [Var, colorOBJFile], ",", [Var, chosenAccelerator]]]
         [MVarDef, mem, 3, 0]
         [MVarSet, mem, 0, [Var, height]]
         [MVarSet, mem, 1, [Var, preferredThickness]]
         [MVarSet, mem, 2, [Var, minimumThickness]]
-        // [VarDef, doubleForDll, ([Var, height] * 1024.0 * 1024.0) + ([Var, preferredThickness] * 1024.0) + [Var, minimumThickness]]
         [VarDef, result, [FileExecute, [Var, dllPath], "checkThickness", textForDll, 0, mem]]
 
         [If, result,
             // import to Tool
-            [IPress,Tool:PolyMesh3D]
-            [FileNameSetNext, [StrMerge, [Var, dataDirPath], [Var, colorOBJFile]]]
-            [IPress,"Tool:Import"]
+            [IFreeze,
+                [IPress,Tool:PolyMesh3D]
+                [FileNameSetNext, [StrMerge, [Var, dataDirPath], [Var, colorOBJFile]]]
+                [IPress,"Tool:Import"]
 
-            // erase temporary file.
-            [FileDelete, [StrMerge, [Var, dataDirPath], [Var, tmpFile]]]
-            [FileDelete, [StrMerge, [Var, dataDirPath], [Var, colorOBJFile]]]
+                // erase temporary file.
+                [FileDelete, [StrMerge, [Var, dataDirPath], [Var, tmpFile]]]
+                [FileDelete, [StrMerge, [Var, dataDirPath], [Var, colorOBJFile]]]
+            ]
         ,
             [Note, "Sorry, there is some error..."]
         ]
