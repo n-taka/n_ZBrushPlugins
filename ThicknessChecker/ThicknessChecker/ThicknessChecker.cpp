@@ -21,7 +21,7 @@
 
 extern "C" DLLEXPORT float version(char* someText, double optValue, char* outputBuffer, int optBuffer1Size, char* pOptBuffer2, int optBuffer2Size, char** zData)
 {
-	return 1.0f;
+	return 1.2f;
 }
 
 extern "C" DLLEXPORT float checkThickness(char* someText, double optValue, char* outputBuffer, int optBuffer1Size, char* pOptBuffer2, int optBuffer2Size, char** zData)
@@ -95,6 +95,7 @@ extern "C" DLLEXPORT float checkThickness(char* someText, double optValue, char*
 	union {
 		char c[sizeof(float)];
 		float f;
+		int i;
 	} loader;
 	memcpy(loader.c, outputBuffer, sizeof(float));
 	const float height = loader.f;
@@ -102,13 +103,17 @@ extern "C" DLLEXPORT float checkThickness(char* someText, double optValue, char*
 	const float preferredThickness = loader.f;
 	memcpy(loader.c, outputBuffer + sizeof(float) + sizeof(float), sizeof(float));
 	const float minimumThickness = loader.f;
+	memcpy(loader.c, outputBuffer + sizeof(float) + sizeof(float) + sizeof(float), sizeof(int));
+	const int chunkSize = loader.i;
 
-	std::cout << "minimumThickness: " << minimumThickness << std::endl;
-	std::cout << "preferredThickness: " << preferredThickness << std::endl;
-	std::cout << "height: " << height << std::endl << std::endl;
-	logFile << "minimumThickness: " << minimumThickness << std::endl;
-	logFile << "preferredThickness: " << preferredThickness << std::endl;
-	logFile << "height: " << height << std::endl << std::endl;
+	std::cout << "minimumThickness   : " << minimumThickness << std::endl;
+	std::cout << "preferredThickness : " << preferredThickness << std::endl;
+	std::cout << "height             : " << height << std::endl;
+	std::cout << "chunkSize          : " << chunkSize << std::endl << std::endl;
+	logFile << "minimumThickness   : " << minimumThickness << std::endl;
+	logFile << "preferredThickness : " << preferredThickness << std::endl;
+	logFile << "height             : " << height << std::endl;
+	logFile << "chunkSize          : " << chunkSize << std::endl << std::endl;
 	// scale for make height (Y) is user-given height.
 	const double scale = (height / (V.col(1).maxCoeff() - V.col(1).minCoeff()));
 	V *= scale;
@@ -124,7 +129,7 @@ extern "C" DLLEXPORT float checkThickness(char* someText, double optValue, char*
 	// compute shape diameter function
 	std::chrono::system_clock::time_point start, end;
 	start = std::chrono::system_clock::now();
-	computeSDF(V, F, acc, F_RAWSDF);
+	computeSDF(V, F, chunkSize, acc, F_RAWSDF);
 	end = std::chrono::system_clock::now();
 	double elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 	std::cout << "elapsed time for computation: " << elapsed << " [ms]" << std::endl;

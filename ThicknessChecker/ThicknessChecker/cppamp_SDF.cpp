@@ -34,20 +34,6 @@ bool AMP_rayBoxIntersection(
 {
 	// This should be precomputed and provided as input
 	concurrency::graphics::float_3 inv_dir(1.0f / dir.x, 1.0f / dir.y, 1.0f / dir.z);
-	//concurrency::graphics::float_3 nonZerodir(dir);
-	//if (dir.x == 0.0f)
-	//{
-	//	nonZerodir.x = 1.0e-16;
-	//}
-	//if (dir.y == 0.0f)
-	//{
-	//	nonZerodir.y = 1.0e-16;
-	//}
-	//if (dir.z == 0.0f)
-	//{
-	//	nonZerodir.z = 1.0e-16;
-	//}
-	//concurrency::graphics::float_3 inv_dir(1.0f / nonZerodir.x, 1.0f / nonZerodir.y, 1.0f / nonZerodir.z);
 	bool signX, signY, signZ;
 	signX = (inv_dir.x < 0.0f);
 	signY = (inv_dir.y < 0.0f);
@@ -259,6 +245,7 @@ float AMP_rayMeshIntersections(
 void computeSDF(
 	const Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic>& V,
 	const Eigen::Matrix<  int, Eigen::Dynamic, Eigen::Dynamic>& F,
+	const int& chunkSize,
 	const concurrency::accelerator& acc,
 	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic>& FaceSDF
 )
@@ -334,66 +321,31 @@ void computeSDF(
 
 	//////
 	// #triangle x #ray array. compute ray-mesh intersection and write to this vector in parallel
-	std::vector<float> T_vec(F.rows() * RAYCOUNT, 0.0f);
-	for (int i = 0; i < T_vec.size(); ++i)
-	{
-		T_vec.at(i) = float(i);
-	}
+	std::vector<float> T_vec(int(F.rows()) * RAYCOUNT, 0.0f);
 	concurrency::array_view<float, 2> AMP_T(int(F.rows()), RAYCOUNT, T_vec);
-	//////
-#ifndef DEBUG_CPU
-	concurrency::parallel_for_each(acc.get_default_view(),
-		AMP_T.extent,
-		[=](concurrency::index<2> idx) restrict(amp) {
-		// source point
-		concurrency::graphics::float_3 source =
-			(AMP_V[AMP_F[concurrency::index<1>(idx[0])].x]
-				+ AMP_V[AMP_F[concurrency::index<1>(idx[0])].y]
-				+ AMP_V[AMP_F[concurrency::index<1>(idx[0])].z]) / 3.0f;
 
-		// generate dir (use pre-defined??)
-		concurrency::graphics::float_3 dir = -AMP_FN[idx[0]];
-		// directions on disk
-		concurrency::graphics::float_3 base1, base2;
-		IGL_RAY_TRI_SUB(base1, AMP_V[concurrency::index<1>(AMP_F[concurrency::index<1>(idx[0])].x)], source);
-		float norm2_1 = IGL_RAY_TRI_DOT(base1, base1);
-		float norm_1 = concurrency::fast_math::sqrtf(norm2_1);
-		base1 /= norm_1;
-		IGL_RAY_TRI_CROSS(base2, dir, base1);
-		base1 *= AMP_SW[idx[1]].x;
-		base2 *= AMP_SW[idx[1]].y;
-
-		RAY_TRI_ADD(dir, dir, base1);
-		RAY_TRI_ADD(dir, dir, base2);
-
-		float norm2_d = IGL_RAY_TRI_DOT(dir, dir);
-		float norm_d = concurrency::fast_math::sqrtf(norm2_d);
-		dir /= norm_d;
-
-		// do computation
-		float t = AMP_rayMeshIntersections(source, dir, AMP_bb_mins, AMP_bb_maxs, AMP_elements, AMP_V, AMP_F, AMP_FN);
-
-		// write-back
-		AMP_T[idx] = t;
-	});
-#else
-	for (int tri = 0; tri < F.rows(); ++tri)
+	for (int offset = 0; offset < int(F.rows()); offset += chunkSize)
 	{
-		for (int r = 0; r < RAYCOUNT; ++r) {
-			concurrency::index<2> idx(tri, r);
+		int endIdx = std::min(offset + chunkSize, int(F.rows()));
+		concurrency::array_view<float, 2> AMP_T_partial(endIdx - offset, RAYCOUNT, &T_vec[offset*RAYCOUNT]);
+		//////
+#ifndef DEBUG_CPU
+		concurrency::parallel_for_each(acc.get_default_view(),
+			AMP_T_partial.extent,
+			[=](concurrency::index<2> idx) restrict(amp) {
 			// source point
 			concurrency::graphics::float_3 source =
-				(AMP_V[AMP_F[concurrency::index<1>(idx[0])].x]
-					+ AMP_V[AMP_F[concurrency::index<1>(idx[0])].y]
-					+ AMP_V[AMP_F[concurrency::index<1>(idx[0])].z]) / 3.0f;
+				(AMP_V[AMP_F[concurrency::index<1>(idx[0]) + offset].x]
+					+ AMP_V[AMP_F[concurrency::index<1>(idx[0]) + offset].y]
+					+ AMP_V[AMP_F[concurrency::index<1>(idx[0]) + offset].z]) / 3.0f;
 
 			// generate dir (use pre-defined??)
-			concurrency::graphics::float_3 dir = -AMP_FN[idx[0]];
+			concurrency::graphics::float_3 dir = -AMP_FN[idx[0] + offset];
 			// directions on disk
 			concurrency::graphics::float_3 base1, base2;
-			IGL_RAY_TRI_SUB(base1, AMP_V[concurrency::index<1>(AMP_F[concurrency::index<1>(idx[0])].x)], source);
+			IGL_RAY_TRI_SUB(base1, AMP_V[concurrency::index<1>(AMP_F[concurrency::index<1>(idx[0]) + offset].x)], source);
 			float norm2_1 = IGL_RAY_TRI_DOT(base1, base1);
-			float norm_1 = sqrt(norm2_1);
+			float norm_1 = concurrency::fast_math::sqrtf(norm2_1);
 			base1 /= norm_1;
 			IGL_RAY_TRI_CROSS(base2, dir, base1);
 			base1 *= AMP_SW[idx[1]].x;
@@ -403,18 +355,55 @@ void computeSDF(
 			RAY_TRI_ADD(dir, dir, base2);
 
 			float norm2_d = IGL_RAY_TRI_DOT(dir, dir);
-			float norm_d = sqrt(norm2_d);
+			float norm_d = concurrency::fast_math::sqrtf(norm2_d);
 			dir /= norm_d;
 
 			// do computation
 			float t = AMP_rayMeshIntersections(source, dir, AMP_bb_mins, AMP_bb_maxs, AMP_elements, AMP_V, AMP_F, AMP_FN);
 
 			// write-back
-			AMP_T[idx] = t;
+			AMP_T_partial[idx] = t;
+		});
+#else
+		for (int tri = 0; tri < F.rows(); ++tri)
+		{
+			for (int r = 0; r < RAYCOUNT; ++r) {
+				concurrency::index<2> idx(tri, r);
+				// source point
+				concurrency::graphics::float_3 source =
+					(AMP_V[AMP_F[concurrency::index<1>(idx[0]) + offset].x]
+						+ AMP_V[AMP_F[concurrency::index<1>(idx[0]) + offset].y]
+						+ AMP_V[AMP_F[concurrency::index<1>(idx[0]) + offset].z]) / 3.0f;
+
+				// generate dir (use pre-defined??)
+				concurrency::graphics::float_3 dir = -AMP_FN[idx[0] + offset];
+				// directions on disk
+				concurrency::graphics::float_3 base1, base2;
+				IGL_RAY_TRI_SUB(base1, AMP_V[concurrency::index<1>(AMP_F[concurrency::index<1>(idx[0]) + offset].x)], source);
+				float norm2_1 = IGL_RAY_TRI_DOT(base1, base1);
+				float norm_1 = sqrt(norm2_1);
+				base1 /= norm_1;
+				IGL_RAY_TRI_CROSS(base2, dir, base1);
+				base1 *= AMP_SW[idx[1]].x;
+				base2 *= AMP_SW[idx[1]].y;
+
+				RAY_TRI_ADD(dir, dir, base1);
+				RAY_TRI_ADD(dir, dir, base2);
+
+				float norm2_d = IGL_RAY_TRI_DOT(dir, dir);
+				float norm_d = sqrt(norm2_d);
+				dir /= norm_d;
+
+				// do computation
+				float t = AMP_rayMeshIntersections(source, dir, AMP_bb_mins, AMP_bb_maxs, AMP_elements, AMP_V, AMP_F, AMP_FN);
+
+				// write-back
+				AMP_T_partial[idx] = t;
+			}
 		}
-	}
 #endif
-	AMP_T.synchronize(); // maybe needless.
+		AMP_T_partial.synchronize();
+	}
 
 	std::cout << "intersection done." << std::endl;
 	//for (int t = 0; t < F.rows(); ++t)
@@ -429,142 +418,147 @@ void computeSDF(
 	concurrency::array_view<float, 1> AMP_FaceSDF(int(F.rows()), FaceSDF_vec);
 
 	const float number_of_mad = 1.5f;
-#ifndef DEBUG_CPU
-	concurrency::parallel_for_each(acc.get_default_view(),
-		AMP_FaceSDF.extent,
-		[=](concurrency::index<1> idx) restrict(amp) {
-		float avg = 0.0f;
-		float validCount = 0.0f;
-		for (int r = 0; r < RAYCOUNT; ++r)
-		{
-			if (AMP_T(idx[0], r) >= 0.0f)
-			{
-				avg += AMP_T(idx[0], r);
-				validCount += 1.0f;
-			}
-		}
-		if (validCount < 0.5f)
-		{
-			AMP_FaceSDF[idx] = -1.0f;
-			return;
-		}
-		avg /= validCount;
-
-		// use standard deviation and ratio of 1.5; (different from CGAL (median absolute))
-		float standardDeviation = 0.0f;
-		float acceptCount = 0.0f;
-		for (int r = 0; r < RAYCOUNT; ++r)
-		{
-			if (AMP_T(idx[0], r) >= 0.0f)
-			{
-				float diff = AMP_T(idx[0], r) - avg;
-				standardDeviation += (diff * diff);
-				acceptCount += 1.0f;
-			}
-		}
-
-		if (acceptCount > 0.5f)
-		{
-			standardDeviation /= acceptCount;
-			standardDeviation = concurrency::fast_math::sqrt(standardDeviation);
-
-			float weightedSDF = 0.0f;
-			float weightSum = 0.0f;
-			for (int r = 0; r < RAYCOUNT; ++r)
-			{
-				if (AMP_T(idx[0], r) >= 0.0f)
-				{
-					const float deviation = concurrency::fast_math::fabs(AMP_T(idx[0], r) - avg);
-					if (deviation <= number_of_mad * standardDeviation)
-					{
-						weightedSDF += (AMP_SW[r].z * AMP_T(idx[0], r));
-						weightSum += AMP_SW[r].z;
-					}
-				}
-			}
-			if (weightSum > 0.0f)
-			{
-				AMP_FaceSDF[idx] = weightedSDF / weightSum;
-			}
-			else
-			{
-				AMP_FaceSDF[idx] = -1.0f;
-			}
-		}
-		else
-		{
-			AMP_FaceSDF[idx] = -1.0f;
-		}
-	});
-#else
-	for (int tri = 0; tri < F.rows(); ++tri)
+	for (int offset = 0; offset < int(F.rows()); offset += chunkSize)
 	{
-		concurrency::index<1> idx(tri);
-		float avg = 0.0f;
-		float validCount = 0.0f;
-		for (int r = 0; r < RAYCOUNT; ++r)
-		{
-			if (AMP_T(idx[0], r) >= 0.0f)
-			{
-				avg += AMP_T(idx[0], r);
-				validCount += 1.0f;
-			}
-		}
-		if (validCount < 0.5f)
-		{
-			AMP_FaceSDF[idx] = -1.0f;
-			return;
-		}
-		avg /= validCount;
-
-		// use standard deviation and ratio of 1.5; (different from CGAL (median absolute))
-		float standardDeviation = 0.0f;
-		float acceptCount = 0.0f;
-		for (int r = 0; r < RAYCOUNT; ++r)
-		{
-			if (AMP_T(idx[0], r) >= 0.0f)
-			{
-				float diff = AMP_T(idx[0], r) - avg;
-				standardDeviation += (diff * diff);
-				acceptCount += 1.0f;
-			}
-		}
-
-		if (acceptCount > 0.5f)
-		{
-			standardDeviation /= acceptCount;
-			standardDeviation = concurrency::fast_math::sqrt(standardDeviation);
-
-			float weightedSDF = 0.0f;
-			float weightSum = 0.0f;
+		int endIdx = std::min(offset + chunkSize, int(F.rows()));
+		concurrency::array_view<float, 1> AMP_FaceSDF_partial(endIdx - offset, &FaceSDF_vec[offset]);
+#ifndef DEBUG_CPU
+		concurrency::parallel_for_each(acc.get_default_view(),
+			AMP_FaceSDF_partial.extent,
+			[=](concurrency::index<1> idx) restrict(amp) {
+			float avg = 0.0f;
+			float validCount = 0.0f;
 			for (int r = 0; r < RAYCOUNT; ++r)
 			{
-				if (AMP_T(idx[0], r) >= 0.0f)
+				if (AMP_T(idx[0] + offset, r) >= 0.0f)
 				{
-					const float deviation = concurrency::fast_math::fabs(AMP_T(idx[0], r) - avg);
-					if (deviation <= number_of_mad * standardDeviation)
-					{
-						weightedSDF += (AMP_SW[r].z * AMP_T(idx[0], r));
-						weightSum += AMP_SW[r].z;
-					}
+					avg += AMP_T(idx[0] + offset, r);
+					validCount += 1.0f;
 				}
 			}
-			if (weightSum > 0.0f)
+			if (validCount < 0.5f)
 			{
-				AMP_FaceSDF[idx] = weightedSDF / weightSum;
+				AMP_FaceSDF_partial[idx] = -1.0f;
+				return;
+			}
+			avg /= validCount;
+
+			// use standard deviation and ratio of 1.5; (different from CGAL (median absolute))
+			float standardDeviation = 0.0f;
+			float acceptCount = 0.0f;
+			for (int r = 0; r < RAYCOUNT; ++r)
+			{
+				if (AMP_T(idx[0] + offset, r) >= 0.0f)
+				{
+					float diff = AMP_T(idx[0] + offset, r) - avg;
+					standardDeviation += (diff * diff);
+					acceptCount += 1.0f;
+				}
+			}
+
+			if (acceptCount > 0.5f)
+			{
+				standardDeviation /= acceptCount;
+				standardDeviation = concurrency::fast_math::sqrt(standardDeviation);
+
+				float weightedSDF = 0.0f;
+				float weightSum = 0.0f;
+				for (int r = 0; r < RAYCOUNT; ++r)
+				{
+					if (AMP_T(idx[0] + offset, r) >= 0.0f)
+					{
+						const float deviation = concurrency::fast_math::fabs(AMP_T(idx[0] + offset, r) - avg);
+						if (deviation <= number_of_mad * standardDeviation)
+						{
+							weightedSDF += (AMP_SW[r].z * AMP_T(idx[0] + offset, r));
+							weightSum += AMP_SW[r].z;
+						}
+					}
+				}
+				if (weightSum > 0.0f)
+				{
+					AMP_FaceSDF_partial[idx] = weightedSDF / weightSum;
+				}
+				else
+				{
+					AMP_FaceSDF_partial[idx] = -1.0f;
+				}
 			}
 			else
 			{
-				AMP_FaceSDF[idx] = -1.0f;
+				AMP_FaceSDF_partial[idx] = -1.0f;
+			}
+		});
+#else
+		for (int tri = 0; tri < F.rows(); ++tri)
+		{
+			concurrency::index<1> idx(tri);
+			float avg = 0.0f;
+			float validCount = 0.0f;
+			for (int r = 0; r < RAYCOUNT; ++r)
+			{
+				if (AMP_T(idx[0] + offset, r) >= 0.0f)
+				{
+					avg += AMP_T(idx[0] + offset, r);
+					validCount += 1.0f;
+				}
+			}
+			if (validCount < 0.5f)
+			{
+				AMP_FaceSDF_partial[idx] = -1.0f;
+				return;
+			}
+			avg /= validCount;
+
+			// use standard deviation and ratio of 1.5; (different from CGAL (median absolute))
+			float standardDeviation = 0.0f;
+			float acceptCount = 0.0f;
+			for (int r = 0; r < RAYCOUNT; ++r)
+			{
+				if (AMP_T(idx[0] + offset, r) >= 0.0f)
+				{
+					float diff = AMP_T(idx[0] + offset, r) - avg;
+					standardDeviation += (diff * diff);
+					acceptCount += 1.0f;
+				}
+			}
+
+			if (acceptCount > 0.5f)
+			{
+				standardDeviation /= acceptCount;
+				standardDeviation = concurrency::fast_math::sqrt(standardDeviation);
+
+				float weightedSDF = 0.0f;
+				float weightSum = 0.0f;
+				for (int r = 0; r < RAYCOUNT; ++r)
+				{
+					if (AMP_T(idx[0] + offset, r) >= 0.0f)
+					{
+						const float deviation = concurrency::fast_math::fabs(AMP_T(idx[0] + offset, r) - avg);
+						if (deviation <= number_of_mad * standardDeviation)
+						{
+							weightedSDF += (AMP_SW[r].z * AMP_T(idx[0] + offset, r));
+							weightSum += AMP_SW[r].z;
+						}
+					}
+				}
+				if (weightSum > 0.0f)
+				{
+					AMP_FaceSDF_partial[idx] = weightedSDF / weightSum;
+				}
+				else
+				{
+					AMP_FaceSDF_partial[idx] = -1.0f;
+				}
+			}
+			else
+			{
+				AMP_FaceSDF_partial[idx] = -1.0f;
 			}
 		}
-		else
-		{
-			AMP_FaceSDF[idx] = -1.0f;
-		}
-	}
 #endif
-	AMP_FaceSDF.synchronize(); // maybe needless.
+		AMP_FaceSDF_partial.synchronize();
+	}
 	FaceSDF.resize(F.rows(), 1);
 	for (int f = 0; f < F.rows(); ++f)
 	{

@@ -14,12 +14,14 @@ int main(int argc, char* argv[])
 	const double height = 100.0;
 	const double preferThickness = 5.0;
 	const double minThickness = 3.0;
+	const int chunkSize = 500000;
 	double dummyd = height * 1024.0*1024.0 + preferThickness * 1024.0 + minThickness;
 	int dummyi0 = 0;
 	int dummyi1 = 0;
 	union {
 		char c[sizeof(float)];
 		float f;
+		int i;
 	} loader;
 	loader.f = height;
 	memcpy(dummyc1, loader.c, sizeof(float));
@@ -27,14 +29,10 @@ int main(int argc, char* argv[])
 	memcpy(dummyc1 + sizeof(float), loader.c, sizeof(float));
 	loader.f = minThickness;
 	memcpy(dummyc1 + sizeof(float) + sizeof(float), loader.c, sizeof(float));
-
-	// "Intel(R) HD Graphics 630"
-	// "Radeon RX Vega M GH Graphics"
+	loader.i = chunkSize;
+	memcpy(dummyc1 + sizeof(float) + sizeof(float) + sizeof(float), loader.c, sizeof(int));
 
 	checkThickness(dummyc0, dummyd, dummyc1, dummyi0, dummyc2, dummyi1, (char**)&dummyc3);
-
-	//getAccelerator(dummyc0, dummyd, dummyc1, dummyi0, dummyc2, dummyi1, (char**)&dummyc3);
-	//std::cout << dummyc1 << std::endl;
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu

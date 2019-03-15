@@ -39,6 +39,7 @@ bool write_OBJ(
 void computeSDF(
 	const Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic>& V,
 	const Eigen::Matrix<  int, Eigen::Dynamic, Eigen::Dynamic>& F,
+	const int& chunkSize,
 	const concurrency::accelerator& acc,
 	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic>& FaceSDF
 );
