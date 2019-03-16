@@ -12,6 +12,7 @@
 #include "igl/copyleft/cgal/intersect_other.h"
 #include "igl/adjacency_list.h"
 #include "igl/triangle_triangle_adjacency.h"
+#include "igl/vertex_triangle_adjacency.h"
 #include "igl/signed_distance.h"
 #include "igl/writeOBJ.h"
 
@@ -222,12 +223,31 @@ bool compute_boolean(
 )
 {
 	////
+	// HDS
+	////
+	std::vector< std::vector<int> > VA_adj;
+	igl::adjacency_list(FA, VA_adj);
+	Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> TTA, TTiA;
+	igl::triangle_triangle_adjacency(FA, TTA, TTiA);
+	std::vector< std::vector<int> > VFA;
+	std::vector< std::vector<int> > VFiA;
+	igl::vertex_triangle_adjacency(VA, FA, VFA, VFiA);
+
+	std::vector< std::vector<int> > VB_adj;
+	igl::adjacency_list(FB, VB_adj);
+	Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> TTB, TTiB;
+	igl::triangle_triangle_adjacency(FB, TTB, TTiB);
+	std::vector< std::vector<int> > VFB;
+	std::vector< std::vector<int> > VFiB;
+	igl::vertex_triangle_adjacency(VB, FB, VFB, VFiB);
+
+	////
 	// detect polypaint markers
 	////
 	std::unordered_map<int, int> colorVote;
 	for (int vIdx = 0; vIdx < VA.rows(); ++vIdx)
 	{
-		int encodedColor = (VCA(vIdx, 0) * 256 + VCA(vIdx, 1)) + VCA(vIdx, 2);
+		int encodedColor = (VCA(vIdx, 0) * 256 + VCA(vIdx, 1)) * 256 + VCA(vIdx, 2);
 		if (colorVote.find(encodedColor) == colorVote.end())
 		{
 			colorVote[encodedColor] = 0;
@@ -244,23 +264,16 @@ bool compute_boolean(
 			maxVote = c_v.second;
 		}
 	}
-
-	std::vector< std::vector<int> > V_adj;
-	igl::adjacency_list(FA, V_adj);
-	Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> TT, TTi;
-	igl::triangle_triangle_adjacency(FA, TT, TTi);
-
 	std::unordered_set<int> toBeChecked;
 	for (int vIdx = 0; vIdx < VA.rows(); ++vIdx)
 	{
-		int encodedColor = (VCA(vIdx, 0) * 256 + VCA(vIdx, 1)) + VCA(vIdx, 2);
+		int encodedColor = (VCA(vIdx, 0) * 256 + VCA(vIdx, 1)) * 256 + VCA(vIdx, 2);
 		if (encodedColor != baseColor)
 		{
 			toBeChecked.insert(vIdx);
 		}
 	}
-
-	std::vector<std::unordered_set<int> > colorClusters;
+	std::vector<std::vector<int> > colorClusters;
 	while (!toBeChecked.empty())
 	{
 		colorClusters.push_back({});
@@ -271,10 +284,10 @@ bool compute_boolean(
 		while (!stack.empty())
 		{
 			int top = stack.back();
-			colorClusters.back().insert(top);
+			colorClusters.back().push_back(top);
 			stack.pop_back();
-			
-			for (const int& nvIdx : V_adj.at(top))
+
+			for (const int& nvIdx : VA_adj.at(top))
 			{
 				if (toBeChecked.find(nvIdx) != toBeChecked.end())
 				{
@@ -284,64 +297,165 @@ bool compute_boolean(
 			}
 		}
 	}
-
-	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> colorPoint;
-	colorPoint.resize(colorClusters.size(), 3);
+#if 1
+	// for ignoring buggy user input (i.e. marker outside of the (VB,FB)), we carefully check the position of the color marker.
+	std::vector<int> markerInV;
 	for (int c = 0; c < colorClusters.size(); ++c)
 	{
-		colorPoint.row(c) = VA.row(*(colorClusters.at(c).begin()));
-	}
-	Eigen::Matrix<float, Eigen::Dynamic, 1> S;
-	Eigen::Matrix<int, Eigen::Dynamic, 1> I;
-	Eigen::Matrix<float, Eigen::Dynamic, 3> C;
-	Eigen::Matrix<float, Eigen::Dynamic, 3> N;
-	igl::signed_distance(colorPoint, VB, FB, igl::SIGNED_DISTANCE_TYPE_DEFAULT, S, I, C, N);
+		Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> colorPoint;
+		colorPoint.resize(colorClusters.at(c).size(), 3);
+		for (int cvIdx = 0; cvIdx < colorClusters.at(c).size(); ++cvIdx)
+		{
+			colorPoint.row(cvIdx) = VA.row(colorClusters.at(c).at(cvIdx));
+		}
+		Eigen::Matrix<float, Eigen::Dynamic, 1> S;
+		Eigen::Matrix<int, Eigen::Dynamic, 1> I;
+		Eigen::Matrix<float, Eigen::Dynamic, 3> C;
+		Eigen::Matrix<float, Eigen::Dynamic, 3> N;
+		igl::signed_distance(colorPoint, VB, FB, igl::SIGNED_DISTANCE_TYPE_DEFAULT, S, I, C, N);
 
-	std::vector<int> markerIn;
-	std::vector<int> markerOut;
+		int minIdx = -1;
+		float minDist = S.minCoeff(&minIdx);
+
+		if (minDist <= 0)
+		{
+			markerInV.push_back(colorClusters.at(c).at(minIdx));
+		}
+	}
+#else
+	std::vector<int> markerInV;
 	for (int c = 0; c < colorClusters.size(); ++c)
 	{
-		if (S(c, 0) <= 0)
-		{
-			markerIn.push_back(*(colorClusters.at(c).begin()));
-		}
-		else
-		{
-			markerOut.push_back(*(colorClusters.at(c).begin()));
-		}
+		std::cout << *(colorClusters.at(c).begin()) << std::endl;
+		markerInV.push_back(*(colorClusters.at(c).begin()));
 	}
-
-	for (const auto& in : markerIn)
-	{
-		std::cout << "in: " << in << std::endl;
-	}
-	for (const auto& out : markerOut)
-	{
-		std::cout << "out: " << out << std::endl;
-	}
+#endif
 
 	////
 	// remesh based on intersection
 	////
+	// see https://github.com/libigl/libigl/blob/master/include/igl/copyleft/cgal/remesh_self_intersections.h
+	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> VD;
+	Eigen::Matrix<  int, Eigen::Dynamic, Eigen::Dynamic> FD;
 	Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> IF;
 	Eigen::Matrix<int, Eigen::Dynamic, 1> MapToOriginalF;
 	Eigen::Matrix<int, Eigen::Dynamic, 1> MapToUniqueV;
-
+	// note: bacause stitch_all is false (default value), VC.block(0, 0, VF.rows()+VB.rows(), 3) == [VA;VB]
 	igl::copyleft::cgal::intersect_other(
-		VA, FA, VB, FB, igl::copyleft::cgal::RemeshSelfIntersectionsParam(), IF, VC, FC, MapToOriginalF, MapToUniqueV
+		VA, FA, VB, FB, igl::copyleft::cgal::RemeshSelfIntersectionsParam(), IF, VD, FD, MapToOriginalF, MapToUniqueV
 	);
+	std::for_each(FD.data(), FD.data() + FD.size(), [&MapToUniqueV](int & a) {a = MapToUniqueV(a); });
+	////
+	// HDS
+	////
+	std::vector< std::vector<int> > VD_adj;
+	igl::adjacency_list(FD, VD_adj);
+	Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> TTD, TTiD;
+	igl::triangle_triangle_adjacency(FD, TTD, TTiD);
+	std::vector< std::vector<int> > VFD;
+	std::vector< std::vector<int> > VFiD;
+	igl::vertex_triangle_adjacency(VD, FD, VFD, VFiD);
 
-	std::vector<int> count(MapToUniqueV.rows(), 0);
-	for (int i = 0; i < count.size(); ++i)
+	////
+	// enumerates vertices shared with islands
+	////
+	std::vector<int> countV(VD.rows(), 0);
+	for (int vIdx = 0; vIdx < VD.rows(); ++vIdx)
 	{
-		count.at(MapToUniqueV(i, 0)) += 1;
+		countV.at(MapToUniqueV(vIdx, 0)) += 1;
 	}
-	//for (int i = 0; i < count.size(); ++i)
-	//{
-	//	if (count.at(i) >= 2) {
-	//		std::cout << i << "-th vertex: " << count.at(i) << std::endl;
-	//	}
-	//}
+	std::unordered_set<int> stitchV;
+	for (int vIdx = 0; vIdx < countV.size(); ++vIdx)
+	{
+		if (countV.at(vIdx) >= 2)
+		{
+			stitchV.insert(vIdx);
+		}
+	}
+
+	////
+	// find shared vertices of interest
+	////
+	std::unordered_set<int> colorRegion(markerInV.begin(), markerInV.end());
+	std::vector<int> stack = markerInV;
+	while (!stack.empty())
+	{
+		int currentV = stack.back();
+		stack.pop_back();
+		for (const auto& nv : VD_adj.at(currentV))
+		{
+			if (colorRegion.find(nv) == colorRegion.end())
+			{
+				colorRegion.insert(nv);
+				if (stitchV.find(nv) == stitchV.end())
+				{
+					stack.push_back(nv);
+				}
+			}
+		}
+	}
+	std::unordered_set<int> stitchV_filtered;
+	for (const auto& sv : stitchV)
+	{
+		if (colorRegion.find(sv) != colorRegion.end())
+		{
+			stitchV_filtered.insert(sv);
+		}
+	}
+	Eigen::MatrixXf tmpV;
+	Eigen::MatrixXi tmpF;
+	tmpV.resize(stitchV_filtered.size(), 3);
+	tmpF.resize(0, 3);
+	int vvv = 0;
+	for (const auto& sv : stitchV_filtered)
+	{
+		tmpV.row(vvv++) = VD.row(sv);
+	}
+	igl::writeOBJ("ppp.obj", tmpV, tmpF);
+	igl::writeOBJ("remeshes.obj", VD, FD);
+
+
+	////
+	// enumerate divided F round the boudary of interest
+	////
+	std::unordered_set<int> boundaryFD; // in terms of edge-connectivity
+	for (int fIdx = 0; fIdx < FD.rows(); ++fIdx)
+	{
+		int stitchVCount = 0;
+		const int& uv0 = FD(fIdx, 0);
+		const int& uv1 = FD(fIdx, 1);
+		const int& uv2 = FD(fIdx, 2);
+		if (stitchV_filtered.find(uv0) != stitchV_filtered.end())
+		{
+			stitchVCount++;
+		}
+		if (stitchV_filtered.find(uv1) != stitchV_filtered.end())
+		{
+			stitchVCount++;
+		}
+		if (stitchV_filtered.find(uv2) != stitchV_filtered.end())
+		{
+			stitchVCount++;
+		}
+		if (stitchVCount >= 2)
+		{
+			boundaryFD.insert(fIdx);
+		}
+	}
+
+	std::vector<int> countF(FA.rows() + FB.rows(), 0);
+	for (const auto& fdIdx : boundaryFD)
+	{
+		countF.at(MapToOriginalF(fdIdx, 0)) += 1;
+	}
+	std::unordered_set<int> dividedFAFB;
+	for (int fIdx = 0; fIdx < countF.size(); ++fIdx)
+	{
+		if (countF.at(fIdx) >= 2)
+		{
+			dividedFAFB.insert(fIdx);
+		}
+	}
 
 	// roll-back the remeshing
 	// and stitch based on boolean type
