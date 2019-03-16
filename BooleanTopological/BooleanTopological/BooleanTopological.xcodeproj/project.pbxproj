@@ -1,0 +1,393 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 50;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		3B5A12DA21C3F89000BBAAF6 /* ThicknessChecker.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3B5A12D421C3F88F00BBAAF6 /* ThicknessChecker.cpp */; };
+		3B5A12DB21C3F89000BBAAF6 /* ThicknessChecker.h in Headers */ = {isa = PBXBuildFile; fileRef = 3B5A12D521C3F88F00BBAAF6 /* ThicknessChecker.h */; };
+		3B5A12DC21C3F89000BBAAF6 /* write_OBJ.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3B5A12D621C3F89000BBAAF6 /* write_OBJ.cpp */; };
+		3B5A12DD21C3F89000BBAAF6 /* CGAL_SDF.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3B5A12D721C3F89000BBAAF6 /* CGAL_SDF.cpp */; };
+		3B5A12DE21C3F89000BBAAF6 /* read_OBJ.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3B5A12D821C3F89000BBAAF6 /* read_OBJ.cpp */; };
+		3B5A12DF21C3F89000BBAAF6 /* stdafx.h in Headers */ = {isa = PBXBuildFile; fileRef = 3B5A12D921C3F89000BBAAF6 /* stdafx.h */; };
+		3B5A12E721C3F94C00BBAAF6 /* libgmp.10.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B5A12E121C3F94C00BBAAF6 /* libgmp.10.dylib */; };
+		3B5A12E821C3F94C00BBAAF6 /* libboost_system-mt.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B5A12E221C3F94C00BBAAF6 /* libboost_system-mt.dylib */; };
+		3B5A12E921C3F94C00BBAAF6 /* libCGAL.13.0.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B5A12E321C3F94C00BBAAF6 /* libCGAL.13.0.2.dylib */; };
+		3B5A12EA21C3F94C00BBAAF6 /* libmpfr.6.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B5A12E421C3F94C00BBAAF6 /* libmpfr.6.dylib */; };
+		3B5A12EB21C3F94C00BBAAF6 /* libCGAL_Core.13.0.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B5A12E521C3F94C00BBAAF6 /* libCGAL_Core.13.0.2.dylib */; };
+		3B5A12EC21C3F94C00BBAAF6 /* libboost_thread-mt.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B5A12E621C3F94C00BBAAF6 /* libboost_thread-mt.dylib */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		3B5A130421C3FA4E00BBAAF6 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3B5A130021C3FA4E00BBAAF6 /* ThicknessCheckerTest.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 3B5A12F621C3FA0C00BBAAF6;
+			remoteInfo = ThicknessCheckerTest;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		3B5A12CD21C3F83100BBAAF6 /* libThicknessChecker.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libThicknessChecker.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
+		3B5A12D421C3F88F00BBAAF6 /* ThicknessChecker.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ThicknessChecker.cpp; sourceTree = "<group>"; };
+		3B5A12D521C3F88F00BBAAF6 /* ThicknessChecker.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ThicknessChecker.h; sourceTree = "<group>"; };
+		3B5A12D621C3F89000BBAAF6 /* write_OBJ.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = write_OBJ.cpp; sourceTree = "<group>"; };
+		3B5A12D721C3F89000BBAAF6 /* CGAL_SDF.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CGAL_SDF.cpp; sourceTree = "<group>"; };
+		3B5A12D821C3F89000BBAAF6 /* read_OBJ.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = read_OBJ.cpp; sourceTree = "<group>"; };
+		3B5A12D921C3F89000BBAAF6 /* stdafx.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stdafx.h; sourceTree = "<group>"; };
+		3B5A12E121C3F94C00BBAAF6 /* libgmp.10.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libgmp.10.dylib; path = ../../../../../../../../../usr/local/Cellar/gmp/6.1.2_2/lib/libgmp.10.dylib; sourceTree = "<group>"; };
+		3B5A12E221C3F94C00BBAAF6 /* libboost_system-mt.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libboost_system-mt.dylib"; path = "../../../../../../../../../usr/local/Cellar/boost/1.68.0/lib/libboost_system-mt.dylib"; sourceTree = "<group>"; };
+		3B5A12E321C3F94C00BBAAF6 /* libCGAL.13.0.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libCGAL.13.0.2.dylib; path = ../../../../../../../../../usr/local/Cellar/cgal/4.13/lib/libCGAL.13.0.2.dylib; sourceTree = "<group>"; };
+		3B5A12E421C3F94C00BBAAF6 /* libmpfr.6.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libmpfr.6.dylib; path = ../../../../../../../../../usr/local/Cellar/mpfr/4.0.1/lib/libmpfr.6.dylib; sourceTree = "<group>"; };
+		3B5A12E521C3F94C00BBAAF6 /* libCGAL_Core.13.0.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libCGAL_Core.13.0.2.dylib; path = ../../../../../../../../../usr/local/Cellar/cgal/4.13/lib/libCGAL_Core.13.0.2.dylib; sourceTree = "<group>"; };
+		3B5A12E621C3F94C00BBAAF6 /* libboost_thread-mt.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libboost_thread-mt.dylib"; path = "../../../../../../../../../usr/local/Cellar/boost/1.68.0/lib/libboost_thread-mt.dylib"; sourceTree = "<group>"; };
+		3B5A130021C3FA4E00BBAAF6 /* ThicknessCheckerTest.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = ThicknessCheckerTest.xcodeproj; path = ../ThicknessCheckerTest/ThicknessCheckerTest.xcodeproj; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		3B5A12CB21C3F83100BBAAF6 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3B5A12E721C3F94C00BBAAF6 /* libgmp.10.dylib in Frameworks */,
+				3B5A12E821C3F94C00BBAAF6 /* libboost_system-mt.dylib in Frameworks */,
+				3B5A12E921C3F94C00BBAAF6 /* libCGAL.13.0.2.dylib in Frameworks */,
+				3B5A12EA21C3F94C00BBAAF6 /* libmpfr.6.dylib in Frameworks */,
+				3B5A12EB21C3F94C00BBAAF6 /* libCGAL_Core.13.0.2.dylib in Frameworks */,
+				3B5A12EC21C3F94C00BBAAF6 /* libboost_thread-mt.dylib in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		3B5A12C421C3F83100BBAAF6 = {
+			isa = PBXGroup;
+			children = (
+				3B5A12D721C3F89000BBAAF6 /* CGAL_SDF.cpp */,
+				3B5A12D821C3F89000BBAAF6 /* read_OBJ.cpp */,
+				3B5A12D921C3F89000BBAAF6 /* stdafx.h */,
+				3B5A12D421C3F88F00BBAAF6 /* ThicknessChecker.cpp */,
+				3B5A12D521C3F88F00BBAAF6 /* ThicknessChecker.h */,
+				3B5A12D621C3F89000BBAAF6 /* write_OBJ.cpp */,
+				3B5A12CE21C3F83100BBAAF6 /* Products */,
+				3B5A12E021C3F94B00BBAAF6 /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		3B5A12CE21C3F83100BBAAF6 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				3B5A12CD21C3F83100BBAAF6 /* libThicknessChecker.dylib */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		3B5A12E021C3F94B00BBAAF6 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				3B5A130021C3FA4E00BBAAF6 /* ThicknessCheckerTest.xcodeproj */,
+				3B5A12E221C3F94C00BBAAF6 /* libboost_system-mt.dylib */,
+				3B5A12E621C3F94C00BBAAF6 /* libboost_thread-mt.dylib */,
+				3B5A12E521C3F94C00BBAAF6 /* libCGAL_Core.13.0.2.dylib */,
+				3B5A12E321C3F94C00BBAAF6 /* libCGAL.13.0.2.dylib */,
+				3B5A12E121C3F94C00BBAAF6 /* libgmp.10.dylib */,
+				3B5A12E421C3F94C00BBAAF6 /* libmpfr.6.dylib */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		3B5A130121C3FA4E00BBAAF6 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				3B5A130521C3FA4E00BBAAF6 /* ThicknessCheckerTest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		3B5A12C921C3F83100BBAAF6 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3B5A12DF21C3F89000BBAAF6 /* stdafx.h in Headers */,
+				3B5A12DB21C3F89000BBAAF6 /* ThicknessChecker.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		3B5A12CC21C3F83100BBAAF6 /* ThicknessChecker */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3B5A12D121C3F83100BBAAF6 /* Build configuration list for PBXNativeTarget "ThicknessChecker" */;
+			buildPhases = (
+				3B5A12C921C3F83100BBAAF6 /* Headers */,
+				3B5A12CA21C3F83100BBAAF6 /* Sources */,
+				3B5A12CB21C3F83100BBAAF6 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ThicknessChecker;
+			productName = ThicknessChecker;
+			productReference = 3B5A12CD21C3F83100BBAAF6 /* libThicknessChecker.dylib */;
+			productType = "com.apple.product-type.library.dynamic";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		3B5A12C521C3F83100BBAAF6 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 1010;
+				ORGANIZATIONNAME = KazutakaNakashima;
+				TargetAttributes = {
+					3B5A12CC21C3F83100BBAAF6 = {
+						CreatedOnToolsVersion = 10.1;
+					};
+				};
+			};
+			buildConfigurationList = 3B5A12C821C3F83100BBAAF6 /* Build configuration list for PBXProject "ThicknessChecker" */;
+			compatibilityVersion = "Xcode 9.3";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 3B5A12C421C3F83100BBAAF6;
+			productRefGroup = 3B5A12CE21C3F83100BBAAF6 /* Products */;
+			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = 3B5A130121C3FA4E00BBAAF6 /* Products */;
+					ProjectRef = 3B5A130021C3FA4E00BBAAF6 /* ThicknessCheckerTest.xcodeproj */;
+				},
+			);
+			projectRoot = "";
+			targets = (
+				3B5A12CC21C3F83100BBAAF6 /* ThicknessChecker */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		3B5A130521C3FA4E00BBAAF6 /* ThicknessCheckerTest */ = {
+			isa = PBXReferenceProxy;
+			fileType = "compiled.mach-o.executable";
+			path = ThicknessCheckerTest;
+			remoteRef = 3B5A130421C3FA4E00BBAAF6 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
+
+/* Begin PBXSourcesBuildPhase section */
+		3B5A12CA21C3F83100BBAAF6 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3B5A12DA21C3F89000BBAAF6 /* ThicknessChecker.cpp in Sources */,
+				3B5A12DD21C3F89000BBAAF6 /* CGAL_SDF.cpp in Sources */,
+				3B5A12DC21C3F89000BBAAF6 /* write_OBJ.cpp in Sources */,
+				3B5A12DE21C3F89000BBAAF6 /* read_OBJ.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		3B5A12CF21C3F83100BBAAF6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					../../submodule/libigl/include,
+					../../submodule/eigen,
+					/usr/local/include,
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SYSTEM_HEADER_SEARCH_PATHS = "";
+			};
+			name = Debug;
+		};
+		3B5A12D021C3F83100BBAAF6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					../../submodule/libigl/include,
+					../../submodule/eigen,
+					/usr/local/include,
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				SYSTEM_HEADER_SEARCH_PATHS = "";
+			};
+			name = Release;
+		};
+		3B5A12D221C3F83100BBAAF6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = CG3R2X53L3;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				EXECUTABLE_PREFIX = lib;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/usr/local/Cellar/gmp/6.1.2_2/lib,
+					/usr/local/Cellar/boost/1.68.0/lib,
+					/usr/local/Cellar/cgal/4.13/lib,
+					/usr/local/Cellar/mpfr/4.0.1/lib,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+			};
+			name = Debug;
+		};
+		3B5A12D321C3F83100BBAAF6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = CG3R2X53L3;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				EXECUTABLE_PREFIX = lib;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/usr/local/Cellar/gmp/6.1.2_2/lib,
+					/usr/local/Cellar/boost/1.68.0/lib,
+					/usr/local/Cellar/cgal/4.13/lib,
+					/usr/local/Cellar/mpfr/4.0.1/lib,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		3B5A12C821C3F83100BBAAF6 /* Build configuration list for PBXProject "ThicknessChecker" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3B5A12CF21C3F83100BBAAF6 /* Debug */,
+				3B5A12D021C3F83100BBAAF6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		3B5A12D121C3F83100BBAAF6 /* Build configuration list for PBXNativeTarget "ThicknessChecker" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3B5A12D221C3F83100BBAAF6 /* Debug */,
+				3B5A12D321C3F83100BBAAF6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 3B5A12C521C3F83100BBAAF6 /* Project object */;
+}
