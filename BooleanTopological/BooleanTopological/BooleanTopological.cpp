@@ -12,6 +12,7 @@
 #include "igl/copyleft/cgal/intersect_other.h"
 #include "igl/adjacency_list.h"
 #include "igl/triangle_triangle_adjacency.h"
+#include "igl/signed_distance.h"
 #include "igl/writeOBJ.h"
 
 ////
@@ -284,18 +285,40 @@ bool compute_boolean(
 		}
 	}
 
-	for (const auto& cc : colorClusters)
+	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> colorPoint;
+	colorPoint.resize(colorClusters.size(), 3);
+	for (int c = 0; c < colorClusters.size(); ++c)
 	{
-		for (const auto& v : cc)
-		{
-			std::cout << v << " ";
-		}
-		std::cout << std::endl;
+		colorPoint.row(c) = VA.row(*(colorClusters.at(c).begin()));
 	}
+	Eigen::Matrix<float, Eigen::Dynamic, 1> S;
+	Eigen::Matrix<int, Eigen::Dynamic, 1> I;
+	Eigen::Matrix<float, Eigen::Dynamic, 3> C;
+	Eigen::Matrix<float, Eigen::Dynamic, 3> N;
+	igl::signed_distance(colorPoint, VB, FB, igl::SIGNED_DISTANCE_TYPE_DEFAULT, S, I, C, N);
 
 	std::vector<int> markerIn;
 	std::vector<int> markerOut;
-	// todo.
+	for (int c = 0; c < colorClusters.size(); ++c)
+	{
+		if (S(c, 0) <= 0)
+		{
+			markerIn.push_back(*(colorClusters.at(c).begin()));
+		}
+		else
+		{
+			markerOut.push_back(*(colorClusters.at(c).begin()));
+		}
+	}
+
+	for (const auto& in : markerIn)
+	{
+		std::cout << "in: " << in << std::endl;
+	}
+	for (const auto& out : markerOut)
+	{
+		std::cout << "out: " << out << std::endl;
+	}
 
 	////
 	// remesh based on intersection
