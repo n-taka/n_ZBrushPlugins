@@ -8,7 +8,8 @@
 
 int main(int argc, char* argv[])
 {
-	char dummyc0[100] = "../../testModels/,hand2_tri.obj:O,cube2_tri.obj:S\0";
+	//char dummyc0[100] = "../../testModels/,hand3_tri.obj:O,cylinder_tri.obj:A\0";
+	char dummyc0[100] = "../../testModels/,hand2_tri.obj:O,cube2_tri.obj:A\0";
 	char dummyc1[4096], dummyc2[4096];
 	char dummyc3[] = "hello";
 	double dummyd = 0.0;

@@ -15,6 +15,8 @@
 #include "igl/triangle_triangle_adjacency.h"
 #include "igl/vertex_triangle_adjacency.h"
 #include "igl/signed_distance.h"
+#include "igl/remove_unreferenced.h"
+#include "igl/is_vertex_manifold.h"
 #include "igl/writeOBJ.h"
 
 ////
@@ -352,7 +354,7 @@ bool compute_boolean(
 			std::cout << *(colorClusters.at(c).begin()) << std::endl;
 			markerInV.push_back(*(colorClusters.at(c).begin()));
 		}
-		}
+	}
 #endif
 
 	////
@@ -360,7 +362,7 @@ bool compute_boolean(
 	////
 	// see https://github.com/libigl/libigl/blob/master/include/igl/copyleft/cgal/remesh_self_intersections.h
 	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> VD;
-	Eigen::Matrix<  int, Eigen::Dynamic, Eigen::Dynamic> FD;
+	Eigen::Matrix<  int, Eigen::Dynamic, Eigen::Dynamic> FD, FD_stitchAll;
 	Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> IF;
 	Eigen::Matrix<int, Eigen::Dynamic, 1> MapToOriginalF;
 	Eigen::Matrix<int, Eigen::Dynamic, 1> MapToUniqueV;
@@ -370,6 +372,7 @@ bool compute_boolean(
 			VAB, FAB, igl::copyleft::cgal::RemeshSelfIntersectionsParam(), VD, FD, IF, MapToOriginalF, MapToUniqueV
 		);
 	}
+	igl::writeOBJ("remeshed.obj", VD, FD);
 
 	////
 	// HDS
@@ -382,7 +385,8 @@ bool compute_boolean(
 		igl::triangle_triangle_adjacency(FD, TTD, TTiD);
 		igl::vertex_triangle_adjacency(VD, FD, VFD, VFiD);
 
-		std::for_each(FD.data(), FD.data() + FD.size(), [&MapToUniqueV](int & a) {a = MapToUniqueV(a); });
+		FD_stitchAll = FD;
+		std::for_each(FD_stitchAll.data(), FD_stitchAll.data() + FD_stitchAll.size(), [&MapToUniqueV](int & a) {a = MapToUniqueV(a); });
 	}
 
 	////
@@ -408,12 +412,12 @@ bool compute_boolean(
 	// filter fake boudary edge whose endpoints are both stitchV (if mesh resolution is too low, this might happen)
 	////
 	std::unordered_map< int, std::unordered_map<int, std::pair<int, int> > > edgeRefCount;
-	for (int fIdx = 0; fIdx < FD.rows(); ++fIdx)
+	for (int fIdx = 0; fIdx < FD_stitchAll.rows(); ++fIdx)
 	{
 		for (int e = 0; e < 3; ++e)
 		{
-			const int& ve = FD(fIdx, e);
-			const int& vep = FD(fIdx, (e + 1) % 3);
+			const int& ve = FD_stitchAll(fIdx, e);
+			const int& vep = FD_stitchAll(fIdx, (e + 1) % 3);
 			if (stitchV.find(ve) != stitchV.end() && stitchV.find(vep) != stitchV.end())
 			{
 				if (MapToOriginalF(fIdx, 0) < FA.rows())
@@ -429,18 +433,20 @@ bool compute_boolean(
 	}
 
 	////
-	// enumerate patches whose borders are stitchV
+	// enumerate patches whose borders are stitchV that shared between (VA, FA) and (VB, FB) (ignore self-intersections)
 	////
-	std::vector< std::unordered_set<int> > patchA_inB, patchA_outB, patchB_inA, patchB_outA;
+	std::vector< std::unordered_set<int> > patchFA_inB, patchFA_outB, patchFB_inA, patchFB_outA;
+	std::vector< std::unordered_set<int> > patchVA_inB, patchVA_outB, patchVB_inA, patchVB_outA;
 	{
 		std::unordered_set<int> toBeCheckedF;
-		for (int fIdx = 0; fIdx < FD.rows(); ++fIdx)
+		for (int fIdx = 0; fIdx < FD_stitchAll.rows(); ++fIdx)
 		{
 			toBeCheckedF.insert(fIdx);
 		}
 		while (!toBeCheckedF.empty())
 		{
 			std::unordered_set<int> currentPatchF;
+			std::unordered_set<int> currentPatchV;
 			const int searchBeginF = *toBeCheckedF.begin();
 			std::vector<int> stack({ searchBeginF });
 			toBeCheckedF.erase(searchBeginF);
@@ -448,11 +454,15 @@ bool compute_boolean(
 			{
 				const int currentFIdx = stack.back();
 				currentPatchF.insert(currentFIdx);
+				for (int vIdx = 0; vIdx < 3; ++vIdx)
+				{
+					currentPatchV.insert(FD_stitchAll(currentFIdx, vIdx));
+				}
 				stack.pop_back();
 				for (int e = 0; e < 3; ++e)
 				{
-					int ve = FD(currentFIdx, e);
-					int vep = FD(currentFIdx, (e + 1) % 3);
+					int ve = FD_stitchAll(currentFIdx, e);
+					int vep = FD_stitchAll(currentFIdx, (e + 1) % 3);
 					if (((edgeRefCount[std::min(ve, vep)][std::max(ve, vep)].first < 2) || (edgeRefCount[std::min(ve, vep)][std::max(ve, vep)].second < 2))
 						&& (currentPatchF.find(TTD(currentFIdx, e)) == currentPatchF.end()))
 					{
@@ -465,7 +475,7 @@ bool compute_boolean(
 
 			Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> queryPoint;
 			queryPoint.resize(1, 3);
-			queryPoint.row(0) = (VD.row(FD(searchBeginF, 0)) + VD.row(FD(searchBeginF, 1)) + VD.row(FD(searchBeginF, 2))) / 3.0;
+			queryPoint.row(0) = (VD.row(FD_stitchAll(searchBeginF, 0)) + VD.row(FD_stitchAll(searchBeginF, 1)) + VD.row(FD_stitchAll(searchBeginF, 2))) / 3.0;
 			Eigen::Matrix<float, Eigen::Dynamic, 1> S;
 			Eigen::Matrix<int, Eigen::Dynamic, 1> I;
 			Eigen::Matrix<float, Eigen::Dynamic, 3> C;
@@ -478,12 +488,14 @@ bool compute_boolean(
 				if (S(0, 0) <= 0)
 				{
 					// inside
-					patchA_inB.push_back(currentPatchF);
+					patchFA_inB.push_back(currentPatchF);
+					patchVA_inB.push_back(currentPatchV);
 				}
 				else
 				{
 					// outside
-					patchA_outB.push_back(currentPatchF);
+					patchFA_outB.push_back(currentPatchF);
+					patchVA_outB.push_back(currentPatchV);
 				}
 			}
 			else if (MapToOriginalF(searchBeginF, 0) < FA.rows() + FB.rows())
@@ -494,230 +506,342 @@ bool compute_boolean(
 				if (S(0, 0) <= 0)
 				{
 					// inside
-					patchB_inA.push_back(currentPatchF);
+					patchFB_inA.push_back(currentPatchF);
+					patchVB_inA.push_back(currentPatchV);
 				}
 				else
 				{
 					// outside
-					patchB_outA.push_back(currentPatchF);
+					patchFB_outA.push_back(currentPatchF);
+					patchVB_outA.push_back(currentPatchV);
 				}
 			}
 		}
 	}
-	std::unordered_set<int> vvvS;
-	for (const auto& v0 : edgeRefCount)
-	{
-		for (const auto& v1 : v0.second)
-		{
-			if (v1.second.first >= 2 && v1.second.second >= 2)
-			{
-				vvvS.insert(v0.first);
-				vvvS.insert(v1.first);
-			}
-		}
-	}
+#if 0
+	for (int i = 0; i < patchVA_inB.size(); ++i)
 	{
 		Eigen::MatrixXf tmpV;
 		Eigen::MatrixXi tmpF;
-		for (int i = 0; i < vvvS.size(); ++i)
-		{
-			tmpV.resize(vvvS.size(), 3);
-			tmpF.resize(0, 3);
-			int vvv = 0;
-			for (const auto& sv : vvvS)
-			{
-				tmpV.row(vvv++) = VD.row(sv);
-			}
-		}
-		igl::writeOBJ("ridge.obj", tmpV, tmpF);
-	}
-	{
-		Eigen::MatrixXf tmpV;
-		Eigen::MatrixXi tmpF;
-		for (int i = 0; i < stitchV.size(); ++i)
-		{
-			tmpV.resize(stitchV.size(), 3);
-			tmpF.resize(0, 3);
-			int vvv = 0;
-			for (const auto& sv : stitchV)
-			{
-				tmpV.row(vvv++) = VD.row(sv);
-			}
-		}
-		igl::writeOBJ("stitch.obj", tmpV, tmpF);
-	}
-
-	for (int i = 0; i < patchA_inB.size(); ++i)
-	{
-		Eigen::MatrixXf tmpV;
-		Eigen::MatrixXi tmpF;
-		tmpV.resize(patchA_inB.at(i).size() * 3, 3);
+		tmpV.resize(patchVA_inB.at(i).size(), 3);
 		tmpF.resize(0, 3);
 		int vvv = 0;
-		for (const auto& sv : patchA_inB.at(i))
+		for (const auto& sv : patchVA_inB.at(i))
 		{
-			tmpV.row(vvv++) = VD.row(FD(sv, 0));
-			tmpV.row(vvv++) = VD.row(FD(sv, 1));
-			tmpV.row(vvv++) = VD.row(FD(sv, 2));
+			tmpV.row(vvv++) = VD.row(sv);
 		}
 		char buf[100];
 		sprintf(buf, "patchA_inB_%d.obj", i);
 		igl::writeOBJ(buf, tmpV, tmpF);
 	}
-	for (int i = 0; i < patchA_outB.size(); ++i)
+	for (int i = 0; i < patchFB_inA.size(); ++i)
 	{
 		Eigen::MatrixXf tmpV;
 		Eigen::MatrixXi tmpF;
-		tmpV.resize(patchA_outB.at(i).size() * 3, 3);
+		tmpV.resize(patchFB_inA.at(i).size(), 3);
 		tmpF.resize(0, 3);
 		int vvv = 0;
-		for (const auto& sv : patchA_outB.at(i))
+		for (const auto& sv : patchFB_inA.at(i))
 		{
-			tmpV.row(vvv++) = VD.row(FD(sv, 0));
-			tmpV.row(vvv++) = VD.row(FD(sv, 1));
-			tmpV.row(vvv++) = VD.row(FD(sv, 2));
-		}
-		char buf[100];
-		sprintf(buf, "patchA_outB_%d.obj", i);
-		igl::writeOBJ(buf, tmpV, tmpF);
-	}
-	for (int i = 0; i < patchB_inA.size(); ++i)
-	{
-		Eigen::MatrixXf tmpV;
-		Eigen::MatrixXi tmpF;
-		tmpV.resize(patchB_inA.at(i).size() * 3, 3);
-		tmpF.resize(0, 3);
-		int vvv = 0;
-		for (const auto& sv : patchB_inA.at(i))
-		{
-			tmpV.row(vvv++) = VD.row(FD(sv, 0));
-			tmpV.row(vvv++) = VD.row(FD(sv, 1));
-			tmpV.row(vvv++) = VD.row(FD(sv, 2));
+			tmpV.row(vvv++) = (VD.row(FD(sv, 0)) + VD.row(FD(sv, 1)) + VD.row(FD(sv, 2))) / 3.0;
 		}
 		char buf[100];
 		sprintf(buf, "patchB_inA_%d.obj", i);
 		igl::writeOBJ(buf, tmpV, tmpF);
 	}
-	for (int i = 0; i < patchB_outA.size(); ++i)
+
+	for (const auto& v : patchFB_inA.at(9))
 	{
-		Eigen::MatrixXf tmpV;
-		Eigen::MatrixXi tmpF;
-		tmpV.resize(patchB_outA.at(i).size() * 3, 3);
-		tmpF.resize(0, 3);
-		int vvv = 0;
-		for (const auto& sv : patchB_outA.at(i))
-		{
-			tmpV.row(vvv++) = VD.row(FD(sv, 0));
-			tmpV.row(vvv++) = VD.row(FD(sv, 1));
-			tmpV.row(vvv++) = VD.row(FD(sv, 2));
+		for (int lv = 0; lv < 3; lv++) {
+			std::cout << FD(v, lv) << " ";
 		}
-		char buf[100];
-		sprintf(buf, "patchB_outA_%d.obj", i);
-		igl::writeOBJ(buf, tmpV, tmpF);
+	}
+	std::cout << std::endl << std::endl;
+	for (const auto& v : patchFB_inA.at(10))
+	{
+		for (int lv = 0; lv < 3; lv++) {
+			std::cout << FD(v, lv) << " ";
+		}
+	}
+	std::cout << std::endl << std::endl;
+#endif
+
+	////
+	// find patches of interest
+	////
+	auto getPatchIdA = [&](const int& v0, const int v1)
+	{
+		// return index of the patch of A that have v1 -> v0 as its halfedge
+		for (int pIdx = 0; pIdx < patchVA_inB.size(); ++pIdx)
+		{
+			if ((patchVA_inB.at(pIdx).find(v0) != patchVA_inB.at(pIdx).end())
+				&& (patchVA_inB.at(pIdx).find(v1) != patchVA_inB.at(pIdx).end()))
+			{
+				for (const auto& fIdx : patchFA_inB.at(pIdx))
+				{
+					for (int e = 0; e < 3; ++e)
+					{
+						const int& ev0 = FD_stitchAll(fIdx, e);
+						const int& ev1 = FD_stitchAll(fIdx, (e + 1) % 3);
+						if ((ev0 == v1) && (ev1 == v0))
+						{
+							return pIdx;
+						}
+					}
+				}
+			}
+		}
+		return -1;
+	};
+	auto getPatchIdB = [&](const int& v0, const int v1)
+	{
+		// return index of the patch of B that have v1 -> v0 as its halfedge
+		for (int pIdx = 0; pIdx < patchVB_inA.size(); ++pIdx)
+		{
+			if ((patchVB_inA.at(pIdx).find(v0) != patchVB_inA.at(pIdx).end())
+				&& (patchVB_inA.at(pIdx).find(v1) != patchVB_inA.at(pIdx).end()))
+			{
+				for (const auto& fIdx : patchFB_inA.at(pIdx))
+				{
+					for (int e = 0; e < 3; ++e)
+					{
+						const int& ev0 = FD_stitchAll(fIdx, e);
+						const int& ev1 = FD_stitchAll(fIdx, (e + 1) % 3);
+						if ((ev0 == v1) && (ev1 == v0))
+						{
+							return pIdx;
+						}
+					}
+				}
+			}
+		}
+		return -1;
+	};
+
+	std::unordered_set<int> patchA_inB_ofInterest, patchB_inA_ofInterest;
+	std::vector<int> stackA, stackB;
+	for (const auto& cv : markerInV)
+	{
+		for (int pIdx = 0; pIdx < patchVA_inB.size(); ++pIdx)
+		{
+			if (patchVA_inB.at(pIdx).find(cv) != patchVA_inB.at(pIdx).end())
+			{
+				patchA_inB_ofInterest.insert(pIdx);
+				stackA.push_back(pIdx);
+				break;
+			}
+		}
 	}
 
-
-	return true;
-
-	////
-	// find shared vertices of interest
-	////
-	std::unordered_set<int> colorRegion(markerInV.begin(), markerInV.end());
-	std::vector<int> stack = markerInV;
-	while (!stack.empty())
+	while (!stackA.empty() || stackB.empty())
 	{
-		int currentV = stack.back();
-		stack.pop_back();
-		for (const auto& nv : VD_adj.at(currentV))
+		if (!stackA.empty())
 		{
-			if (colorRegion.find(nv) == colorRegion.end())
+			const int currentPatch = stackA.back();
+			stackA.pop_back();
+			for (const auto& fIdx : patchFA_inB.at(currentPatch))
 			{
-				colorRegion.insert(nv);
-				if (stitchV.find(nv) == stitchV.end())
+				for (int e = 0; e < 3; ++e)
 				{
-					stack.push_back(nv);
+					const int& ev0 = FD_stitchAll(fIdx, e);
+					const int& ev1 = FD_stitchAll(fIdx, (e + 1) % 3);
+					if ((stitchV.find(ev0) != stitchV.end()) && (stitchV.find(ev1) != stitchV.end())
+						&& (edgeRefCount[std::min(ev0, ev1)][std::max(ev0, ev1)].first >= 2) && (edgeRefCount[std::min(ev0, ev1)][std::max(ev0, ev1)].second >= 2))
+					{
+						const int patchBAround = getPatchIdB(ev0, ev1);
+						if (patchBAround >= 0)
+						{
+							if (patchB_inA_ofInterest.find(patchBAround) == patchB_inA_ofInterest.end())
+							{
+								patchB_inA_ofInterest.insert(patchBAround);
+								stackB.push_back(patchBAround);
+							}
+						}
+						else
+						{
+							const int patchAAround = getPatchIdA(ev0, ev1);
+							if (patchAAround >= 0)
+							{
+								if (patchA_inB_ofInterest.find(patchAAround) == patchA_inB_ofInterest.end())
+								{
+									patchA_inB_ofInterest.insert(patchAAround);
+									stackA.push_back(patchAAround);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		else
+		{
+			// pick from stackB
+			const int currentPatch = stackB.back();
+			stackB.pop_back();
+			for (const auto& fIdx : patchFB_inA.at(currentPatch))
+			{
+				for (int e = 0; e < 3; ++e)
+				{
+					const int& ev0 = FD_stitchAll(fIdx, e);
+					const int& ev1 = FD_stitchAll(fIdx, (e + 1) % 3);
+					if ((stitchV.find(ev0) != stitchV.end()) && (stitchV.find(ev1) != stitchV.end())
+						&& (edgeRefCount[std::min(ev0, ev1)][std::max(ev0, ev1)].first >= 2) && (edgeRefCount[std::min(ev0, ev1)][std::max(ev0, ev1)].second >= 2))
+					{
+						const int patchAAround = getPatchIdA(ev0, ev1);
+						if (patchAAround >= 0)
+						{
+							if (patchA_inB_ofInterest.find(patchAAround) == patchA_inB_ofInterest.end())
+							{
+								patchA_inB_ofInterest.insert(patchAAround);
+								stackA.push_back(patchAAround);
+							}
+						}
+						else
+						{
+							const int patchBAround = getPatchIdB(ev0, ev1);
+							if (patchBAround >= 0)
+							{
+								if (patchB_inA_ofInterest.find(patchBAround) == patchB_inA_ofInterest.end())
+								{
+									patchB_inA_ofInterest.insert(patchBAround);
+									stackB.push_back(patchBAround);
+								}
+							}
+						}
+					}
 				}
 			}
 		}
 	}
-	std::unordered_set<int> stitchV_filtered;
-	for (const auto& sv : stitchV)
+
+#if 0
+	for (const auto& pa : patchA_inB_ofInterest)
 	{
-		if (colorRegion.find(sv) != colorRegion.end())
+		std::cout << "A in B: " << pa << std::endl;
+	}
+	for (const auto& pb : patchB_inA_ofInterest)
+	{
+		std::cout << "B in A: " << pb << std::endl;
+	}
+#endif
+	std::vector<bool> needStitch(VD.rows(), false);
+	for (const auto& pIdx : patchA_inB_ofInterest)
+	{
+		for (const auto& f : patchFA_inB.at(pIdx))
 		{
-			stitchV_filtered.insert(sv);
+			for (int lv = 0; lv < 3; ++lv)
+			{
+				needStitch.at(FD(f, lv)) = true;
+			}
 		}
 	}
-	Eigen::MatrixXf tmpV;
-	Eigen::MatrixXi tmpF;
-	tmpV.resize(stitchV_filtered.size(), 3);
-	tmpF.resize(0, 3);
-	int vvv = 0;
-	for (const auto& sv : stitchV_filtered)
+	for (const auto& pIdx : patchB_inA_ofInterest)
 	{
-		tmpV.row(vvv++) = VD.row(sv);
+		for (const auto& f : patchFB_inA.at(pIdx))
+		{
+			for (int lv = 0; lv < 3; ++lv)
+			{
+				needStitch.at(FD(f, lv)) = true;
+			}
+		}
 	}
-	igl::writeOBJ("ppp.obj", tmpV, tmpF);
-	igl::writeOBJ("remeshes.obj", VD, FD);
 
-
+	std::unordered_map<int, std::vector<int>> stitchFrom;
+	for (int vIdx = 0; vIdx < VD.rows(); ++vIdx)
+	{
+		stitchFrom[MapToUniqueV(vIdx)].push_back(vIdx);
+	}
 	////
-	// enumerate divided F round the boudary of interest
+	// update MapToUniqueV for avoiding accidental stitch (when the mesh is self-intersecting)
 	////
-	std::unordered_set<int> boundaryFD; // in terms of edge-connectivity
-	for (int fIdx = 0; fIdx < FD.rows(); ++fIdx)
+	for (int vIdx = 0; vIdx < needStitch.size(); ++vIdx)
 	{
-		int stitchVCount = 0;
-		const int& uv0 = FD(fIdx, 0);
-		const int& uv1 = FD(fIdx, 1);
-		const int& uv2 = FD(fIdx, 2);
-		if (stitchV_filtered.find(uv0) != stitchV_filtered.end())
+		if (needStitch.at(vIdx))
 		{
-			stitchVCount++;
-		}
-		if (stitchV_filtered.find(uv1) != stitchV_filtered.end())
-		{
-			stitchVCount++;
-		}
-		if (stitchV_filtered.find(uv2) != stitchV_filtered.end())
-		{
-			stitchVCount++;
-		}
-		if (stitchVCount >= 2)
-		{
-			boundaryFD.insert(fIdx);
+			if (!needStitch.at(MapToUniqueV(vIdx, 0)))
+			{
+				for (const auto& from : stitchFrom.at(MapToUniqueV(vIdx, 0)))
+				{
+					if (needStitch.at(from))
+					{
+						MapToUniqueV(vIdx, 0) = from;
+						break;
+					}
+				}
+			}
 		}
 	}
 
-	std::vector<int> countF(FA.rows() + FB.rows(), 0);
-	for (const auto& fdIdx : boundaryFD)
+	//
+	Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> partialStitch;
+	partialStitch.resize(VD.rows(), 1);
+	for (int vIdx = 0; vIdx < partialStitch.rows(); ++vIdx)
 	{
-		countF.at(MapToOriginalF(fdIdx, 0)) += 1;
+		partialStitch(vIdx, 0) = (needStitch.at(vIdx)) ? MapToUniqueV(vIdx, 0) : vIdx;
 	}
-	std::unordered_set<int> dividedFAFB;
-	for (int fIdx = 0; fIdx < countF.size(); ++fIdx)
-	{
-		if (countF.at(fIdx) >= 2)
-		{
-			dividedFAFB.insert(fIdx);
-		}
-	}
+	Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> FD_stitchPartial = FD;
+	std::for_each(FD_stitchPartial.data(), FD_stitchPartial.data() + FD_stitchPartial.size(), [&partialStitch](int & a) {a = partialStitch(a); });
 
-	// roll-back the remeshing
-	// and stitch based on boolean type
+	// stitch based on boolean type
 	if (type == INTERSECTION)
 	{
-		// pick marked element
+		// remove all patches *EXCEPT* patches of interest
 		// todo
 	}
 	else if (type == ADDITION)
 	{
-		// todo
+		// remove patches of interest
+		std::vector<bool> ignored(FD_stitchPartial.rows(), false);
+		int fCount = FD_stitchPartial.rows();
+		for (const auto& pIdx : patchA_inB_ofInterest)
+		{
+			for (const auto& fa : patchFA_inB.at(pIdx))
+			{
+				ignored.at(fa) = true;
+				fCount--;
+			}
+		}
+		for (const auto& pIdx : patchB_inA_ofInterest)
+		{
+			for (const auto& fb : patchFB_inA.at(pIdx))
+			{
+				ignored.at(fb) = true;
+				fCount--;
+			}
+		}
+		Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> FE;
+		FE.resize(fCount, 3);
+		int nextfIdx = 0;
+		for (int fIdx = 0; fIdx < FD_stitchPartial.rows(); ++fIdx)
+		{
+			if (!ignored.at(fIdx))
+			{
+				FE.row(nextfIdx++) = FD_stitchPartial.row(fIdx);
+			}
+		}
+
+		Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> I, J;
+		igl::remove_unreferenced(VD, FE, VC, FC, I, J);
+#if 0
+		Eigen::Matrix<bool, Eigen::Dynamic, Eigen::Dynamic> B;
+		igl::is_vertex_manifold(FC, B);
+		for (int b = 0; b < B.rows(); ++b)
+		{
+			if (!B(b)) {
+				std::cout << "non manifold: " << J(b) << std::endl;
+			}
+		}
+#endif
 	}
 	else if (type == SUBTRACTION)
 	{
+		// invert patches of B of interest
+		// todo
+		// remove patches of A of interest
+		// todo
+		// remove all patches derived from B
 		// todo
 	}
 
 	return true;
-	}
+}
