@@ -10,6 +10,7 @@
 #include <unordered_set>
 
 #include "igl/copyleft/cgal/intersect_other.h"
+#include "igl/copyleft/cgal/remesh_self_intersections.h"
 #include "igl/adjacency_list.h"
 #include "igl/triangle_triangle_adjacency.h"
 #include "igl/vertex_triangle_adjacency.h"
@@ -222,77 +223,96 @@ bool compute_boolean(
 	BOOLEAN_TYPE& type
 )
 {
+	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> VAB;
+	Eigen::Matrix<  int, Eigen::Dynamic, Eigen::Dynamic> FAB;
+	Eigen::Matrix<  int, Eigen::Dynamic, Eigen::Dynamic> VCAB;
+	Eigen::Matrix<  int, Eigen::Dynamic, Eigen::Dynamic> FGAB;
+	{
+		VAB.resize(VA.rows() + VB.rows(), 3);
+		VAB.block(0, 0, VA.rows(), 3) = VA;
+		VAB.block(VA.rows(), 0, VB.rows(), 3) = VB;
+
+		FAB.resize(FA.rows() + FB.rows(), 3);
+		FAB.block(0, 0, FA.rows(), 3) = FA;
+		FAB.block(FA.rows(), 0, FB.rows(), 3) = FB.array() + VA.rows();
+
+		VCAB.resize(VCA.rows() + VCB.rows(), 4);
+		VCAB.block(0, 0, VCA.rows(), 4) = VCA;
+		VCAB.block(VCA.rows(), 0, VCB.rows(), 4) = VCB;
+
+		FGAB.resize(FGA.rows() + FGB.rows(), 1);
+		FGAB.block(0, 0, FGA.rows(), 1) = FGA;
+		FGAB.block(FGA.rows(), 0, FGB.rows(), 1) = FGB;
+	}
+
+	igl::writeOBJ("merged.obj", VAB, FAB);
+
 	////
 	// HDS
 	////
-	std::vector< std::vector<int> > VA_adj;
-	igl::adjacency_list(FA, VA_adj);
-	Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> TTA, TTiA;
-	igl::triangle_triangle_adjacency(FA, TTA, TTiA);
-	std::vector< std::vector<int> > VFA;
-	std::vector< std::vector<int> > VFiA;
-	igl::vertex_triangle_adjacency(VA, FA, VFA, VFiA);
-
-	std::vector< std::vector<int> > VB_adj;
-	igl::adjacency_list(FB, VB_adj);
-	Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> TTB, TTiB;
-	igl::triangle_triangle_adjacency(FB, TTB, TTiB);
-	std::vector< std::vector<int> > VFB;
-	std::vector< std::vector<int> > VFiB;
-	igl::vertex_triangle_adjacency(VB, FB, VFB, VFiB);
+	std::vector< std::vector<int> > VAB_adj;
+	Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> TTAB, TTiAB;
+	std::vector< std::vector<int> > VFAB, VFiAB;
+	{
+		igl::adjacency_list(FAB, VAB_adj);
+		igl::triangle_triangle_adjacency(FAB, TTAB, TTiAB);
+		igl::vertex_triangle_adjacency(VAB, FAB, VFAB, VFiAB);
+	}
 
 	////
 	// detect polypaint markers
 	////
-	std::unordered_map<int, int> colorVote;
-	for (int vIdx = 0; vIdx < VA.rows(); ++vIdx)
-	{
-		int encodedColor = (VCA(vIdx, 0) * 256 + VCA(vIdx, 1)) * 256 + VCA(vIdx, 2);
-		if (colorVote.find(encodedColor) == colorVote.end())
-		{
-			colorVote[encodedColor] = 0;
-		}
-		colorVote[encodedColor] += 1;
-	}
-	int baseColor = -1;
-	int maxVote = -1;
-	for (const auto& c_v : colorVote)
-	{
-		if (c_v.second > maxVote)
-		{
-			baseColor = c_v.first;
-			maxVote = c_v.second;
-		}
-	}
-	std::unordered_set<int> toBeChecked;
-	for (int vIdx = 0; vIdx < VA.rows(); ++vIdx)
-	{
-		int encodedColor = (VCA(vIdx, 0) * 256 + VCA(vIdx, 1)) * 256 + VCA(vIdx, 2);
-		if (encodedColor != baseColor)
-		{
-			toBeChecked.insert(vIdx);
-		}
-	}
 	std::vector<std::vector<int> > colorClusters;
-	while (!toBeChecked.empty())
 	{
-		colorClusters.push_back({});
-		int beginVIdx = *(toBeChecked.begin());
-		toBeChecked.erase(beginVIdx);
-
-		std::vector<int> stack({ beginVIdx });
-		while (!stack.empty())
+		std::unordered_map<int, int> colorVote;
+		for (int vIdx = 0; vIdx < VA.rows(); ++vIdx)
 		{
-			int top = stack.back();
-			colorClusters.back().push_back(top);
-			stack.pop_back();
-
-			for (const int& nvIdx : VA_adj.at(top))
+			int encodedColor = (VCA(vIdx, 0) * 256 + VCA(vIdx, 1)) * 256 + VCA(vIdx, 2);
+			if (colorVote.find(encodedColor) == colorVote.end())
 			{
-				if (toBeChecked.find(nvIdx) != toBeChecked.end())
+				colorVote[encodedColor] = 0;
+			}
+			colorVote[encodedColor] += 1;
+		}
+		int baseColor = -1;
+		int maxVote = -1;
+		for (const auto& c_v : colorVote)
+		{
+			if (c_v.second > maxVote)
+			{
+				baseColor = c_v.first;
+				maxVote = c_v.second;
+			}
+		}
+		std::unordered_set<int> toBeChecked;
+		for (int vIdx = 0; vIdx < VA.rows(); ++vIdx)
+		{
+			int encodedColor = (VCA(vIdx, 0) * 256 + VCA(vIdx, 1)) * 256 + VCA(vIdx, 2);
+			if (encodedColor != baseColor)
+			{
+				toBeChecked.insert(vIdx);
+			}
+		}
+		while (!toBeChecked.empty())
+		{
+			colorClusters.push_back({});
+			int beginVIdx = *(toBeChecked.begin());
+			toBeChecked.erase(beginVIdx);
+
+			std::vector<int> stack({ beginVIdx });
+			while (!stack.empty())
+			{
+				int top = stack.back();
+				colorClusters.back().push_back(top);
+				stack.pop_back();
+
+				for (const int& nvIdx : VAB_adj.at(top))
 				{
-					stack.push_back(nvIdx);
-					toBeChecked.erase(nvIdx);
+					if (toBeChecked.find(nvIdx) != toBeChecked.end())
+					{
+						stack.push_back(nvIdx);
+						toBeChecked.erase(nvIdx);
+					}
 				}
 			}
 		}
@@ -300,35 +320,39 @@ bool compute_boolean(
 #if 1
 	// for ignoring buggy user input (i.e. marker outside of the (VB,FB)), we carefully check the position of the color marker.
 	std::vector<int> markerInV;
-	for (int c = 0; c < colorClusters.size(); ++c)
 	{
-		Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> colorPoint;
-		colorPoint.resize(colorClusters.at(c).size(), 3);
-		for (int cvIdx = 0; cvIdx < colorClusters.at(c).size(); ++cvIdx)
+		for (int c = 0; c < colorClusters.size(); ++c)
 		{
-			colorPoint.row(cvIdx) = VA.row(colorClusters.at(c).at(cvIdx));
-		}
-		Eigen::Matrix<float, Eigen::Dynamic, 1> S;
-		Eigen::Matrix<int, Eigen::Dynamic, 1> I;
-		Eigen::Matrix<float, Eigen::Dynamic, 3> C;
-		Eigen::Matrix<float, Eigen::Dynamic, 3> N;
-		igl::signed_distance(colorPoint, VB, FB, igl::SIGNED_DISTANCE_TYPE_DEFAULT, S, I, C, N);
+			Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> colorPoint;
+			colorPoint.resize(colorClusters.at(c).size(), 3);
+			for (int cvIdx = 0; cvIdx < colorClusters.at(c).size(); ++cvIdx)
+			{
+				colorPoint.row(cvIdx) = VA.row(colorClusters.at(c).at(cvIdx));
+			}
+			Eigen::Matrix<float, Eigen::Dynamic, 1> S;
+			Eigen::Matrix<int, Eigen::Dynamic, 1> I;
+			Eigen::Matrix<float, Eigen::Dynamic, 3> C;
+			Eigen::Matrix<float, Eigen::Dynamic, 3> N;
+			igl::signed_distance(colorPoint, VB, FB, igl::SIGNED_DISTANCE_TYPE_DEFAULT, S, I, C, N);
 
-		int minIdx = -1;
-		float minDist = S.minCoeff(&minIdx);
+			int minIdx = -1;
+			float minDist = S.minCoeff(&minIdx);
 
-		if (minDist <= 0)
-		{
-			markerInV.push_back(colorClusters.at(c).at(minIdx));
+			if (minDist <= 0)
+			{
+				markerInV.push_back(colorClusters.at(c).at(minIdx));
+			}
 		}
 	}
 #else
 	std::vector<int> markerInV;
-	for (int c = 0; c < colorClusters.size(); ++c)
 	{
-		std::cout << *(colorClusters.at(c).begin()) << std::endl;
-		markerInV.push_back(*(colorClusters.at(c).begin()));
-	}
+		for (int c = 0; c < colorClusters.size(); ++c)
+		{
+			std::cout << *(colorClusters.at(c).begin()) << std::endl;
+			markerInV.push_back(*(colorClusters.at(c).begin()));
+		}
+		}
 #endif
 
 	////
@@ -341,37 +365,259 @@ bool compute_boolean(
 	Eigen::Matrix<int, Eigen::Dynamic, 1> MapToOriginalF;
 	Eigen::Matrix<int, Eigen::Dynamic, 1> MapToUniqueV;
 	// note: bacause stitch_all is false (default value), VC.block(0, 0, VF.rows()+VB.rows(), 3) == [VA;VB]
-	igl::copyleft::cgal::intersect_other(
-		VA, FA, VB, FB, igl::copyleft::cgal::RemeshSelfIntersectionsParam(), IF, VD, FD, MapToOriginalF, MapToUniqueV
-	);
-	std::for_each(FD.data(), FD.data() + FD.size(), [&MapToUniqueV](int & a) {a = MapToUniqueV(a); });
+	{
+		igl::copyleft::cgal::remesh_self_intersections(
+			VAB, FAB, igl::copyleft::cgal::RemeshSelfIntersectionsParam(), VD, FD, IF, MapToOriginalF, MapToUniqueV
+		);
+	}
+
 	////
 	// HDS
 	////
 	std::vector< std::vector<int> > VD_adj;
-	igl::adjacency_list(FD, VD_adj);
 	Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> TTD, TTiD;
-	igl::triangle_triangle_adjacency(FD, TTD, TTiD);
-	std::vector< std::vector<int> > VFD;
-	std::vector< std::vector<int> > VFiD;
-	igl::vertex_triangle_adjacency(VD, FD, VFD, VFiD);
+	std::vector< std::vector<int> > VFD, VFiD;
+	{
+		igl::adjacency_list(FD, VD_adj);
+		igl::triangle_triangle_adjacency(FD, TTD, TTiD);
+		igl::vertex_triangle_adjacency(VD, FD, VFD, VFiD);
+
+		std::for_each(FD.data(), FD.data() + FD.size(), [&MapToUniqueV](int & a) {a = MapToUniqueV(a); });
+	}
 
 	////
 	// enumerates vertices shared with islands
 	////
-	std::vector<int> countV(VD.rows(), 0);
-	for (int vIdx = 0; vIdx < VD.rows(); ++vIdx)
-	{
-		countV.at(MapToUniqueV(vIdx, 0)) += 1;
-	}
 	std::unordered_set<int> stitchV;
-	for (int vIdx = 0; vIdx < countV.size(); ++vIdx)
 	{
-		if (countV.at(vIdx) >= 2)
+		std::vector<int> countV(VD.rows(), 0);
+		for (int vIdx = 0; vIdx < VD.rows(); ++vIdx)
 		{
-			stitchV.insert(vIdx);
+			countV.at(MapToUniqueV(vIdx, 0)) += 1;
+		}
+		for (int vIdx = 0; vIdx < countV.size(); ++vIdx)
+		{
+			if (countV.at(vIdx) >= 2)
+			{
+				stitchV.insert(vIdx);
+			}
 		}
 	}
+
+	////
+	// filter fake boudary edge whose endpoints are both stitchV (if mesh resolution is too low, this might happen)
+	////
+	std::unordered_map< int, std::unordered_map<int, std::pair<int, int> > > edgeRefCount;
+	for (int fIdx = 0; fIdx < FD.rows(); ++fIdx)
+	{
+		for (int e = 0; e < 3; ++e)
+		{
+			const int& ve = FD(fIdx, e);
+			const int& vep = FD(fIdx, (e + 1) % 3);
+			if (stitchV.find(ve) != stitchV.end() && stitchV.find(vep) != stitchV.end())
+			{
+				if (MapToOriginalF(fIdx, 0) < FA.rows())
+				{
+					edgeRefCount[std::min(ve, vep)][std::max(ve, vep)].first += 1;
+				}
+				else
+				{
+					edgeRefCount[std::min(ve, vep)][std::max(ve, vep)].second += 1;
+				}
+			}
+		}
+	}
+
+	////
+	// enumerate patches whose borders are stitchV
+	////
+	std::vector< std::unordered_set<int> > patchA_inB, patchA_outB, patchB_inA, patchB_outA;
+	{
+		std::unordered_set<int> toBeCheckedF;
+		for (int fIdx = 0; fIdx < FD.rows(); ++fIdx)
+		{
+			toBeCheckedF.insert(fIdx);
+		}
+		while (!toBeCheckedF.empty())
+		{
+			std::unordered_set<int> currentPatchF;
+			const int searchBeginF = *toBeCheckedF.begin();
+			std::vector<int> stack({ searchBeginF });
+			toBeCheckedF.erase(searchBeginF);
+			while (!stack.empty())
+			{
+				const int currentFIdx = stack.back();
+				currentPatchF.insert(currentFIdx);
+				stack.pop_back();
+				for (int e = 0; e < 3; ++e)
+				{
+					int ve = FD(currentFIdx, e);
+					int vep = FD(currentFIdx, (e + 1) % 3);
+					if (((edgeRefCount[std::min(ve, vep)][std::max(ve, vep)].first < 2) || (edgeRefCount[std::min(ve, vep)][std::max(ve, vep)].second < 2))
+						&& (currentPatchF.find(TTD(currentFIdx, e)) == currentPatchF.end()))
+					{
+						// if this edge is not the stitch boundary
+						stack.push_back(TTD(currentFIdx, e));
+						toBeCheckedF.erase(TTD(currentFIdx, e));
+					}
+				}
+			}
+
+			Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> queryPoint;
+			queryPoint.resize(1, 3);
+			queryPoint.row(0) = (VD.row(FD(searchBeginF, 0)) + VD.row(FD(searchBeginF, 1)) + VD.row(FD(searchBeginF, 2))) / 3.0;
+			Eigen::Matrix<float, Eigen::Dynamic, 1> S;
+			Eigen::Matrix<int, Eigen::Dynamic, 1> I;
+			Eigen::Matrix<float, Eigen::Dynamic, 3> C;
+			Eigen::Matrix<float, Eigen::Dynamic, 3> N;
+			if (MapToOriginalF(searchBeginF, 0) < FA.rows())
+			{
+				// this patch belongs to (VA,FA)
+				// check this patch is in/out of (VB,FB)
+				igl::signed_distance(queryPoint, VB, FB, igl::SIGNED_DISTANCE_TYPE_DEFAULT, S, I, C, N);
+				if (S(0, 0) <= 0)
+				{
+					// inside
+					patchA_inB.push_back(currentPatchF);
+				}
+				else
+				{
+					// outside
+					patchA_outB.push_back(currentPatchF);
+				}
+			}
+			else if (MapToOriginalF(searchBeginF, 0) < FA.rows() + FB.rows())
+			{
+				// this patch belongs to (VB,FB)
+				// check this patch is in/out of (VA,FA)
+				igl::signed_distance(queryPoint, VA, FA, igl::SIGNED_DISTANCE_TYPE_DEFAULT, S, I, C, N);
+				if (S(0, 0) <= 0)
+				{
+					// inside
+					patchB_inA.push_back(currentPatchF);
+				}
+				else
+				{
+					// outside
+					patchB_outA.push_back(currentPatchF);
+				}
+			}
+		}
+	}
+	std::unordered_set<int> vvvS;
+	for (const auto& v0 : edgeRefCount)
+	{
+		for (const auto& v1 : v0.second)
+		{
+			if (v1.second.first >= 2 && v1.second.second >= 2)
+			{
+				vvvS.insert(v0.first);
+				vvvS.insert(v1.first);
+			}
+		}
+	}
+	{
+		Eigen::MatrixXf tmpV;
+		Eigen::MatrixXi tmpF;
+		for (int i = 0; i < vvvS.size(); ++i)
+		{
+			tmpV.resize(vvvS.size(), 3);
+			tmpF.resize(0, 3);
+			int vvv = 0;
+			for (const auto& sv : vvvS)
+			{
+				tmpV.row(vvv++) = VD.row(sv);
+			}
+		}
+		igl::writeOBJ("ridge.obj", tmpV, tmpF);
+	}
+	{
+		Eigen::MatrixXf tmpV;
+		Eigen::MatrixXi tmpF;
+		for (int i = 0; i < stitchV.size(); ++i)
+		{
+			tmpV.resize(stitchV.size(), 3);
+			tmpF.resize(0, 3);
+			int vvv = 0;
+			for (const auto& sv : stitchV)
+			{
+				tmpV.row(vvv++) = VD.row(sv);
+			}
+		}
+		igl::writeOBJ("stitch.obj", tmpV, tmpF);
+	}
+
+	for (int i = 0; i < patchA_inB.size(); ++i)
+	{
+		Eigen::MatrixXf tmpV;
+		Eigen::MatrixXi tmpF;
+		tmpV.resize(patchA_inB.at(i).size() * 3, 3);
+		tmpF.resize(0, 3);
+		int vvv = 0;
+		for (const auto& sv : patchA_inB.at(i))
+		{
+			tmpV.row(vvv++) = VD.row(FD(sv, 0));
+			tmpV.row(vvv++) = VD.row(FD(sv, 1));
+			tmpV.row(vvv++) = VD.row(FD(sv, 2));
+		}
+		char buf[100];
+		sprintf(buf, "patchA_inB_%d.obj", i);
+		igl::writeOBJ(buf, tmpV, tmpF);
+	}
+	for (int i = 0; i < patchA_outB.size(); ++i)
+	{
+		Eigen::MatrixXf tmpV;
+		Eigen::MatrixXi tmpF;
+		tmpV.resize(patchA_outB.at(i).size() * 3, 3);
+		tmpF.resize(0, 3);
+		int vvv = 0;
+		for (const auto& sv : patchA_outB.at(i))
+		{
+			tmpV.row(vvv++) = VD.row(FD(sv, 0));
+			tmpV.row(vvv++) = VD.row(FD(sv, 1));
+			tmpV.row(vvv++) = VD.row(FD(sv, 2));
+		}
+		char buf[100];
+		sprintf(buf, "patchA_outB_%d.obj", i);
+		igl::writeOBJ(buf, tmpV, tmpF);
+	}
+	for (int i = 0; i < patchB_inA.size(); ++i)
+	{
+		Eigen::MatrixXf tmpV;
+		Eigen::MatrixXi tmpF;
+		tmpV.resize(patchB_inA.at(i).size() * 3, 3);
+		tmpF.resize(0, 3);
+		int vvv = 0;
+		for (const auto& sv : patchB_inA.at(i))
+		{
+			tmpV.row(vvv++) = VD.row(FD(sv, 0));
+			tmpV.row(vvv++) = VD.row(FD(sv, 1));
+			tmpV.row(vvv++) = VD.row(FD(sv, 2));
+		}
+		char buf[100];
+		sprintf(buf, "patchB_inA_%d.obj", i);
+		igl::writeOBJ(buf, tmpV, tmpF);
+	}
+	for (int i = 0; i < patchB_outA.size(); ++i)
+	{
+		Eigen::MatrixXf tmpV;
+		Eigen::MatrixXi tmpF;
+		tmpV.resize(patchB_outA.at(i).size() * 3, 3);
+		tmpF.resize(0, 3);
+		int vvv = 0;
+		for (const auto& sv : patchB_outA.at(i))
+		{
+			tmpV.row(vvv++) = VD.row(FD(sv, 0));
+			tmpV.row(vvv++) = VD.row(FD(sv, 1));
+			tmpV.row(vvv++) = VD.row(FD(sv, 2));
+		}
+		char buf[100];
+		sprintf(buf, "patchB_outA_%d.obj", i);
+		igl::writeOBJ(buf, tmpV, tmpF);
+	}
+
+
+	return true;
 
 	////
 	// find shared vertices of interest
@@ -474,4 +720,4 @@ bool compute_boolean(
 	}
 
 	return true;
-}
+	}
