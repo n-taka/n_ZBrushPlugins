@@ -783,30 +783,26 @@ bool compute_boolean(
 	std::for_each(FD_stitchPartial.data(), FD_stitchPartial.data() + FD_stitchPartial.size(), [&partialStitch](int & a) {a = partialStitch(a); });
 
 	// stitch based on boolean type
-	if (type == INTERSECTION)
+	if (type == INTERSECTION || type == ADDITION)
 	{
-		// remove all patches *EXCEPT* patches of interest
-		// todo
-	}
-	else if (type == ADDITION)
-	{
-		// remove patches of interest
-		std::vector<bool> ignored(FD_stitchPartial.rows(), false);
-		int fCount = FD_stitchPartial.rows();
+		// remove all patches *EXCEPT* patches of interest (INTERSECTION)
+		// remove patches of interest (ADDITION)
+		std::vector<bool> ignored(FD_stitchPartial.rows(), (type == INTERSECTION));
+		int fCount = (type == ADDITION) ? (FD_stitchPartial.rows()) : (0);
 		for (const auto& pIdx : patchA_inB_ofInterest)
 		{
 			for (const auto& fa : patchFA_inB.at(pIdx))
 			{
-				ignored.at(fa) = true;
-				fCount--;
+				ignored.at(fa) = (type == ADDITION);
+				fCount += ((type == ADDITION) ? -1 : 1);
 			}
 		}
 		for (const auto& pIdx : patchB_inA_ofInterest)
 		{
 			for (const auto& fb : patchFB_inA.at(pIdx))
 			{
-				ignored.at(fb) = true;
-				fCount--;
+				ignored.at(fb) = (type == ADDITION);
+				fCount += ((type == ADDITION) ? -1 : 1);
 			}
 		}
 		Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> FE;
@@ -822,16 +818,6 @@ bool compute_boolean(
 
 		Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> I, J;
 		igl::remove_unreferenced(VD, FE, VC, FC, I, J);
-#if 0
-		Eigen::Matrix<bool, Eigen::Dynamic, Eigen::Dynamic> B;
-		igl::is_vertex_manifold(FC, B);
-		for (int b = 0; b < B.rows(); ++b)
-		{
-			if (!B(b)) {
-				std::cout << "non manifold: " << J(b) << std::endl;
-			}
-		}
-#endif
 	}
 	else if (type == SUBTRACTION)
 	{
@@ -842,6 +828,16 @@ bool compute_boolean(
 		// remove all patches derived from B
 		// todo
 	}
+#if 0
+	Eigen::Matrix<bool, Eigen::Dynamic, Eigen::Dynamic> B;
+	igl::is_vertex_manifold(FC, B);
+	for (int b = 0; b < B.rows(); ++b)
+	{
+		if (!B(b)) {
+			std::cout << "non manifold: " << J(b) << std::endl;
+		}
+	}
+#endif
 
 	return true;
 }
