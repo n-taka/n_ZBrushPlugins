@@ -182,7 +182,7 @@ extern "C" DLLEXPORT float booleanTopological(char* someText, double optValue, c
 			V_C, F_C, VC_C, FG_C,
 			ZBtextList.at(m).second);
 
-		igl::writeOBJ("tmp.obj", V_C, F_C);
+		igl::writeOBJ("boolean_mesh.obj", V_C, F_C);
 	}
 
 	////
@@ -821,12 +821,71 @@ bool compute_boolean(
 	}
 	else if (type == SUBTRACTION)
 	{
-		// invert patches of B of interest
-		// todo
 		// remove patches of A of interest
-		// todo
 		// remove all patches derived from B
-		// todo
+		// invert patches of B of interest
+		std::vector<int> use(FD_stitchPartial.rows(), 1); // 0: ignore, 1: not-ignore, 2: not-ignore(flip)
+		int fCount = FD_stitchPartial.rows();
+		for (const auto& pIdx : patchA_inB_ofInterest)
+		{
+			for (const auto& fa : patchFA_inB.at(pIdx))
+			{
+				use.at(fa) = 0;
+				fCount--;
+			}
+		}
+		for (int pIdx = 0; pIdx < patchFB_inA.size(); ++pIdx)
+		{
+			for (const auto& fb : patchFB_inA.at(pIdx))
+			{
+				use.at(fb) = 0;
+				fCount--;
+			}
+		}
+		for (int pIdx = 0; pIdx < patchFB_outA.size(); ++pIdx)
+		{
+			for (const auto& fb : patchFB_outA.at(pIdx))
+			{
+				use.at(fb) = 0;
+				fCount--;
+			}
+		}
+		for (const auto& pIdx : patchB_inA_ofInterest)
+		{
+			for (const auto& fb : patchFB_inA.at(pIdx))
+			{
+				if (use.at(fb) == 0)
+				{
+					use.at(fb) = 2;
+					fCount++;
+				}
+				else
+				{
+					use.at(fb) = 2;
+				}
+			}
+		}
+		Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> FE;
+		FE.resize(fCount, 3);
+		int nextfIdx = 0;
+		for (int fIdx = 0; fIdx < FD_stitchPartial.rows(); ++fIdx)
+		{
+			if (use.at(fIdx) == 1)
+			{
+				FE.row(nextfIdx++) = FD_stitchPartial.row(fIdx);
+			}
+			else if (use.at(fIdx) == 2)
+			{
+				// flipped
+				FE(nextfIdx, 0) = FD_stitchPartial(fIdx, 0);
+				FE(nextfIdx, 1) = FD_stitchPartial(fIdx, 2);
+				FE(nextfIdx, 2) = FD_stitchPartial(fIdx, 1);
+				nextfIdx++;
+			}
+		}
+
+		Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> I, J;
+		igl::remove_unreferenced(VD, FE, VC, FC, I, J);
 	}
 #if 0
 	Eigen::Matrix<bool, Eigen::Dynamic, Eigen::Dynamic> B;
