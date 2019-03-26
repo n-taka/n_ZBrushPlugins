@@ -12,6 +12,8 @@ GeneratedFiles
 *.db
 *.opendb
 *.pro.user
+cmakeBuild/
+.vscode/
 !*.exe
 !*.dll
 !*.lib
