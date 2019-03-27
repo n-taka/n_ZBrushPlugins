@@ -5,16 +5,15 @@
 #include <iostream>
 #include <string>
 
-
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
 	std::string baseDir(
 #if defined(_WIN32) || defined(_WIN64)
-	"../testModels/"
+		"../../../testModels/"
 #else
-	"../../testModels/"
+		"../../testModels/"
 #endif
-		);
+	);
 	//char dummyc0[100] = "../../testModels/,hand3_tri.obj:O,cylinder_tri.obj:A\0";
 	char dummyc0[100];
 	sprintf(dummyc0, "%s", baseDir.append(",mashroom.obj:O,box.obj:S\0").c_str());
@@ -25,13 +24,13 @@ int main(int argc, char* argv[])
 	int dummyi0 = 0;
 	int dummyi1 = 0;
 
-	booleanTopological(dummyc0, dummyd, dummyc1, dummyi0, dummyc2, dummyi1, (char**)&dummyc3);
+	booleanTopological(dummyc0, dummyd, dummyc1, dummyi0, dummyc2, dummyi1, (char **)&dummyc3);
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu
 // Debug program: F5 or Debug > Start Debugging menu
 
-// Tips for Getting Started: 
+// Tips for Getting Started:
 //   1. Use the Solution Explorer window to add/manage files
 //   2. Use the Team Explorer window to connect to source control
 //   3. Use the Output window to see build output and other messages
