@@ -28,13 +28,12 @@
 #define DLLEXPORT __attribute__((visibility("default")))
 #endif
 
-
-extern "C" DLLEXPORT float version(char* someText, double optValue, char* outputBuffer, int optBuffer1Size, char* pOptBuffer2, int optBuffer2Size, char** zData)
+extern "C" DLLEXPORT float version(char *someText, double optValue, char *outputBuffer, int optBuffer1Size, char *pOptBuffer2, int optBuffer2Size, char **zData)
 {
 	return 1.0f;
 }
 
-extern "C" DLLEXPORT float booleanTopological(char* someText, double optValue, char* outputBuffer, int optBuffer1Size, char* pOptBuffer2, int optBuffer2Size, char** zData)
+extern "C" DLLEXPORT float booleanTopological(char *someText, double optValue, char *outputBuffer, int optBuffer1Size, char *pOptBuffer2, int optBuffer2Size, char **zData)
 {
 	//// input
 	// someText: file name to be opened
@@ -52,19 +51,24 @@ extern "C" DLLEXPORT float booleanTopological(char* someText, double optValue, c
 	std::string flagSeparator(":");
 	size_t separator_length = separator.length();
 	size_t flagSeparator_length = flagSeparator.length();
-	std::vector< std::pair<std::string, BOOLEAN_TYPE> > ZBtextList({});
+	std::vector<std::pair<std::string, BOOLEAN_TYPE>> ZBtextList({});
 
-	if (separator_length == 0) {
-		ZBtextList.push_back({ ZBtext, ORIGINAL });
+	if (separator_length == 0)
+	{
+		ZBtextList.push_back({ZBtext, ORIGINAL});
 	}
-	else {
+	else
+	{
 		size_t offset = std::string::size_type(0);
-		while (true) {
+		while (true)
+		{
 			size_t pos = ZBtext.find(separator, offset);
-			if (pos == std::string::npos) {
+			if (pos == std::string::npos)
+			{
 				std::string filename_type = ZBtext.substr(offset);
 				size_t pos1 = filename_type.find(flagSeparator);
-				if (pos1 != std::string::npos) {
+				if (pos1 != std::string::npos)
+				{
 					BOOLEAN_TYPE b = ORIGINAL;
 					if (filename_type.substr(pos1 + flagSeparator_length) == "A")
 					{
@@ -78,7 +82,7 @@ extern "C" DLLEXPORT float booleanTopological(char* someText, double optValue, c
 					{
 						b = INTERSECTION;
 					}
-					ZBtextList.push_back({ filename_type.substr(0, pos1), b });
+					ZBtextList.push_back({filename_type.substr(0, pos1), b});
 				}
 				else
 				{
@@ -88,7 +92,8 @@ extern "C" DLLEXPORT float booleanTopological(char* someText, double optValue, c
 			}
 			std::string filename_type = ZBtext.substr(offset, pos - offset);
 			size_t pos1 = filename_type.find(flagSeparator);
-			if (pos1 != std::string::npos) {
+			if (pos1 != std::string::npos)
+			{
 				BOOLEAN_TYPE b = ORIGINAL;
 				if (filename_type.substr(pos1 + flagSeparator_length) == "A")
 				{
@@ -102,12 +107,12 @@ extern "C" DLLEXPORT float booleanTopological(char* someText, double optValue, c
 				{
 					b = INTERSECTION;
 				}
-				ZBtextList.push_back({ filename_type.substr(0, pos1), b });
+				ZBtextList.push_back({filename_type.substr(0, pos1), b});
 			}
 			else
 			{
 				BOOLEAN_TYPE b = NONE;
-				ZBtextList.push_back({ filename_type, b });
+				ZBtextList.push_back({filename_type, b});
 			}
 
 			offset = pos + separator_length;
@@ -132,9 +137,9 @@ extern "C" DLLEXPORT float booleanTopological(char* someText, double optValue, c
 	////
 	// [begin] read triangle from file
 	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> V_A;
-	Eigen::Matrix<  int, Eigen::Dynamic, Eigen::Dynamic> F_A;
-	Eigen::Matrix<  int, Eigen::Dynamic, Eigen::Dynamic> VC_A;
-	Eigen::Matrix<  int, Eigen::Dynamic, Eigen::Dynamic> FG_A;
+	Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> F_A;
+	Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> VC_A;
+	Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> FG_A;
 
 	read_OBJ(baseFileName, V_A, F_A, VC_A, FG_A);
 	// [end] read triangle from file
@@ -143,20 +148,19 @@ extern "C" DLLEXPORT float booleanTopological(char* someText, double optValue, c
 	for (int m = 2; m < ZBtextList.size(); ++m)
 	{
 		Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> V_B;
-		Eigen::Matrix<  int, Eigen::Dynamic, Eigen::Dynamic> F_B;
-		Eigen::Matrix<  int, Eigen::Dynamic, Eigen::Dynamic> VC_B;
-		Eigen::Matrix<  int, Eigen::Dynamic, Eigen::Dynamic> FG_B;
+		Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> F_B;
+		Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> VC_B;
+		Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> FG_B;
 
 		Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> V_C;
-		Eigen::Matrix<  int, Eigen::Dynamic, Eigen::Dynamic> F_C;
-		Eigen::Matrix<  int, Eigen::Dynamic, Eigen::Dynamic> VC_C;
-		Eigen::Matrix<  int, Eigen::Dynamic, Eigen::Dynamic> FG_C;
+		Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> F_C;
+		Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> VC_C;
+		Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> FG_C;
 
 		read_OBJ(ZBtextList.at(m).first, V_B, F_B, VC_B, FG_B);
 
 		if (ZBtextList.at(m).second == ORIGINAL)
 		{
-
 		}
 		else if (ZBtextList.at(m).second == ADDITION)
 		{
@@ -210,25 +214,24 @@ extern "C" DLLEXPORT float booleanTopological(char* someText, double optValue, c
 }
 
 bool compute_boolean(
-	const Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic>& VA,
-	const Eigen::Matrix<  int, Eigen::Dynamic, Eigen::Dynamic>& FA,
-	const Eigen::Matrix<  int, Eigen::Dynamic, Eigen::Dynamic>& VCA,
-	const Eigen::Matrix<  int, Eigen::Dynamic, Eigen::Dynamic>& FGA,
-	const Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic>& VB,
-	const Eigen::Matrix<  int, Eigen::Dynamic, Eigen::Dynamic>& FB,
-	const Eigen::Matrix<  int, Eigen::Dynamic, Eigen::Dynamic>& VCB,
-	const Eigen::Matrix<  int, Eigen::Dynamic, Eigen::Dynamic>& FGB,
-	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic>& VC,
-	Eigen::Matrix<  int, Eigen::Dynamic, Eigen::Dynamic>& FC,
-	Eigen::Matrix<  int, Eigen::Dynamic, Eigen::Dynamic>& VCC,
-	Eigen::Matrix<  int, Eigen::Dynamic, Eigen::Dynamic>& FGC,
-	BOOLEAN_TYPE& type
-)
+	const Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> &VA,
+	const Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> &FA,
+	const Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> &VCA,
+	const Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> &FGA,
+	const Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> &VB,
+	const Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> &FB,
+	const Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> &VCB,
+	const Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> &FGB,
+	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> &VC,
+	Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> &FC,
+	Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> &VCC,
+	Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> &FGC,
+	BOOLEAN_TYPE &type)
 {
 	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> VAB;
-	Eigen::Matrix<  int, Eigen::Dynamic, Eigen::Dynamic> FAB;
-	Eigen::Matrix<  int, Eigen::Dynamic, Eigen::Dynamic> VCAB;
-	Eigen::Matrix<  int, Eigen::Dynamic, Eigen::Dynamic> FGAB;
+	Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> FAB;
+	Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> VCAB;
+	Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> FGAB;
 	{
 		VAB.resize(VA.rows() + VB.rows(), 3);
 		VAB.block(0, 0, VA.rows(), 3) = VA;
@@ -252,9 +255,9 @@ bool compute_boolean(
 	////
 	// HDS
 	////
-	std::vector< std::vector<int> > VAB_adj;
+	std::vector<std::vector<int>> VAB_adj;
 	Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> TTAB, TTiAB;
-	std::vector< std::vector<int> > VFAB, VFiAB;
+	std::vector<std::vector<int>> VFAB, VFiAB;
 	{
 		igl::adjacency_list(FAB, VAB_adj);
 		igl::triangle_triangle_adjacency(FAB, TTAB, TTiAB);
@@ -264,7 +267,7 @@ bool compute_boolean(
 	////
 	// detect polypaint markers
 	////
-	std::vector<std::vector<int> > colorClusters;
+	std::vector<std::vector<int>> colorClusters;
 	{
 		std::unordered_map<int, int> colorVote;
 		for (int vIdx = 0; vIdx < VA.rows(); ++vIdx)
@@ -278,7 +281,7 @@ bool compute_boolean(
 		}
 		int baseColor = -1;
 		int maxVote = -1;
-		for (const auto& c_v : colorVote)
+		for (const auto &c_v : colorVote)
 		{
 			if (c_v.second > maxVote)
 			{
@@ -301,14 +304,14 @@ bool compute_boolean(
 			int beginVIdx = *(toBeChecked.begin());
 			toBeChecked.erase(beginVIdx);
 
-			std::vector<int> stack({ beginVIdx });
+			std::vector<int> stack({beginVIdx});
 			while (!stack.empty())
 			{
 				int top = stack.back();
 				colorClusters.back().push_back(top);
 				stack.pop_back();
 
-				for (const int& nvIdx : VAB_adj.at(top))
+				for (const int &nvIdx : VAB_adj.at(top))
 				{
 					if (toBeChecked.find(nvIdx) != toBeChecked.end())
 					{
@@ -362,31 +365,30 @@ bool compute_boolean(
 	////
 	// see https://github.com/libigl/libigl/blob/master/include/igl/copyleft/cgal/remesh_self_intersections.h
 	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> VD;
-	Eigen::Matrix<  int, Eigen::Dynamic, Eigen::Dynamic> FD, FD_stitchAll;
+	Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> FD, FD_stitchAll;
 	Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> IF;
 	Eigen::Matrix<int, Eigen::Dynamic, 1> MapToOriginalF;
 	Eigen::Matrix<int, Eigen::Dynamic, 1> MapToUniqueV;
-	// note: bacause stitch_all is false (default value), VC.block(0, 0, VF.rows()+VB.rows(), 3) == [VA;VB]
+	// note: bacause stitch_all is false (default value), VD.block(0, 0, VF.rows()+VB.rows(), 3) == [VA;VB]
 	{
 		igl::copyleft::cgal::remesh_self_intersections(
-			VAB, FAB, igl::copyleft::cgal::RemeshSelfIntersectionsParam(), VD, FD, IF, MapToOriginalF, MapToUniqueV
-		);
+			VAB, FAB, igl::copyleft::cgal::RemeshSelfIntersectionsParam(), VD, FD, IF, MapToOriginalF, MapToUniqueV);
 	}
 	igl::writeOBJ("remeshed.obj", VD, FD);
 
 	////
 	// HDS
 	////
-	std::vector< std::vector<int> > VD_adj;
+	std::vector<std::vector<int>> VD_adj;
 	Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> TTD, TTiD;
-	std::vector< std::vector<int> > VFD, VFiD;
+	std::vector<std::vector<int>> VFD, VFiD;
 	{
 		igl::adjacency_list(FD, VD_adj);
 		igl::triangle_triangle_adjacency(FD, TTD, TTiD);
 		igl::vertex_triangle_adjacency(VD, FD, VFD, VFiD);
 
 		FD_stitchAll = FD;
-		std::for_each(FD_stitchAll.data(), FD_stitchAll.data() + FD_stitchAll.size(), [&MapToUniqueV](int & a) {a = MapToUniqueV(a); });
+		std::for_each(FD_stitchAll.data(), FD_stitchAll.data() + FD_stitchAll.size(), [&MapToUniqueV](int &a) { a = MapToUniqueV(a); });
 	}
 
 	////
@@ -411,13 +413,13 @@ bool compute_boolean(
 	////
 	// filter fake boudary edge whose endpoints are both stitchV (if mesh resolution is too low, this might happen)
 	////
-	std::unordered_map< int, std::unordered_map<int, std::pair<int, int> > > edgeRefCount;
+	std::unordered_map<int, std::unordered_map<int, std::pair<int, int>>> edgeRefCount;
 	for (int fIdx = 0; fIdx < FD_stitchAll.rows(); ++fIdx)
 	{
 		for (int e = 0; e < 3; ++e)
 		{
-			const int& ve = FD_stitchAll(fIdx, e);
-			const int& vep = FD_stitchAll(fIdx, (e + 1) % 3);
+			const int &ve = FD_stitchAll(fIdx, e);
+			const int &vep = FD_stitchAll(fIdx, (e + 1) % 3);
 			if (stitchV.find(ve) != stitchV.end() && stitchV.find(vep) != stitchV.end())
 			{
 				if (MapToOriginalF(fIdx, 0) < FA.rows())
@@ -435,8 +437,8 @@ bool compute_boolean(
 	////
 	// enumerate patches whose borders are stitchV that shared between (VA, FA) and (VB, FB) (ignore self-intersections)
 	////
-	std::vector< std::unordered_set<int> > patchFA_inB, patchFA_outB, patchFB_inA, patchFB_outA;
-	std::vector< std::unordered_set<int> > patchVA_inB, patchVA_outB, patchVB_inA, patchVB_outA;
+	std::vector<std::unordered_set<int>> patchFA_inB, patchFA_outB, patchFB_inA, patchFB_outA;
+	std::vector<std::unordered_set<int>> patchVA_inB, patchVA_outB, patchVB_inA, patchVB_outA;
 	{
 		std::unordered_set<int> toBeCheckedF;
 		for (int fIdx = 0; fIdx < FD_stitchAll.rows(); ++fIdx)
@@ -448,7 +450,7 @@ bool compute_boolean(
 			std::unordered_set<int> currentPatchF;
 			std::unordered_set<int> currentPatchV;
 			const int searchBeginF = *toBeCheckedF.begin();
-			std::vector<int> stack({ searchBeginF });
+			std::vector<int> stack({searchBeginF});
 			toBeCheckedF.erase(searchBeginF);
 			while (!stack.empty())
 			{
@@ -463,8 +465,7 @@ bool compute_boolean(
 				{
 					int ve = FD_stitchAll(currentFIdx, e);
 					int vep = FD_stitchAll(currentFIdx, (e + 1) % 3);
-					if (((edgeRefCount[std::min(ve, vep)][std::max(ve, vep)].first < 2) || (edgeRefCount[std::min(ve, vep)][std::max(ve, vep)].second < 2))
-						&& (currentPatchF.find(TTD(currentFIdx, e)) == currentPatchF.end()))
+					if (((edgeRefCount[std::min(ve, vep)][std::max(ve, vep)].first < 2) || (edgeRefCount[std::min(ve, vep)][std::max(ve, vep)].second < 2)) && (currentPatchF.find(TTD(currentFIdx, e)) == currentPatchF.end()))
 					{
 						// if this edge is not the stitch boundary
 						stack.push_back(TTD(currentFIdx, e));
@@ -569,20 +570,18 @@ bool compute_boolean(
 	////
 	// find patches of interest
 	////
-	auto getPatchIdA = [&](const int& v0, const int v1)
-	{
+	auto getPatchIdA = [&](const int &v0, const int v1) {
 		// return index of the patch of A that have v1 -> v0 as its halfedge
 		for (int pIdx = 0; pIdx < patchVA_inB.size(); ++pIdx)
 		{
-			if ((patchVA_inB.at(pIdx).find(v0) != patchVA_inB.at(pIdx).end())
-				&& (patchVA_inB.at(pIdx).find(v1) != patchVA_inB.at(pIdx).end()))
+			if ((patchVA_inB.at(pIdx).find(v0) != patchVA_inB.at(pIdx).end()) && (patchVA_inB.at(pIdx).find(v1) != patchVA_inB.at(pIdx).end()))
 			{
-				for (const auto& fIdx : patchFA_inB.at(pIdx))
+				for (const auto &fIdx : patchFA_inB.at(pIdx))
 				{
 					for (int e = 0; e < 3; ++e)
 					{
-						const int& ev0 = FD_stitchAll(fIdx, e);
-						const int& ev1 = FD_stitchAll(fIdx, (e + 1) % 3);
+						const int &ev0 = FD_stitchAll(fIdx, e);
+						const int &ev1 = FD_stitchAll(fIdx, (e + 1) % 3);
 						if ((ev0 == v1) && (ev1 == v0))
 						{
 							return pIdx;
@@ -593,20 +592,18 @@ bool compute_boolean(
 		}
 		return -1;
 	};
-	auto getPatchIdB = [&](const int& v0, const int v1)
-	{
+	auto getPatchIdB = [&](const int &v0, const int v1) {
 		// return index of the patch of B that have v1 -> v0 as its halfedge
 		for (int pIdx = 0; pIdx < patchVB_inA.size(); ++pIdx)
 		{
-			if ((patchVB_inA.at(pIdx).find(v0) != patchVB_inA.at(pIdx).end())
-				&& (patchVB_inA.at(pIdx).find(v1) != patchVB_inA.at(pIdx).end()))
+			if ((patchVB_inA.at(pIdx).find(v0) != patchVB_inA.at(pIdx).end()) && (patchVB_inA.at(pIdx).find(v1) != patchVB_inA.at(pIdx).end()))
 			{
-				for (const auto& fIdx : patchFB_inA.at(pIdx))
+				for (const auto &fIdx : patchFB_inA.at(pIdx))
 				{
 					for (int e = 0; e < 3; ++e)
 					{
-						const int& ev0 = FD_stitchAll(fIdx, e);
-						const int& ev1 = FD_stitchAll(fIdx, (e + 1) % 3);
+						const int &ev0 = FD_stitchAll(fIdx, e);
+						const int &ev1 = FD_stitchAll(fIdx, (e + 1) % 3);
 						if ((ev0 == v1) && (ev1 == v0))
 						{
 							return pIdx;
@@ -620,7 +617,7 @@ bool compute_boolean(
 
 	std::unordered_set<int> patchA_inB_ofInterest, patchB_inA_ofInterest;
 	std::vector<int> stackA, stackB;
-	for (const auto& cv : markerInV)
+	for (const auto &cv : markerInV)
 	{
 		for (int pIdx = 0; pIdx < patchVA_inB.size(); ++pIdx)
 		{
@@ -639,14 +636,13 @@ bool compute_boolean(
 		{
 			const int currentPatch = stackA.back();
 			stackA.pop_back();
-			for (const auto& fIdx : patchFA_inB.at(currentPatch))
+			for (const auto &fIdx : patchFA_inB.at(currentPatch))
 			{
 				for (int e = 0; e < 3; ++e)
 				{
-					const int& ev0 = FD_stitchAll(fIdx, e);
-					const int& ev1 = FD_stitchAll(fIdx, (e + 1) % 3);
-					if ((stitchV.find(ev0) != stitchV.end()) && (stitchV.find(ev1) != stitchV.end())
-						&& (edgeRefCount[std::min(ev0, ev1)][std::max(ev0, ev1)].first >= 2) && (edgeRefCount[std::min(ev0, ev1)][std::max(ev0, ev1)].second >= 2))
+					const int &ev0 = FD_stitchAll(fIdx, e);
+					const int &ev1 = FD_stitchAll(fIdx, (e + 1) % 3);
+					if ((stitchV.find(ev0) != stitchV.end()) && (stitchV.find(ev1) != stitchV.end()) && (edgeRefCount[std::min(ev0, ev1)][std::max(ev0, ev1)].first >= 2) && (edgeRefCount[std::min(ev0, ev1)][std::max(ev0, ev1)].second >= 2))
 					{
 						const int patchBAround = getPatchIdB(ev0, ev1);
 						if (patchBAround >= 0)
@@ -678,14 +674,13 @@ bool compute_boolean(
 			// pick from stackB
 			const int currentPatch = stackB.back();
 			stackB.pop_back();
-			for (const auto& fIdx : patchFB_inA.at(currentPatch))
+			for (const auto &fIdx : patchFB_inA.at(currentPatch))
 			{
 				for (int e = 0; e < 3; ++e)
 				{
-					const int& ev0 = FD_stitchAll(fIdx, e);
-					const int& ev1 = FD_stitchAll(fIdx, (e + 1) % 3);
-					if ((stitchV.find(ev0) != stitchV.end()) && (stitchV.find(ev1) != stitchV.end())
-						&& (edgeRefCount[std::min(ev0, ev1)][std::max(ev0, ev1)].first >= 2) && (edgeRefCount[std::min(ev0, ev1)][std::max(ev0, ev1)].second >= 2))
+					const int &ev0 = FD_stitchAll(fIdx, e);
+					const int &ev1 = FD_stitchAll(fIdx, (e + 1) % 3);
+					if ((stitchV.find(ev0) != stitchV.end()) && (stitchV.find(ev1) != stitchV.end()) && (edgeRefCount[std::min(ev0, ev1)][std::max(ev0, ev1)].first >= 2) && (edgeRefCount[std::min(ev0, ev1)][std::max(ev0, ev1)].second >= 2))
 					{
 						const int patchAAround = getPatchIdA(ev0, ev1);
 						if (patchAAround >= 0)
@@ -725,26 +720,26 @@ bool compute_boolean(
 	}
 #endif
 	std::vector<bool> needStitch(VD.rows(), false);
-	for (const auto& pIdx : patchA_inB_ofInterest)
-	{
-		for (const auto& f : patchFA_inB.at(pIdx))
-		{
-			for (int lv = 0; lv < 3; ++lv)
-			{
-				needStitch.at(FD(f, lv)) = true;
-			}
-		}
-	}
-	for (const auto& pIdx : patchB_inA_ofInterest)
-	{
-		for (const auto& f : patchFB_inA.at(pIdx))
-		{
-			for (int lv = 0; lv < 3; ++lv)
-			{
-				needStitch.at(FD(f, lv)) = true;
-			}
-		}
-	}
+	// for (const auto &pIdx : patchA_inB_ofInterest)
+	// {
+	// 	for (const auto &f : patchFA_inB.at(pIdx))
+	// 	{
+	// 		for (int lv = 0; lv < 3; ++lv)
+	// 		{
+	// 			needStitch.at(FD(f, lv)) = true;
+	// 		}
+	// 	}
+	// }
+	// for (const auto &pIdx : patchB_inA_ofInterest)
+	// {
+	// 	for (const auto &f : patchFB_inA.at(pIdx))
+	// 	{
+	// 		for (int lv = 0; lv < 3; ++lv)
+	// 		{
+	// 			needStitch.at(FD(f, lv)) = true;
+	// 		}
+	// 	}
+	// }
 
 	std::unordered_map<int, std::vector<int>> stitchFrom;
 	for (int vIdx = 0; vIdx < VD.rows(); ++vIdx)
@@ -754,23 +749,81 @@ bool compute_boolean(
 	////
 	// update MapToUniqueV for avoiding accidental stitch (when the mesh is self-intersecting)
 	////
-	for (int vIdx = 0; vIdx < needStitch.size(); ++vIdx)
+	// 20190404: if vertices (more than four vertices) are merged into single vertex, we need to split them into two or so...
+	// some bug with intersection...
+	// for (int vIdx = 0; vIdx < needStitch.size(); ++vIdx)
+	// {
+	// 	if (needStitch.at(vIdx))
+	// 	{
+	// 		if (!needStitch.at(MapToUniqueV(vIdx, 0)))
+	// 		{
+	// 			for (const auto &from : stitchFrom.at(MapToUniqueV(vIdx, 0)))
+	// 			{
+	// 				if (needStitch.at(from))
+	// 				{
+	// 					MapToUniqueV(vIdx, 0) = from;
+	// 					break;
+	// 				}
+	// 			}
+	// 		}
+	// 	}
+	// }
+	for (const auto &stitchInfo : stitchFrom)
 	{
-		if (needStitch.at(vIdx))
+		const int &stitch_into = stitchInfo.first;
+		const std::vector<int> &stitch_from = stitchInfo.second;
+		if (stitch_from.size() >= 2)
 		{
-			if (!needStitch.at(MapToUniqueV(vIdx, 0)))
+			// 1. find a pair of (a vertex belongs to (VA,FA), a vertex belongs to (VB,FB))
+			std::vector<int> vertA, vertB;
+			for (const auto &targetV : stitch_from)
 			{
-				for (const auto& from : stitchFrom.at(MapToUniqueV(vIdx, 0)))
+				int group = -1; // 0: A, 1: B
+				for (const auto &nf : VFD.at(targetV))
 				{
-					if (needStitch.at(from))
+					for (int fv = 0; fv < 3; ++fv)
 					{
-						MapToUniqueV(vIdx, 0) = from;
+						if (FD(nf, fv) < VA.rows())
+						{
+							group = 0;
+							break;
+						}
+						else if (FD(nf, fv) < VA.rows() + VB.rows())
+						{
+							group = 1;
+							break;
+						}
+					}
+					if (group > -1)
+					{
 						break;
 					}
+				}
+				if (group == 0)
+				{
+					vertA.push_back(targetV);
+				}
+				else if (group == 1)
+				{
+					vertB.push_back(targetV);
+				}
+			}
+			if (vertA.size() == vertB.size())
+			{
+				for (int vi = 0; vi < vertA.size(); ++vi)
+				{
+					// stitch vertA.at(i) and vertB.at(i)
+					// currently, we stitch the vertices into vertA(i)
+					MapToUniqueV(vertA.at(vi), 0) = vertA.at(vi);
+					MapToUniqueV(vertB.at(vi), 0) = vertA.at(vi);
+					needStitch.at(vertA.at(vi)) = true;
+					needStitch.at(vertB.at(vi)) = true;
 				}
 			}
 		}
 	}
+
+	// 20190404: maybe need to check we only stitch "a vertex of patchA" and "a vertex of patchB"
 
 	//
 	Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> partialStitch;
@@ -780,7 +833,7 @@ bool compute_boolean(
 		partialStitch(vIdx, 0) = (needStitch.at(vIdx)) ? MapToUniqueV(vIdx, 0) : vIdx;
 	}
 	Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> FD_stitchPartial = FD;
-	std::for_each(FD_stitchPartial.data(), FD_stitchPartial.data() + FD_stitchPartial.size(), [&partialStitch](int & a) {a = partialStitch(a); });
+	std::for_each(FD_stitchPartial.data(), FD_stitchPartial.data() + FD_stitchPartial.size(), [&partialStitch](int &a) { a = partialStitch(a); });
 
 	// stitch based on boolean type
 	if (type == INTERSECTION || type == ADDITION)
@@ -789,17 +842,17 @@ bool compute_boolean(
 		// remove patches of interest (ADDITION)
 		std::vector<bool> ignored(FD_stitchPartial.rows(), (type == INTERSECTION));
 		int fCount = (type == ADDITION) ? (FD_stitchPartial.rows()) : (0);
-		for (const auto& pIdx : patchA_inB_ofInterest)
+		for (const auto &pIdx : patchA_inB_ofInterest)
 		{
-			for (const auto& fa : patchFA_inB.at(pIdx))
+			for (const auto &fa : patchFA_inB.at(pIdx))
 			{
 				ignored.at(fa) = (type == ADDITION);
 				fCount += ((type == ADDITION) ? -1 : 1);
 			}
 		}
-		for (const auto& pIdx : patchB_inA_ofInterest)
+		for (const auto &pIdx : patchB_inA_ofInterest)
 		{
-			for (const auto& fb : patchFB_inA.at(pIdx))
+			for (const auto &fb : patchFB_inA.at(pIdx))
 			{
 				ignored.at(fb) = (type == ADDITION);
 				fCount += ((type == ADDITION) ? -1 : 1);
@@ -826,9 +879,9 @@ bool compute_boolean(
 		// invert patches of B of interest
 		std::vector<int> use(FD_stitchPartial.rows(), 1); // 0: ignore, 1: not-ignore, 2: not-ignore(flip)
 		int fCount = FD_stitchPartial.rows();
-		for (const auto& pIdx : patchA_inB_ofInterest)
+		for (const auto &pIdx : patchA_inB_ofInterest)
 		{
-			for (const auto& fa : patchFA_inB.at(pIdx))
+			for (const auto &fa : patchFA_inB.at(pIdx))
 			{
 				use.at(fa) = 0;
 				fCount--;
@@ -836,7 +889,7 @@ bool compute_boolean(
 		}
 		for (int pIdx = 0; pIdx < patchFB_inA.size(); ++pIdx)
 		{
-			for (const auto& fb : patchFB_inA.at(pIdx))
+			for (const auto &fb : patchFB_inA.at(pIdx))
 			{
 				use.at(fb) = 0;
 				fCount--;
@@ -844,15 +897,15 @@ bool compute_boolean(
 		}
 		for (int pIdx = 0; pIdx < patchFB_outA.size(); ++pIdx)
 		{
-			for (const auto& fb : patchFB_outA.at(pIdx))
+			for (const auto &fb : patchFB_outA.at(pIdx))
 			{
 				use.at(fb) = 0;
 				fCount--;
 			}
 		}
-		for (const auto& pIdx : patchB_inA_ofInterest)
+		for (const auto &pIdx : patchB_inA_ofInterest)
 		{
-			for (const auto& fb : patchFB_inA.at(pIdx))
+			for (const auto &fb : patchFB_inA.at(pIdx))
 			{
 				if (use.at(fb) == 0)
 				{

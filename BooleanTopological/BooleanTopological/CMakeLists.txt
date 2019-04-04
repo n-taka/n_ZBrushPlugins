@@ -17,8 +17,6 @@ set(CMAKE_BUILD_TYPE "Release")
 find_package(Boost COMPONENTS random system thread filesystem chrono atomic date_time regex REQUIRED)
 find_package(CGAL CONFIG REQUIRED COMPONENTS Core)
 
-message(${CGAL_ROOT})
-
 # Include directories for library
 if(WIN32)
     set(INCLUDE_DIR_LIB
