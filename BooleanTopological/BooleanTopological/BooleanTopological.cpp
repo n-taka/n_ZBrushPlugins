@@ -720,26 +720,6 @@ bool compute_boolean(
 	}
 #endif
 	std::vector<bool> needStitch(VD.rows(), false);
-	// for (const auto &pIdx : patchA_inB_ofInterest)
-	// {
-	// 	for (const auto &f : patchFA_inB.at(pIdx))
-	// 	{
-	// 		for (int lv = 0; lv < 3; ++lv)
-	// 		{
-	// 			needStitch.at(FD(f, lv)) = true;
-	// 		}
-	// 	}
-	// }
-	// for (const auto &pIdx : patchB_inA_ofInterest)
-	// {
-	// 	for (const auto &f : patchFB_inA.at(pIdx))
-	// 	{
-	// 		for (int lv = 0; lv < 3; ++lv)
-	// 		{
-	// 			needStitch.at(FD(f, lv)) = true;
-	// 		}
-	// 	}
-	// }
 
 	std::unordered_map<int, std::vector<int>> stitchFrom;
 	for (int vIdx = 0; vIdx < VD.rows(); ++vIdx)
@@ -749,25 +729,7 @@ bool compute_boolean(
 	////
 	// update MapToUniqueV for avoiding accidental stitch (when the mesh is self-intersecting)
 	////
-	// 20190404: if vertices (more than four vertices) are merged into single vertex, we need to split them into two or so...
-	// some bug with intersection...
-	// for (int vIdx = 0; vIdx < needStitch.size(); ++vIdx)
-	// {
-	// 	if (needStitch.at(vIdx))
-	// 	{
-	// 		if (!needStitch.at(MapToUniqueV(vIdx, 0)))
-	// 		{
-	// 			for (const auto &from : stitchFrom.at(MapToUniqueV(vIdx, 0)))
-	// 			{
-	// 				if (needStitch.at(from))
-	// 				{
-	// 					MapToUniqueV(vIdx, 0) = from;
-	// 					break;
-	// 				}
-	// 			}
-	// 		}
-	// 	}
-	// }
+
 	for (const auto &stitchInfo : stitchFrom)
 	{
 		const int &stitch_into = stitchInfo.first;
@@ -781,31 +743,76 @@ bool compute_boolean(
 				int group = -1; // 0: A, 1: B
 				for (const auto &nf : VFD.at(targetV))
 				{
-					for (int fv = 0; fv < 3; ++fv)
+					if (MapToOriginalF(nf, 0) < FA.rows())
 					{
-						if (FD(nf, fv) < VA.rows())
-						{
-							group = 0;
-							break;
-						}
-						else if (FD(nf, fv) < VA.rows() + VB.rows())
-						{
-							group = 1;
-							break;
-						}
+						group = 0;
+						break;
 					}
-					if (group > -1)
+					else if (MapToOriginalF(nf, 0) < FA.rows() + FB.rows())
 					{
+						group = 1;
 						break;
 					}
 				}
 				if (group == 0)
 				{
-					vertA.push_back(targetV);
+					bool needPush = false;
+					for (const auto &pIdx : patchA_inB_ofInterest)
+					{
+						if (needPush)
+						{
+							break;
+						}
+						for (const auto &f : patchFA_inB.at(pIdx))
+						{
+							if (needPush)
+							{
+								break;
+							}
+							for (int lv = 0; lv < 3; ++lv)
+							{
+								if (FD(f, lv) == targetV)
+								{
+									needPush = true;
+									break;
+								}
+							}
+						}
+					}
+					if (needPush)
+					{
+						vertA.push_back(targetV);
+					}
 				}
 				else if (group == 1)
 				{
-					vertB.push_back(targetV);
+					bool needPush = false;
+					for (const auto &pIdx : patchB_inA_ofInterest)
+					{
+						if (needPush)
+						{
+							break;
+						}
+						for (const auto &f : patchFB_inA.at(pIdx))
+						{
+							if (needPush)
+							{
+								break;
+							}
+							for (int lv = 0; lv < 3; ++lv)
+							{
+								if (FD(f, lv) == targetV)
+								{
+									needPush = true;
+									break;
+								}
+							}
+						}
+					}
+					if (needPush)
+					{
+						vertB.push_back(targetV);
+					}
 				}
 			}
 			if (vertA.size() == vertB.size())
@@ -833,7 +840,7 @@ bool compute_boolean(
 		partialStitch(vIdx, 0) = (needStitch.at(vIdx)) ? MapToUniqueV(vIdx, 0) : vIdx;
 	}
 	Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> FD_stitchPartial = FD;
-	std::for_each(FD_stitchPartial.data(), FD_stitchPartial.data() + FD_stitchPartial.size(), [&partialStitch](int &a) { a = partialStitch(a); });
+	std::for_each(FD_stitchPartial.data(), FD_stitchPartial.data() + FD_stitchPartial.size(), [&partialStitch](int &a) { a = partialStitch(a, 0); });
 
 	// stitch based on boolean type
 	if (type == INTERSECTION || type == ADDITION)
