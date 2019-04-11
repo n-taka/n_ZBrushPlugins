@@ -16,9 +16,9 @@ int main(int argc, char *argv[])
 	);
 	//char dummyc0[100] = "../../testModels/,hand3_tri.obj:O,cylinder_tri.obj:A\0";
 	char dummyc0[100];
-	// sprintf(dummyc0, "%s", baseDir.append(",mashroom.obj:O,box.obj:S\0").c_str());
+	sprintf(dummyc0, "%s", baseDir.append(",mashroom.obj:O,box.obj:S\0").c_str());
 	// sprintf(dummyc0, "%s", baseDir.append(",mashroom.obj:O,box.obj:I\0").c_str());
-	sprintf(dummyc0, "%s", baseDir.append(",hand2_tri.obj:O,cube2_tri.obj:S\0").c_str()); // limitation...
+	// sprintf(dummyc0, "%s", baseDir.append(",hand2_tri.obj:O,cube2_tri.obj:S\0").c_str()); // limitation...
 	// sprintf(dummyc0, "%s", baseDir.append(",hand2_tri.obj:O,cube2_tri.obj:A\0").c_str());
 	//char dummyc0[100] = "../../testModels/,hand3_tri.obj:O,cylinder_tri.obj:A\0";
 	char dummyc1[4096], dummyc2[4096];

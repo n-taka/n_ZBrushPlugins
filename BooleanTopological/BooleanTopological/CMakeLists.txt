@@ -11,7 +11,7 @@ set(CMAKE_BUILD_TYPE "Release")
 # - CGAL
 ####
 # for windows (find boost installed via vcpkg)
-# add "-DCMAKE_TOOLCHAIN_FILE=C:/Users/KazutakaNakashima/Documents/tools/vcpkg/scripts/buildsystems/vcpkg.cmake" to argument passed to cmake
+# add "-DCMAKE_TOOLCHAIN_FILE=C:/src/vcpkg/scripts/buildsystems/vcpkg.cmake" to argument passed to cmake
 # edit CGALConfig.cmake following the diff https://github.com/CGAL/cgal/commit/4782ea16656e0896dda83840397020c7d2b7d7b8#diff-2e556f99209b0fa55049bf5a5b8302cc
 ####
 find_package(Boost COMPONENTS random system thread filesystem chrono atomic date_time regex REQUIRED)
