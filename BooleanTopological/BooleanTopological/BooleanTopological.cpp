@@ -630,7 +630,7 @@ bool compute_boolean(
 		}
 	}
 
-	while (!stackA.empty() || stackB.empty())
+	while (!stackA.empty() || !stackB.empty())
 	{
 		if (!stackA.empty())
 		{
