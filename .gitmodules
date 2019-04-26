@@ -4,6 +4,3 @@
 [submodule "submodule/libigl"]
 	path = submodule/libigl
 	url = https://github.com/n-taka/libigl.git
-[submodule "submodule/boost"]
-	path = submodule/boost
-	url = https://github.com/boostorg/boost.git
