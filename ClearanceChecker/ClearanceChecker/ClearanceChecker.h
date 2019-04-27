@@ -4,8 +4,8 @@
 #endif
 
 #include <unordered_map>
+#include <fstream>
 #include "Eigen/Core"
-#include "igl/AABB.h"
 
 #if defined(_WIN32) || defined(_WIN64)
 #define DLLEXPORT __declspec(dllexport)
@@ -17,14 +17,32 @@ extern "C" DLLEXPORT float version(char *someText, double optValue, char *output
 
 extern "C" DLLEXPORT float checkClearance(char *someText, double optValue, char *outputBuffer, int optBuffer1Size, char *pOptBuffer2, int optBuffer2Size, char **zData);
 
-typedef struct meshWithAABB_
+typedef struct Mesh_
 {
+	std::string fileName;
 	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> V;
 	Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> F;
 	Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> VC;
 	Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> FG;
-	igl::AABB<Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic>, 3> AABB;
-} meshWithAABB;
+	std::vector<struct Mesh_> islands;
+} Mesh;
+
+typedef struct floatParams_
+{
+	float height;
+} floatParams;
+
+//////
+// parse parameters given from ZBrush
+// this function also opens logFile
+//////
+void parseParams(
+	const char *someText,
+	const double optValue,
+	const char *outputBuffer,
+	std::ofstream &logFile,
+	std::vector<Mesh> &meshes,
+	floatParams &params);
 
 bool read_OBJ(
 	const std::string &fileName,
@@ -40,8 +58,12 @@ bool write_OBJ(
 	const Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> &VC,
 	const Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> &FG);
 
+void splitIslands(
+	std::vector<Mesh> &meshes);
+
 void computeClearance(
-	const std::vector<meshWithAABB> &meshes,
+	const std::vector<Mesh> &meshes,
+	std::ofstream &logFile,
 	std::unordered_map<int, std::unordered_map<int, float>> &clearance);
 
 float debug(
