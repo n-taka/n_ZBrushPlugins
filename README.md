@@ -6,19 +6,56 @@ Please access to https://github.com/n-taka/n_ZBrushPlugins/releases and download
 https://github.com/n-taka/n_ZBrushPlugins/releases にアクセス後、zipアーカイブをダウンロードしてご利用ください。
 
 # I want to extend (develop) plugin(s)! / 改造したい人(開発者の方)
-* Clone this repository, then also clone submodules
-  * libigl, Eigen, boost
-* Install dependency
-  * CGAL, GMP, MPFR
-* Build with your preferred IDE
-  * Currently we have Visual Studio solution file and Xcode project file.
+## Dependencies
+- [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page)
+- [libigl](https://libigl.github.io/)
+- [CGAL](https://www.cgal.org/) (not all the plugins)
 
-* このレポジトリをクローン後、submoduleもクローンします
-  * libigl, Eigen, boost
-* 依存関係もインストールしてください
-  * CGAL, GMP, MPFR
-* お好きな環境でビルドしてください
-  * 現在はVisual StudioとXcode向けのプロジェクトファイルを用意しています。
+Other indirect dependencies (e.g. boost) will be also installed via package management system.
+
+その他の依存関係(boostなど)に関してはパッケージ管理システムを通じて自動的にインストールされます。
+
+## Installation / プログラミング環境のセットアップ
+### Windows
+```
+# Repository itself and submodules (Eigen, libigl)
+git clone --recursive https://github.com/n-taka/n_ZBrushPlugins.git
+
+# If you are new to vcpkg
+vcpkg integrate install
+
+# Other dependencies (cgal)
+vcpkg install cgal cgal:x64-windows
+```
+The instruction for installing [vcpkg](https://github.com/Microsoft/vcpkg) is found in [their repository](https://github.com/Microsoft/vcpkg)
+
+[vcpkg](https://github.com/Microsoft/vcpkg)の使い方はMicrosoft公式の[レポジトリ](https://github.com/Microsoft/vcpkg)を参照してください。
+
+### macOS
+```
+# Repository itself and submodules (Eigen, libigl)
+git clone --recursive https://github.com/n-taka/n_ZBrushPlugins.git
+
+# Other dependencies (cgal)
+brew install cgal
+```
+The instruction for installing [homebrew](https://brew.sh/) is found in [their website](https://brew.sh/)
+
+[homebrew](https://brew.sh/)の使い方は公式の[Webサイト](https://brew.sh/)を参照してください。
+
+## Build and run (this part is under construction) / ビルドと実行 (現在手順の確認中です)
+### Windows / macOS
+We use [cmake](https://cmake.org/) for build.
+
+[cmake](https://cmake.org/)を利用してビルドを行います。
+```
+cd /path/to/repository/root
+cd plugin_you_want_to_build
+mkdir build
+cd build
+cmake ..
+make
+```
 
 # Contact / 連絡先
 If you encounter some trouble (e.g. plugin doesn't work) or some feature requests, please contact me via github issue. Contact via Twitter is also welcomed.
@@ -27,36 +64,7 @@ If you encounter some trouble (e.g. plugin doesn't work) or some feature request
 
 twitter [@kazutaka_nakash](https://twitter.com/kazutaka_nakash)
 
-## External Dependencies / 外部ライブラリ・依存関係
-* libigl
-  * https://libigl.github.io/
-  * linked with submodule
-  * MPL2
-* Eigen
-  * http://eigen.tuxfamily.org/
-  * linked with submodule
-  * MPL2
-* boost
-  * https://www.boost.org/
-  * linked with submodule
-  * boost software license https://www.boost.org/users/license.html
-* CGAL
-  * https://www.cgal.org/
-  * GPL/LGPL https://www.cgal.org/license.html
-* GMP
-  * http://gmplib.org/
-  * CGAL dependency
-  * For windows, use CGAL installer
-  * For max, use homebrew
-  * LGPL v3/GPL v2
-* MPFR
-  * http://www.mpfr.org/
-  * CGAL dependency
-  * For windows, use CGAL installer
-  * For max, use homebrew
-  * LGPL
-
-  
 # Licenses / ライセンス
 * MagicaVoxelizer: MPL2
 * ThicknessChecker: GPL/LGPL (derived from CGAL)
+* ClearanceChekcer: MPL2

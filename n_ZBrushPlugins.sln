@@ -15,6 +15,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ThicknessChecker", "Thickne
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ThicknessCheckerTest", "ThicknessChecker\ThicknessCheckerTest\ThicknessCheckerTest.vcxproj", "{9FAF1F9D-55AA-4A1E-9B20-9A93035407B9}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BooleanTopological", "BooleanTopological\BooleanTopological\BooleanTopological.vcxproj", "{969A1FEB-1286-4200-8744-6E4EE598F62B}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BooleanTopologicalTest", "BooleanTopological\BooleanTopologicalTest\BooleanTopologicalTest.vcxproj", "{459AB14C-5B21-4F5F-BD2D-FEBEEED6060D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -45,6 +49,14 @@ Global
 		{9FAF1F9D-55AA-4A1E-9B20-9A93035407B9}.Debug|x64.Build.0 = Debug|x64
 		{9FAF1F9D-55AA-4A1E-9B20-9A93035407B9}.Release|x64.ActiveCfg = Release|x64
 		{9FAF1F9D-55AA-4A1E-9B20-9A93035407B9}.Release|x64.Build.0 = Release|x64
+		{969A1FEB-1286-4200-8744-6E4EE598F62B}.Debug|x64.ActiveCfg = Debug|x64
+		{969A1FEB-1286-4200-8744-6E4EE598F62B}.Debug|x64.Build.0 = Debug|x64
+		{969A1FEB-1286-4200-8744-6E4EE598F62B}.Release|x64.ActiveCfg = Release|x64
+		{969A1FEB-1286-4200-8744-6E4EE598F62B}.Release|x64.Build.0 = Release|x64
+		{459AB14C-5B21-4F5F-BD2D-FEBEEED6060D}.Debug|x64.ActiveCfg = Debug|x64
+		{459AB14C-5B21-4F5F-BD2D-FEBEEED6060D}.Debug|x64.Build.0 = Debug|x64
+		{459AB14C-5B21-4F5F-BD2D-FEBEEED6060D}.Release|x64.ActiveCfg = Release|x64
+		{459AB14C-5B21-4F5F-BD2D-FEBEEED6060D}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
