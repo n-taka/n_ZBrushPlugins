@@ -9,11 +9,16 @@
 [VarDef, dllPath, "dummy"]
 // hard coded...
 [VarDef, dataDirPath, [fileNameResolvePath, "ZBRUSH_ZSTARTUP\ZPlugs64\ClearanceCheckerData\"]]
+//[VarDef, dataDirPath, [fileNameResolvePath, "ClearanceCheckerData\"]]
 [VarDef, objFile, ""]
 
 [VarDef, height, 100.0]
 [VarDef, minimumClearance, 0.3]
-[VarDef, doubleParam]
+[VarDef, strOut, ""]
+[VarDef, strOutTmp, ""]
+[VarDef, offset, 0]
+[MVarDef, memInOut, [Val, 1024*1024], 0]
+
 
 // check if this plugin is correctly installed
 // from http://docs.pixologic.com/user-guide/customizing-zbrush/zscripting/zfileutils/#dllPath
@@ -27,14 +32,14 @@
     // Make sure we have the dll and set its path
     [If, [ZBrushInfo, 6]==0,//windows
         //use the path below for testing only
-        [VarSet, dllPath, "ClearanceCheckerData\ClearanceChecker.dll"]
+        //[VarSet, dllPath, "ClearanceCheckerData\ClearanceChecker.dll"]
         //use the path below for installed plugins
-        //[VarSet, dllPath, "ZBRUSH_ZSTARTUP\ZPlugs64\ClearanceCheckerData\ClearanceChecker.dll"]
+        [VarSet, dllPath, "ZBRUSH_ZSTARTUP\ZPlugs64\ClearanceCheckerData\ClearanceChecker.dll"]
         ,
         //use the path below for testing only
-        //[VarSet, dllPath, "ClearanceCheckerData/ClearanceChecker.lib"]
+        [VarSet, dllPath, "ClearanceCheckerData/ClearanceChecker.lib"]
         //use the path below for installed plugins
-        [VarSet, dllPath, "ZBRUSH_ZSTARTUP/ZPlugs64/ClearanceCheckerData/ClearanceChecker.lib"]
+        //[VarSet, dllPath, "ZBRUSH_ZSTARTUP/ZPlugs64/ClearanceCheckerData/ClearanceChecker.lib"]
     ]
     // check if there are dll/lib exists
     [If, [FileExists, [Var,dllPath]],
@@ -47,16 +52,17 @@
 ////
 // main processing
 [ISubPalette, "ZPlugin:ClearanceChecker"]
-[ISlider, "ZPlugin:ClearanceChecker:Height (Y)", 100.0, 0.001, 0, 1000, "Set height (Y)",
+[ISlider, "ZPlugin:ClearanceChecker:Height (Y)", 100.0, 0.01, 0, 1000, "Set height (Y)",
     [VarSet, height, [IGet, "ZPlugin:ClearanceChecker:Height (Y)"]],
     0,
     1
 ]
-[ISlider, "ZPlugin:ClearanceChecker:Minimum clearance", 5.0, 0.001, 0, 100, "Set minimum allowed clearance",
+[ISlider, "ZPlugin:ClearanceChecker:Minimum clearance", 0.3, 0.01, 0, 5, "Set minimum allowed clearance",
     [VarSet, minimumClearance, [IGet, "ZPlugin:ClearanceChecker:Minimum clearance"]],
     0,
     1
 ]
+[ISwitch, "ZPlugin:ClearanceChecker:Visible only", 0, "Check clearance only for visible subtools", , , , 0]
 
 // on startup,
 // + search dll
@@ -64,65 +70,118 @@
 [RoutineCall, CheckSystem]
 
 [IButton, "ZPlugin:ClearanceChecker:Compute", "Check clearance",
+[IFreeze,
     [If, [IExists, Tool:Export],
         [RoutineCall, CheckSystem]
-        // store current export settings
-        [VarSet, Tool_Export_Tri,[IGet, Tool:Export:Tri]]
-        [VarSet, Tool_Polypaint_Colorize,[IGet, Tool:Polypaint:Colorize]]
-        [VarSet, Tool_Export_Txr,[IGet, Tool:Export:Txr]]
-        [VarSet, Tool_Export_Flp,[IGet, Tool:Export:Flp]]
-        [VarSet, Tool_Export_Mrg,[IGet, Tool:Export:Mrg]]
-        [VarSet, Tool_Export_Grp,[IGet, Tool:Export:Grp]]
-
-        //set export options
-        [IPress,Tool:Export:Tri]
-        [IPress,Tool:Polypaint:Colorize]
-        // don't need any extra attributes
-        [IUnPress,Tool:Export:Txr]
-        [IUnPress,Tool:Export:Flp]
-        [IUnPress,Tool:Export:Mrg]
-        [IUnPress,Tool:Export:Grp]
-
         //export current subtool to OBJ file (temporary file)
-        // TODO!!!!
-        [FileNameSetNext, [StrMerge, [Var, dataDirPath], [Var, objFile]]]
-        [IPress,Tool:Export]
-
-        // restore original settings
-        [If, [Var, Tool_Export_Tri],
-            [IPress, Tool:Export:Tri],
-            [IPress, Tool:Export:Qud]
-        ]
-        [ISet, Tool:Polypaint:Colorize, [Var, Tool_Polypaint_Colorize]]
-        [ISet, Tool:Export:Txr, [Var, Tool_Export_Txr]]
-        [ISet, Tool:Export:Flp, [Var, Tool_Export_Flp]]
-        [ISet, Tool:Export:Mrg, [Var, Tool_Export_Mrg]]
-        [ISet, Tool:Export:Grp, [Var, Tool_Export_Grp]]
-        ////
 
         // "../../testModels/,AAA.obj,BBB.obj,...\0"
-        [VarDef, textForDll, [StrMerge, [Var, dataDirPath], ",", [Var, objFile] ]]
-        [MVarDef, memInOut, 256, 0]
-        [MVarSet, memInOut, 0, [Var, minimumClearance]]
-        // [VarDef, doubleForDll, ([Var, height] * 1024.0 * 1024.0) + ([Var, preferredThickness] * 1024.0) + [Var, minimumThickness]]
+        [VarDef, textForDll, ""]
+        [VarSet, textForDll, [Var, dataDirPath]]
+
+        // https://puppet-master.net/docs/zbrush/zscripts/zscript-code-samples/
+        // Define a new variable to store the current subtool name
+        [VarDef,subtoolName,""]
+        // create a variable to define the number of loop based on the subtools count
+        [VarSet,totalSubtools,[SubToolGetCount]]
+        // create a variable with the current subtool Index
+        [VarSet,activeSubtool,[SubToolGetActiveIndex]]
+
+        // here is the Loop that check each subtool, and check if the subtool is visible or not.
+        [Loop, totalSubtools,
+            [SubToolSelect,[Val,n]]
+            [VarSet,subtoolName,[IGetTitle, "Tool:ItemInfo"]]//gets the tool name
+            [VarSet,subtoolName,[StrExtract,subtoolName,0,[StrLength,subtoolName]-2]]// trim 2 chars from the end
+            [VarSet,objFile, [StrMerge, [Var, subtoolName], ".OBJ"]]
+            // store current export settings
+            [VarSet, Tool_Export_Tri,[IGet, Tool:Export:Tri]]
+            [VarSet, Tool_Polypaint_Colorize,[IGet, Tool:Polypaint:Colorize]]
+            [VarSet, Tool_Export_Txr,[IGet, Tool:Export:Txr]]
+            [VarSet, Tool_Export_Flp,[IGet, Tool:Export:Flp]]
+            [VarSet, Tool_Export_Mrg,[IGet, Tool:Export:Mrg]]
+            [VarSet, Tool_Export_Grp,[IGet, Tool:Export:Grp]]
+            //set export options
+            [IPress,Tool:Export:Tri]
+            [IPress,Tool:Polypaint:Colorize]
+            // don't need any extra attributes
+            [IUnPress,Tool:Export:Txr]
+            [IUnPress,Tool:Export:Flp]
+            [IUnPress,Tool:Export:Mrg]
+            [IUnPress,Tool:Export:Grp]
+            [FileNameSetNext, [StrMerge, [Var, dataDirPath], [Var, objFile]]]
+            [If,([IModGet,[strMerge, "Tool:Subtool ", [Var, n]]]&32 == 32),
+                [IPress,Tool:Export]
+                [VarSet, textForDll, [StrMerge, [Var, textForDll], ",", [Var, objFile] ]]
+            ,//else
+                [If, [IGet, "ZPlugin:ClearanceChecker:Visible only"],
+                ,// else
+                    [IPress,Tool:Export]
+                    [VarSet, textForDll, [StrMerge, [Var, textForDll], ",", [Var, objFile] ]]
+                ]
+            ]
+            // restore original settings
+            [If, [Var, Tool_Export_Tri],
+                [IPress, Tool:Export:Tri],
+                [IPress, Tool:Export:Qud]
+            ]
+            [ISet, Tool:Polypaint:Colorize, [Var, Tool_Polypaint_Colorize]]
+            [ISet, Tool:Export:Txr, [Var, Tool_Export_Txr]]
+            [ISet, Tool:Export:Flp, [Var, Tool_Export_Flp]]
+            [ISet, Tool:Export:Mrg, [Var, Tool_Export_Mrg]]
+            [ISet, Tool:Export:Grp, [Var, Tool_Export_Grp]]
+            ////
+
+        ,n] //END LOOP
+        [SubToolSelect,activeSubtool]
+
+        [MVarSet, memInOut, 0, [Var, height]]
+        [MVarSet, memInOut, 1, [Var, minimumClearance]]
         [VarDef, result, [FileExecute, [Var, dllPath], "checkClearance", textForDll, 0, memInOut, ]]
 
         [If, result,
             // import to Tool
-            //[IPress,Tool:PolyMesh3D]
-            //[IPress,"Tool:Import"]
-            [VarDef, strOut, "abc"]
-            [MemReadString, memInOut, strOut]
-            [Note, "123"]
-            [Note, [Var, strOut]]
 
             // erase temporary file.
-            //[FileDelete, [StrMerge, [Var, dataDirPath], [Var, objFile]]]
+            // Define a new variable to store the current subtool name
+            [VarDef,subtoolName,""]
+            // create a variable to define the number of loop based on the subtools count
+            [VarSet,totalSubtools,[SubToolGetCount]]
+            // create a variable with the current subtool Index
+            [VarSet,activeSubtool,[SubToolGetActiveIndex]]
+
+            // here is the Loop that check each subtool, and check if the subtool is visible or not.
+            [Loop, totalSubtools,
+                [SubToolSelect,[Val,n]]
+                [VarSet,subtoolName,[IGetTitle, "Tool:ItemInfo"]]//gets the tool name
+                [VarSet,subtoolName,[StrExtract,subtoolName,0,[StrLength,subtoolName]-2]]// trim 2 chars from the end
+                [VarSet,objFile, [StrMerge, [Var, subtoolName], ".OBJ"]]
+                [If,([IModGet,[strMerge, "Tool:Subtool ", [Var, n]]]&32 == 32),
+                    [FileDelete, [StrMerge, [Var, dataDirPath], [Var, objFile]]]
+                ,//else
+                    [If, [IGet, "ZPlugin:ClearanceChecker:Visible only"],
+                    ,// else
+                        [FileDelete, [StrMerge, [Var, dataDirPath], [Var, objFile]]]
+                    ]
+                ]
+                ,n] //END LOOP
+            [SubToolSelect,activeSubtool]
         ,
             [Note, "Sorry, there is some error..."]
         ]
     ]
+]
+[VarSet, strOut, ""]
+[VarSet, strOutTmp, "This comment is just a easter egg :-)"]
+[VarSet, offset, 0]
+[VarSet,totalSubtools,[SubToolGetCount]]
+[Loop, totalSubtools,
+    [If, [MemReadString, memInOut, strOutTmp, offset, 1]
     ,
-    0,
-    1
+        [Note, [Var, strOutTmp]]
+        [VarSet, offset, [Val, [StrLength, strOutTmp] + offset + 1]]
+    ,
+        [LoopExit]
+    ]
+]
+,0,0
 ]

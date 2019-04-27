@@ -7,20 +7,26 @@
 
 int main(int argc, char *argv[])
 {
+	union {
+		char c[sizeof(float)];
+		float f;
+	} loader;
+
 	std::string baseDir(
 		"../../testModels/");
-	//char dummyc0[100] = "../../testModels/,hand3_tri.obj:O,cylinder_tri.obj:A\0";
 	char dummyc0[100];
 	sprintf(dummyc0, "%s", baseDir.append(",box.obj,PolySphere.OBJ\0").c_str());
-	// sprintf(dummyc0, "%s", baseDir.append(",mashroom.obj:O,box.obj:I\0").c_str());
-	// sprintf(dummyc0, "%s", baseDir.append(",hand2_tri.obj:O,cube2_tri.obj:S\0").c_str()); // limitation...
-	// sprintf(dummyc0, "%s", baseDir.append(",hand2_tri.obj:O,cube2_tri.obj:A\0").c_str());
-	//char dummyc0[100] = "../../testModels/,hand3_tri.obj:O,cylinder_tri.obj:A\0";
 	char dummyc1[4096], dummyc2[4096];
 	char dummyc3[] = "hello";
 	double dummyd = 0.0;
 	int dummyi0 = 0;
 	int dummyi1 = 0;
+	const float height = 100.0f;
+	const float minimumClearance = 0.03f;
+	loader.f = height;
+	memcpy(dummyc1, loader.c, sizeof(float));
+	loader.f = minimumClearance;
+	memcpy(dummyc1 + sizeof(float), loader.c, sizeof(float));
 
 	checkClearance(dummyc0, dummyd, dummyc1, dummyi0, dummyc2, dummyi1, (char **)&dummyc3);
 }

@@ -33,12 +33,70 @@ extern "C" DLLEXPORT float checkClearance(char *someText, double optValue, char 
 	std::vector<Mesh> meshes;
 	floatParams params;
 	parseParams(someText, optValue, outputBuffer, logFile, meshes, params);
+	if (meshes.size() == 0)
+	{
+		return 0.0f;
+	}
 	splitIslands(meshes);
 	std::unordered_map<int, std::unordered_map<int, float>> clearance;
 	computeClearance(meshes, logFile, clearance);
 
+	std::string outStr;
+	char buf[256];
+	sprintf(buf, "\0");
+	outStr.clear();
+	for (int m0 = 0; m0 < meshes.size(); ++m0)
+	{
+		sprintf(buf, "%s: \\Cff9923\0", meshes.at(m0).fileName.c_str());
+		outStr.append(buf);
+		sprintf(buf, "\0");
+		for (int m1 = 0; m1 < meshes.size(); ++m1)
+		{
+			// theoretically, it is OK to compare with numeric_limit<float>::max(), but that somehow doesn't work...
+			if (clearance[m0][m1] >= params.height)
+			{
+				if (m0 != m1)
+				{
+					// sprintf(buf, "  \\Cf24D24NG\\Cffffff  ");
+					sprintf(buf, "%s \0", meshes.at(m1).fileName.c_str());
+					outStr.append(buf);
+					sprintf(buf, "\0");
+				}
+				else
+				{
+					// sprintf(buf, "  \\C78b030OK\\Cffffff  ");
+				}
+			}
+			else if (clearance[m0][m1] >= params.minimumClearance)
+			{
+				if (m0 != m1)
+				{
+					// sprintf(buf, "  \\C78b030OK\\Cffffff  ");
+				}
+				else
+				{
+					// sprintf(buf, "  \\Cf24D24NG\\Cffffff  ");
+					sprintf(buf, "%s \0", meshes.at(m1).fileName.c_str());
+					outStr.append(buf);
+					sprintf(buf, "\0");
+				}
+			}
+			else
+			{
+				// sprintf(buf, "  \\Cf24D24NG\\Cffffff  ");
+				sprintf(buf, "%s \0", meshes.at(m1).fileName.c_str());
+				outStr.append(buf);
+				sprintf(buf, "\0");
+			}
+		}
+		outStr.append("\n\0");
+	}
+
+	sprintf(outputBuffer, "%s\0", outStr.c_str());
+
+	std::cout << outStr << std::endl;
+	logFile << outStr << std::endl;
 	logFile.close();
-	sprintf(outputBuffer, "AAA");
 
 	return 1.0f;
 }

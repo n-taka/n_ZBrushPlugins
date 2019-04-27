@@ -30,6 +30,7 @@ typedef struct Mesh_
 typedef struct floatParams_
 {
 	float height;
+	float minimumClearance;
 } floatParams;
 
 //////
