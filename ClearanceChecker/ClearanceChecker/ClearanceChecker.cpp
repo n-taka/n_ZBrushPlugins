@@ -43,13 +43,13 @@ extern "C" DLLEXPORT float checkClearance(char *someText, double optValue, char 
 
 	std::string outStr;
 	char buf[256];
-	sprintf(buf, "\0");
+	sprintf(buf, "");
 	outStr.clear();
 	for (int m0 = 0; m0 < meshes.size(); ++m0)
 	{
-		sprintf(buf, "%s: \\Cff9923\0", meshes.at(m0).fileName.c_str());
+		sprintf(buf, "%s: \\Cff9923", meshes.at(m0).fileName.c_str());
 		outStr.append(buf);
-		sprintf(buf, "\0");
+		sprintf(buf, "");
 		for (int m1 = 0; m1 < meshes.size(); ++m1)
 		{
 			// theoretically, it is OK to compare with numeric_limit<float>::max(), but that somehow doesn't work...
@@ -58,9 +58,9 @@ extern "C" DLLEXPORT float checkClearance(char *someText, double optValue, char 
 				if (m0 != m1)
 				{
 					// sprintf(buf, "  \\Cf24D24NG\\Cffffff  ");
-					sprintf(buf, "%s \0", meshes.at(m1).fileName.c_str());
+					sprintf(buf, "%s ", meshes.at(m1).fileName.c_str());
 					outStr.append(buf);
-					sprintf(buf, "\0");
+					sprintf(buf, "");
 				}
 				else
 				{
@@ -76,28 +76,27 @@ extern "C" DLLEXPORT float checkClearance(char *someText, double optValue, char 
 				else
 				{
 					// sprintf(buf, "  \\Cf24D24NG\\Cffffff  ");
-					sprintf(buf, "%s \0", meshes.at(m1).fileName.c_str());
+					sprintf(buf, "%s ", meshes.at(m1).fileName.c_str());
 					outStr.append(buf);
-					sprintf(buf, "\0");
+					sprintf(buf, "");
 				}
 			}
 			else
 			{
 				// sprintf(buf, "  \\Cf24D24NG\\Cffffff  ");
-				sprintf(buf, "%s \0", meshes.at(m1).fileName.c_str());
+				sprintf(buf, "%s ", meshes.at(m1).fileName.c_str());
 				outStr.append(buf);
-				sprintf(buf, "\0");
+				sprintf(buf, "");
 			}
 		}
-		outStr.append("\n\0");
+		outStr.append("\n");
 	}
 
-	sprintf(outputBuffer, "%s\0", outStr.c_str());
+	sprintf(outputBuffer, "%s", outStr.c_str());
 
 	std::cout << outStr << std::endl;
 	logFile << outStr << std::endl;
 	logFile.close();
-
 	return 1.0f;
 }
 
@@ -131,6 +130,7 @@ void splitIslands(
 			igl::remove_unreferenced(mesh.V, islandF_before, islandV, islandF, I, J);
 		}
 	}
+	return;
 }
 
 void computeClearance(
@@ -191,4 +191,5 @@ void computeClearance(
 		std::cout << std::endl;
 		logFile << std::endl;
 	}
+	return;
 }

@@ -21,6 +21,10 @@ void parseParams(
 	////
 
 	std::string ZBtext(someText);
+#if defined(__APPLE__)
+	// for Mac, ZBrush somehow add prefix "!:"...?
+	ZBtext = ZBtext.substr(2);
+#endif
 	std::string separator(",");
 	size_t separator_length = separator.length();
 	std::vector<std::string> ZBtextList;
@@ -100,4 +104,5 @@ void parseParams(
 			mesh.V *= ratio;
 		}
 	}
+	return;
 }
