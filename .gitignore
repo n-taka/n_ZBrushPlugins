@@ -16,4 +16,5 @@ build/
 !*.exe
 !*.dll
 !*.lib
+!release/
 DerivedData

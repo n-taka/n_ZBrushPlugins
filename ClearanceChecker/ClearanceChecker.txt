@@ -37,9 +37,9 @@
         [VarSet, dllPath, "ZBRUSH_ZSTARTUP\ZPlugs64\ClearanceCheckerData\ClearanceChecker.dll"]
         ,
         //use the path below for testing only
-        [VarSet, dllPath, "ClearanceCheckerData/ClearanceChecker.lib"]
+        //[VarSet, dllPath, "ClearanceCheckerData/ClearanceChecker.lib"]
         //use the path below for installed plugins
-        //[VarSet, dllPath, "ZBRUSH_ZSTARTUP/ZPlugs64/ClearanceCheckerData/ClearanceChecker.lib"]
+        [VarSet, dllPath, "ZBRUSH_ZSTARTUP/ZPlugs64/ClearanceCheckerData/ClearanceChecker.lib"]
     ]
     // check if there are dll/lib exists
     [If, [FileExists, [Var,dllPath]],
@@ -139,8 +139,6 @@
         [VarDef, result, [FileExecute, [Var, dllPath], "checkClearance", textForDll, 0, memInOut, ]]
 
         [If, result,
-            // import to Tool
-
             // erase temporary file.
             // Define a new variable to store the current subtool name
             [VarDef,subtoolName,""]

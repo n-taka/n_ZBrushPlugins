@@ -12,10 +12,15 @@ int main(int argc, char *argv[])
 		float f;
 	} loader;
 
+#if defined(__APPLE__)
+	std::string baseDir(
+		"!:../../testModels/");
+#else
 	std::string baseDir(
 		"../../testModels/");
+#endif
 	char dummyc0[100];
-	sprintf(dummyc0, "%s", baseDir.append(",box.obj,PolySphere.OBJ\0").c_str());
+	sprintf(dummyc0, "%s", baseDir.append(",PM3D_Cone3D1.OBJ,PM3D_Cube3D1.OBJ\0").c_str());
 	char dummyc1[4096], dummyc2[4096];
 	char dummyc3[] = "hello";
 	double dummyd = 0.0;
