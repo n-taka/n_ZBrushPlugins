@@ -1,7 +1,5 @@
 #include "ThicknessChecker.h"
 
-#include "stdafx.h"
-
 #include <iostream>
 #include <limits>
 #include <iomanip>
@@ -13,19 +11,18 @@
 // there is some modificaton for handling MRGB in ZBrush.
 
 bool write_OBJ(
-	const std::string& fileName,
-	const Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic>& V,
-	const Eigen::Matrix<  int, Eigen::Dynamic, Eigen::Dynamic>& F,
-	const Eigen::Matrix<  int, Eigen::Dynamic, Eigen::Dynamic>& VC,
-	const Eigen::Matrix<  int, Eigen::Dynamic, Eigen::Dynamic>& FG
-)
+	const std::string &fileName,
+	const Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> &V,
+	const Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> &F,
+	const Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> &VC,
+	const Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> &FG)
 {
 	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> TC;
 	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> CN;
 	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> FTC;
 	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> FN;
 
-	FILE * obj_file = fopen(fileName.c_str(), "w");
+	FILE *obj_file = fopen(fileName.c_str(), "w");
 	if (NULL == obj_file)
 	{
 		printf("IOError: %s could not be opened for writing...", fileName.c_str());

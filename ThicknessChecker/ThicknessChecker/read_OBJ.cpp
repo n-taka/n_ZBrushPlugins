@@ -1,7 +1,5 @@
 #include "ThicknessChecker.h"
 
-#include "stdafx.h"
-
 #include "igl/list_to_matrix.h"
 
 #include <iostream>
@@ -15,27 +13,26 @@
 // there is some modificaton for handling MRGB in ZBrush.
 
 bool read_OBJ(
-	const std::string& fileName,
-	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic>& V,
-	Eigen::Matrix<  int, Eigen::Dynamic, Eigen::Dynamic>& F,
-	Eigen::Matrix<  int, Eigen::Dynamic, Eigen::Dynamic>& VC,
-	Eigen::Matrix<  int, Eigen::Dynamic, Eigen::Dynamic>& FG
-)
+	const std::string &fileName,
+	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> &V,
+	Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> &F,
+	Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> &VC,
+	Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> &FG)
 {
 	// currently assume triangle mesh.
-    //std::cout << fileName << std::endl;
+	//std::cout << fileName << std::endl;
 
-	FILE * obj_file = fopen(fileName.c_str(), "r");
+	FILE *obj_file = fopen(fileName.c_str(), "r");
 	if (NULL == obj_file)
 	{
 		fprintf(stderr, "IOError: %s could not be opened...\n",
-			fileName.c_str());
+				fileName.c_str());
 		return false;
 	}
 
-	std::vector<std::vector<float> > vV, vTC, vN;
+	std::vector<std::vector<float>> vV, vTC, vN;
 	std::string C("");
-	std::vector<std::vector<int> > vF, vFTC, vFN;
+	std::vector<std::vector<int>> vF, vFTC, vFN;
 	std::string currentGroupStr("Default");
 	std::vector<std::string> vGstr;
 	std::map<std::string, int> groupStrToId;
@@ -58,7 +55,7 @@ bool read_OBJ(
 	std::string MRGB("#MRGB");
 	std::string tic_tac_toe("#");
 #ifndef IGL_LINE_MAX
-#  define IGL_LINE_MAX 2048
+#define IGL_LINE_MAX 2048
 #endif
 
 	char line[IGL_LINE_MAX];
@@ -70,17 +67,17 @@ bool read_OBJ(
 		if (sscanf(line, "%s", type) == 1)
 		{
 			// Get pointer to rest of line right after type
-			char * l = &line[strlen(type)];
+			char *l = &line[strlen(type)];
 			if (type == v)
 			{
 				std::istringstream ls(&line[1]);
-				std::vector<float> vertex{ std::istream_iterator<float>(ls), std::istream_iterator<float>() };
+				std::vector<float> vertex{std::istream_iterator<float>(ls), std::istream_iterator<float>()};
 
 				if (vertex.size() < 3)
 				{
 					fprintf(stderr,
-						"Error: readOBJ() vertex on line %d should have at least 3 coordinates",
-						line_no);
+							"Error: readOBJ() vertex on line %d should have at least 3 coordinates",
+							line_no);
 					fclose(obj_file);
 					return false;
 				}
@@ -95,8 +92,8 @@ bool read_OBJ(
 				if (count != 3)
 				{
 					fprintf(stderr,
-						"Error: readOBJ() normal on line %d should have 3 coordinates",
-						line_no);
+							"Error: readOBJ() normal on line %d should have 3 coordinates",
+							line_no);
 					fclose(obj_file);
 					return false;
 				}
@@ -115,9 +112,9 @@ bool read_OBJ(
 				if (count != 2 && count != 3)
 				{
 					fprintf(stderr,
-						"Error: readOBJ() texture coords on line %d should have 2 "
-						"or 3 coordinates (%d)",
-						line_no, count);
+							"Error: readOBJ() texture coords on line %d should have 2 "
+							"or 3 coordinates (%d)",
+							line_no, count);
 					fclose(obj_file);
 					return false;
 				}
@@ -130,16 +127,13 @@ bool read_OBJ(
 			}
 			else if (type == f)
 			{
-				const auto & shift = [&vV](const int i)->int
-				{
+				const auto &shift = [&vV](const int i) -> int {
 					return i < 0 ? i + vV.size() : i - 1;
 				};
-				const auto & shift_t = [&vTC](const int i)->int
-				{
+				const auto &shift_t = [&vTC](const int i) -> int {
 					return i < 0 ? i + vTC.size() : i - 1;
 				};
-				const auto & shift_n = [&vN](const int i)->int
-				{
+				const auto &shift_n = [&vN](const int i) -> int {
 					return i < 0 ? i + vN.size() : i - 1;
 				};
 				std::vector<int> f;
@@ -177,8 +171,8 @@ bool read_OBJ(
 					else
 					{
 						fprintf(stderr,
-							"Error: readOBJ() face on line %d has invalid element format\n",
-							line_no);
+								"Error: readOBJ() face on line %d has invalid element format\n",
+								line_no);
 						fclose(obj_file);
 						return false;
 					}
@@ -199,7 +193,7 @@ bool read_OBJ(
 				else
 				{
 					fprintf(stderr,
-						"Error: readOBJ() face on line %d has invalid format\n", line_no);
+							"Error: readOBJ() face on line %d has invalid format\n", line_no);
 					fclose(obj_file);
 					return false;
 				}
@@ -222,10 +216,10 @@ bool read_OBJ(
 				C.append(body);
 			}
 			else if (strlen(type) >= 1 && (type[0] == '#' ||
-				type[0] == 'g' ||
-				type[0] == 's' ||
-				strcmp("usemtl", type) == 0 ||
-				strcmp("mtllib", type) == 0))
+										   type[0] == 'g' ||
+										   type[0] == 's' ||
+										   strcmp("usemtl", type) == 0 ||
+										   strcmp("mtllib", type) == 0))
 			{
 				//ignore comments or other shit
 			}
@@ -233,9 +227,9 @@ bool read_OBJ(
 			{
 				//ignore any other lines
 				fprintf(stderr,
-					"Warning: readOBJ() ignored non-comment line %d:\n  %s",
-					line_no,
-					line);
+						"Warning: readOBJ() ignored non-comment line %d:\n  %s",
+						line_no,
+						line);
 			}
 		}
 		else
@@ -254,7 +248,7 @@ bool read_OBJ(
 	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> FN;
 
 	bool V_rect = igl::list_to_matrix(vV, V);
-	const char * format = "Failed to cast %s to matrix: min (%d) != max (%d)\n";
+	const char *format = "Failed to cast %s to matrix: min (%d) != max (%d)\n";
 	if (!V_rect)
 	{
 		printf(format, "V", igl::min_size(vV), igl::max_size(vV));
