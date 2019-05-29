@@ -36,26 +36,38 @@ extern "C" DLLEXPORT float checkThickness(char *someText, double optValue, char 
 
 	if (params.acceleratorName != "CPU")
 	{
-		////
-		// set up accelerator
+		// GPU
 		concurrency::accelerator acc = selectAccelerator(params.acceleratorName, logFile);
-		////
+		AMP_computeSDF(meshes.at(0).V, meshes.at(0).F, params.chunkSize, acc, F_RAWSDF);
+		end = std::chrono::system_clock::now();
+		double elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+		std::cout << "elapsed time for computation: " << elapsed << " [ms]" << std::endl;
+		logFile << "elapsed time for computation: " << elapsed << " [ms]" << std::endl;
+	}
+	else
+	{
+		// CPU
+		std::cout << "accelerator: CPU" << std::endl;
+		logFile << "accelerator: CPU" << std::endl;
+
+		CPU_computeSDF(meshes.at(0).V, meshes.at(0).F, F_RAWSDF);
+		end = std::chrono::system_clock::now();
+		double elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+		std::cout << "elapsed time for computation: " << elapsed << " [ms]" << std::endl;
+		logFile << "elapsed time for computation: " << elapsed << " [ms]" << std::endl;
 	}
 
-	////
-	// compute shape diameter function
-	computeSDF(meshes.at(0).V, meshes.at(0).F, params.chunkSize, acc, F_RAWSDF);
+
+#else
+// Mac: CPU
+	std::cout << "accelerator: CPU" << std::endl;
+	logFile << "accelerator: CPU" << std::endl;
+
+	CPU_computeSDF(meshes.at(0).V, meshes.at(0).F, F_RAWSDF);
 	end = std::chrono::system_clock::now();
 	double elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 	std::cout << "elapsed time for computation: " << elapsed << " [ms]" << std::endl;
 	logFile << "elapsed time for computation: " << elapsed << " [ms]" << std::endl;
-	//std::cout << F_RAWSDF << std::endl;
-	//return 0.0f;
-	// todo
-	////
-
-#else
-// Mac: CPU
 #endif
 
 	////

@@ -35,14 +35,27 @@ if(UNIX)
 endif(UNIX)
 
 # Source files for library
-set(CPP_FILES_LIB
-    ThicknessChecker.cpp
-    read_OBJ.cpp
-    write_OBJ.cpp
-    parseParams.cpp
-    cppamp_SDF.cpp
-    cppamp_Util.cpp
-)
+if(WIN32)
+    set(CPP_FILES_LIB
+        ThicknessChecker.cpp
+        read_OBJ.cpp
+        write_OBJ.cpp
+        parseParams.cpp
+        cpu_SDF.cpp
+        cppamp_SDF.cpp
+        cppamp_Util.cpp
+    )
+endif(WIN32)
+if(UNIX)
+    set(CPP_FILES_LIB
+        ThicknessChecker.cpp
+        read_OBJ.cpp
+        write_OBJ.cpp
+        parseParams.cpp
+        cpu_SDF.cpp
+        cppamp_Util.cpp
+    )
+endif(UNIX)
 
 # External libraries for library
 set(LINK_LIBS_LIB

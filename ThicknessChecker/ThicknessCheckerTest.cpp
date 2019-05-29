@@ -6,7 +6,8 @@
 
 int main(int argc, char *argv[])
 {
-	char dummyc0[100] = "../../testModels/,Dog.obj,NVIDIA GeForce RTX 2070 with Max-Q Design\0";
+	//char dummyc0[100] = "../../testModels/,Dog.obj,NVIDIA GeForce RTX 2070 with Max-Q Design\0";
+	char dummyc0[100] = "../../testModels/,Dog.obj,CPU\0";
 	char dummyc1[4096], dummyc2[4096];
 	char dummyc3[] = "hello";
 	const double height = 100.0;
