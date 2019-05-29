@@ -100,7 +100,7 @@
 // 4 is hard coded...
 [VarDef, acceleratorNames(4), ""]
 [VarDef, acceleratorSpecs(4), ""]
-[VarDef, loopCount, 0]
+[VarSet, loopCount, 0]
 [Loop, 4,
     [If, [StrFind, ",", acceleratorText] == -1,
         [Varset, acceleratorNames(loopCount), "none"]
@@ -156,34 +156,30 @@
 
 [ISwitch, [StrMerge, "ZPlugin:ThicknessChecker:GPU:", [Var, acceleratorNames(0)]], 1, [Var, acceleratorSpecs(0)],
     [VarSet, chosenAccelerator, [Var, acceleratorNames(0)]]
-    [RoutineCall, oneHot]
+    [RoutineCall, oneHot],
     ,
-    ,
-    ([StrFind, "none", acceleratorNames(0)] == 0),
+    0,
     1
 ]
 [ISwitch, [StrMerge, "ZPlugin:ThicknessChecker:GPU:", [Var, acceleratorNames(1)]], 0, [Var, acceleratorSpecs(1)],
     [VarSet, chosenAccelerator, [Var, acceleratorNames(1)]]
-    [RoutineCall, oneHot]
+    [RoutineCall, oneHot],
     ,
-    ,
-    ([StrFind, "none", acceleratorNames(1)] == 0),
+    0,
     1
 ]
 [ISwitch, [StrMerge, "ZPlugin:ThicknessChecker:GPU:", [Var, acceleratorNames(2)]], 0, [Var, acceleratorSpecs(2)],
     [VarSet, chosenAccelerator, [Var, acceleratorNames(2)]]
-    [RoutineCall, oneHot]
+    [RoutineCall, oneHot],
     ,
-    ,
-    ([StrFind, "none", acceleratorNames(2)] == 0),
+    0,
     1
 ]
 [ISwitch, [StrMerge, "ZPlugin:ThicknessChecker:GPU:", [Var, acceleratorNames(3)]], 0, [Var, acceleratorSpecs(3)],
     [VarSet, chosenAccelerator, [Var, acceleratorNames(3)]]
-    [RoutineCall, oneHot]
+    [RoutineCall, oneHot],
     ,
-    ,
-    ([StrFind, "none", acceleratorNames(3)] == 0),
+    0,
     1
 ]
 
@@ -260,3 +256,8 @@
     0,
     1
 ]
+
+[IEnable, [StrMerge, "ZPlugin:ThicknessChecker:GPU:", [Var, acceleratorNames(0)]]]
+[IEnable, [StrMerge, "ZPlugin:ThicknessChecker:GPU:", [Var, acceleratorNames(1)]]]
+[IEnable, [StrMerge, "ZPlugin:ThicknessChecker:GPU:", [Var, acceleratorNames(2)]]]
+[IEnable, [StrMerge, "ZPlugin:ThicknessChecker:GPU:", [Var, acceleratorNames(3)]]]
