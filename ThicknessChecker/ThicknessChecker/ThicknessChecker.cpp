@@ -48,7 +48,9 @@ extern "C" DLLEXPORT float checkThickness(char *someText, double optValue, char 
 	else
 	{
 		// CPU
+		std::cout << "[[ selected accelerator ]]" << std::endl;
 		std::cout << "accelerator: CPU" << std::endl;
+		logFile << "[[ selected accelerator ]]" << std::endl;
 		logFile << "accelerator: CPU" << std::endl;
 		const int numOfThreads = std::max(static_cast<int>(std::thread::hardware_concurrency()), 1);
 		std::cout << "Compute with " << numOfThreads << " threads." << std::endl;

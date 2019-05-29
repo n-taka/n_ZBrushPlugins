@@ -68,8 +68,9 @@ void parseParams(
 		params.preferredThickness = loader.f;
 		memcpy(loader.c, outputBuffer + sizeof(float) * 2, sizeof(float));
 		params.minimumThickness = loader.f;
-		memcpy(loader.c, outputBuffer + sizeof(float) * 3, sizeof(int));
-		params.chunkSize = loader.i;
+		//memcpy(loader.c, outputBuffer + sizeof(float) * 3, sizeof(int));
+		//params.chunkSize = loader.i;
+		params.chunkSize = 200000;
 
 		std::cout << "Height               : " << params.height << std::endl;
 		std::cout << "Preferred thickness  : " << params.preferredThickness << std::endl;
