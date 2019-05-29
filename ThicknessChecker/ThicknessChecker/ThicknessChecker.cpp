@@ -5,6 +5,7 @@
 #include <iostream>
 #include <fstream>
 #include <chrono>
+#include <thread>
 
 #include "igl/jet.h"
 
@@ -49,6 +50,9 @@ extern "C" DLLEXPORT float checkThickness(char *someText, double optValue, char 
 		// CPU
 		std::cout << "accelerator: CPU" << std::endl;
 		logFile << "accelerator: CPU" << std::endl;
+		const int numOfThreads = std::max(static_cast<int>(std::thread::hardware_concurrency()), 1);
+		std::cout << "Compute with " << numOfThreads << " threads." << std::endl;
+		logFile << "Compute with " << numOfThreads << " threads." << std::endl;
 
 		CPU_computeSDF(meshes.at(0).V, meshes.at(0).F, F_RAWSDF);
 		end = std::chrono::system_clock::now();

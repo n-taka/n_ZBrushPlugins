@@ -6,7 +6,10 @@
 #include "igl/triangle_triangle_adjacency.h"
 #include "igl/AABB.h"
 
+#include <vector>
 #include <unordered_set>
+#include <thread>
+#include <mutex>
 
 ////
 // implementation
@@ -19,13 +22,17 @@
 // [0, pi]
 #define CONE_OPENING_ANGLE (2.0f / 3.0f * PI)
 
+namespace {
+	std::mutex m0, m1;
+}
+
 float CPU_rayMeshIntersections(
-	const Eigen::Matrix<float, 1, 3> &orig,
-	const Eigen::Matrix<float, 1, 3> &dir,
-	igl::AABB<Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic>, 3> &aabb,
-	const Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> &V,
-	const Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> &F,
-	const Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> &FN)
+	const Eigen::Matrix<float, 1, 3> & orig,
+	const Eigen::Matrix<float, 1, 3> & dir,
+	igl::AABB<Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic>, 3> & aabb,
+	const Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic>& V,
+	const Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic>& F,
+	const Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic>& FN)
 {
 	float min_t = -1.0f;
 	std::vector<igl::Hit> hits;
@@ -47,9 +54,9 @@ float CPU_rayMeshIntersections(
 }
 
 void CPU_computeSDF(
-	const Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> &V,
-	const Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> &F,
-	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> &FaceSDF)
+	const Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic>& V,
+	const Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic>& F,
+	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic>& FaceSDF)
 {
 	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> FN;
 	igl::per_face_normals(V, F, FN);
@@ -85,33 +92,57 @@ void CPU_computeSDF(
 	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> T;
 	T.resize(int(F.rows()), RAYCOUNT);
 
-	for (int tri = 0; tri < F.rows(); ++tri)
+	const int numOfThreads = std::max(static_cast<int>(std::thread::hardware_concurrency()), 1);
+
 	{
-		// 20190528 todo parallel
-		for (int r = 0; r < RAYCOUNT; ++r)
-		{
-			// source point
-			Eigen::Matrix<float, 1, 3> source = (V.row(F(tri, 0)) + V.row(F(tri, 1)) + V.row(F(tri, 2))) / 3.0f;
-			// generate dir (use pre-defined??)
-			Eigen::Matrix<float, 1, 3> dir = -FN.row(tri);
+		int taskId = 0;
+		std::vector<std::thread> threads;
+		for (int th = 0; th < numOfThreads; ++th) {
+			threads.push_back(std::thread([&] {
+				// todo get my ID
+				while (true) {
+					int tri = -1;
+					int r = -1;
+					{
+						std::lock_guard<std::mutex> guard(m0);
+						tri = taskId / RAYCOUNT;
+						r = taskId % RAYCOUNT;
+						++taskId;
+					}
+					if (tri < F.rows())
+					{
+						// source point
+						Eigen::Matrix<float, 1, 3> source = (V.row(F(tri, 0)) + V.row(F(tri, 1)) + V.row(F(tri, 2))) / 3.0f;
+						// generate dir (use pre-defined??)
+						Eigen::Matrix<float, 1, 3> dir = -FN.row(tri);
 
-			// directions on disk
-			Eigen::Matrix<float, 1, 3> base1, base2;
-			base1 = V.row(F(tri, 0)) - source;
-			base1.normalize();
-			base2 = dir.cross(base1);
-			base1 *= SW(r, 0);
-			base2 *= SW(r, 1);
+						// directions on disk
+						Eigen::Matrix<float, 1, 3> base1, base2;
+						base1 = V.row(F(tri, 0)) - source;
+						base1.normalize();
+						base2 = dir.cross(base1);
+						base1 *= SW(r, 0);
+						base2 *= SW(r, 1);
 
-			dir += base1;
-			dir += base2;
+						dir += base1;
+						dir += base2;
 
-			dir.normalize();
+						dir.normalize();
 
-			// do computation
-			float t = CPU_rayMeshIntersections(source, dir, aabb, V, F, FN);
-			// write-back
-			T(tri, r) = t;
+						// do computation
+						float t = CPU_rayMeshIntersections(source, dir, aabb, V, F, FN);
+						// write-back
+						T(tri, r) = t;
+					}
+					else
+					{
+						break;
+					}
+				}
+				}));
+		}
+		for (std::thread& th : threads) {
+			th.join();
 		}
 	}
 
@@ -128,72 +159,97 @@ void CPU_computeSDF(
 	FaceSDF.setZero();
 
 	const float number_of_mad = 1.5f;
-	for (int tri = 0; tri < F.rows(); ++tri)
+
 	{
-		// 20190528 todo parallel
-		float avg = 0.0f;
-		float validCount = 0.0f;
-		for (int r = 0; r < RAYCOUNT; ++r)
-		{
-			if (T(tri, r) >= 0.0f)
-			{
-				avg += T(tri, r);
-				validCount += 1.0f;
-			}
-		}
-		if (validCount < 0.5f)
-		{
-			FaceSDF(tri) = -1.0f;
-			return;
-		}
-		avg /= validCount;
-
-		// use standard deviation and ratio of 1.5; (different from CGAL (median absolute))
-		float standardDeviation = 0.0f;
-		float acceptCount = 0.0f;
-		for (int r = 0; r < RAYCOUNT; ++r)
-		{
-			if (T(tri, r) >= 0.0f)
-			{
-				float diff = T(tri, r) - avg;
-				standardDeviation += (diff * diff);
-				acceptCount += 1.0f;
-			}
-		}
-
-		if (acceptCount > 0.5f)
-		{
-			standardDeviation /= acceptCount;
-			standardDeviation = sqrt(standardDeviation);
-
-			float weightedSDF = 0.0f;
-			float weightSum = 0.0f;
-			for (int r = 0; r < RAYCOUNT; ++r)
-			{
-				if (T(tri, r) >= 0.0f)
-				{
-					const float deviation = fabs(T(tri, r) - avg);
-					if (deviation <= number_of_mad * standardDeviation)
+		int taskId = 0;
+		std::vector<std::thread> threads;
+		for (int th = 0; th < numOfThreads; ++th) {
+			threads.push_back(std::thread([&] {
+				// todo get my ID
+				while (true) {
+					int tri = -1;
 					{
-						weightedSDF += (SW(r, 2) * T(tri, r));
-						weightSum += SW(r, 2);
+						std::lock_guard<std::mutex> guard(m1);
+						tri = taskId;
+						++taskId;
+					}
+					if (tri < F.rows())
+					{
+						float avg = 0.0f;
+						float validCount = 0.0f;
+						for (int r = 0; r < RAYCOUNT; ++r)
+						{
+							if (T(tri, r) >= 0.0f)
+							{
+								avg += T(tri, r);
+								validCount += 1.0f;
+							}
+						}
+						if (validCount < 0.5f)
+						{
+							FaceSDF(tri) = -1.0f;
+							return;
+						}
+						avg /= validCount;
+
+						// use standard deviation and ratio of 1.5; (different from CGAL (median absolute))
+						float standardDeviation = 0.0f;
+						float acceptCount = 0.0f;
+						for (int r = 0; r < RAYCOUNT; ++r)
+						{
+							if (T(tri, r) >= 0.0f)
+							{
+								float diff = T(tri, r) - avg;
+								standardDeviation += (diff * diff);
+								acceptCount += 1.0f;
+							}
+						}
+
+						if (acceptCount > 0.5f)
+						{
+							standardDeviation /= acceptCount;
+							standardDeviation = sqrt(standardDeviation);
+
+							float weightedSDF = 0.0f;
+							float weightSum = 0.0f;
+							for (int r = 0; r < RAYCOUNT; ++r)
+							{
+								if (T(tri, r) >= 0.0f)
+								{
+									const float deviation = fabs(T(tri, r) - avg);
+									if (deviation <= number_of_mad * standardDeviation)
+									{
+										weightedSDF += (SW(r, 2) * T(tri, r));
+										weightSum += SW(r, 2);
+									}
+								}
+							}
+							if (weightSum > 0.0f)
+							{
+								FaceSDF(tri) = weightedSDF / weightSum;
+							}
+							else
+							{
+								FaceSDF(tri) = -1.0f;
+							}
+						}
+						else
+						{
+							FaceSDF(tri) = -1.0f;
+						}
+					}
+					else
+					{
+						break;
 					}
 				}
-			}
-			if (weightSum > 0.0f)
-			{
-				FaceSDF(tri) = weightedSDF / weightSum;
-			}
-			else
-			{
-				FaceSDF(tri) = -1.0f;
-			}
+				}));
 		}
-		else
-		{
-			FaceSDF(tri) = -1.0f;
+		for (std::thread& th : threads) {
+			th.join();
 		}
 	}
+
 
 	/////////////////
 	std::cout << "raw SDF done." << std::endl;
@@ -214,7 +270,7 @@ void CPU_computeSDF(
 	}
 	while (!(idSet.empty()))
 	{
-		for (const auto &idx : idSet)
+		for (const auto& idx : idSet)
 		{
 			float val = 0.0f;
 			int count = 0;
