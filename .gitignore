@@ -13,8 +13,6 @@ GeneratedFiles
 *.pro.user
 build/
 .vscode/
-!*.exe
-!*.dll
-!*.lib
-!release/
 DerivedData
+testModels/
+log.txt
