@@ -48,13 +48,13 @@ extern "C" DLLEXPORT float getAccelerator(char *someText, double optValue, char 
 	//#define ACC_PRECISION
 	//#define ACC_SHARED_RAM
 
+	std::string str("");
+
 #if defined(_WIN32) || defined(_WIN64)
 	std::vector<concurrency::accelerator> accels;
 	accels = concurrency::accelerator::get_all();
 
 	accels.erase(std::remove_if(accels.begin(), accels.end(), [](const concurrency::accelerator &accel) { return accel.get_is_emulated(); }), accels.end());
-
-	std::string str("");
 
 	for (int accIdx = 0; accIdx < accels.size(); ++accIdx)
 	{

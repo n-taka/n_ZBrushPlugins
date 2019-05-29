@@ -29,11 +29,12 @@ extern "C" DLLEXPORT float checkThickness(char *someText, double optValue, char 
 	std::vector<Mesh> meshes;
 	Params params;
 	parseParams(someText, optValue, outputBuffer, logFile, meshes, params);
-#if defined(_WIN32) || defined(_WIN64)
-	// Windows: GPU or CPU
+
 	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> F_RAWSDF;
 	std::chrono::system_clock::time_point start, end;
 	start = std::chrono::system_clock::now();
+#if defined(_WIN32) || defined(_WIN64)
+	// Windows: GPU or CPU
 
 	if (params.acceleratorName != "CPU")
 	{
@@ -63,11 +64,15 @@ extern "C" DLLEXPORT float checkThickness(char *someText, double optValue, char 
 		logFile << "elapsed time for computation: " << elapsed << " [ms]" << std::endl;
 	}
 
-
 #else
-// Mac: CPU
+	// Mac: CPU
+	std::cout << "[[ selected accelerator ]]" << std::endl;
 	std::cout << "accelerator: CPU" << std::endl;
+	logFile << "[[ selected accelerator ]]" << std::endl;
 	logFile << "accelerator: CPU" << std::endl;
+	const int numOfThreads = std::max(static_cast<int>(std::thread::hardware_concurrency()), 1);
+	std::cout << "Compute with " << numOfThreads << " threads." << std::endl;
+	logFile << "Compute with " << numOfThreads << " threads." << std::endl;
 
 	CPU_computeSDF(meshes.at(0).V, meshes.at(0).F, F_RAWSDF);
 	end = std::chrono::system_clock::now();
