@@ -6,15 +6,16 @@
 
 int main(int argc, char *argv[])
 {
-	//char dummyc0[100] = "../../testModels/,Dog.obj,NVIDIA GeForce RTX 2070 with Max-Q Design\0";
-	char dummyc0[100] = "../../testModels/,Dog.obj,CPU\0";
+	char dummyc0[100] = "../../../testModels/,Dog.obj,GeForce RTX 2070 with Max-Q Design\0";
+	// char dummyc0[100] = "../../../testModels/,Dog.obj,Intel(R) UHD Graphics 630\0";
+	// char dummyc0[100] = "../../../testModels/,Dog.obj,Intel(R) Core(TM) i7-8750H CPU @ 2.20GHz\0";
 	char dummyc1[4096], dummyc2[4096];
 	char dummyc3[] = "hello";
-	const double height = 100.0;
-	const double preferThickness = 5.0;
-	const double minThickness = 3.0;
+	const float height = 100.0;
+	const float preferThickness = 5.0;
+	const float minThickness = 3.0;
 	const int chunkSize = 500000;
-	double dummyd = height * 1024.0 * 1024.0 + preferThickness * 1024.0 + minThickness;
+	double dummyd = 0;
 	int dummyi0 = 0;
 	int dummyi1 = 0;
 	union {
@@ -32,8 +33,11 @@ int main(int argc, char *argv[])
 	memcpy(dummyc1 + sizeof(float) + sizeof(float) + sizeof(float), loader.c, sizeof(int));
 
 	// getAccelerator(dummyc0, dummyd, dummyc1, dummyi0, dummyc2, dummyi1, (char **)&dummyc3);
-	//std::cout << dummyc1 << std::endl;
+	// std::cout << dummyc1 << std::endl;
 
+	// std::ofstream logFile("log.txt");
+	// cl::Device device = selectAccelerator(std::string(""), logFile);
+	// std::cout << device.getInfo<CL_DEVICE_VENDOR>() << std::endl;
 	checkThickness(dummyc0, dummyd, dummyc1, dummyi0, dummyc2, dummyi1, (char **)&dummyc3);
 }
 

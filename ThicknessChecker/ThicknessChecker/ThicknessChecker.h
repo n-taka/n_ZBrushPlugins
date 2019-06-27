@@ -1,7 +1,10 @@
 #pragma once
+#define __CL_ENABLE_EXCEPTIONS
 #if defined(_WIN32) || defined(_WIN64)
 #include <Windows.h>
-#include <amp.h>
+#include <CL/cl.hpp>
+#else
+#include <OpenCL/cl.hpp>
 #endif
 
 #include <vector>
@@ -20,10 +23,7 @@ extern "C" DLLEXPORT float checkThickness(char *someText, double optValue, char 
 
 extern "C" DLLEXPORT float getAccelerator(char *someText, double optValue, char *outputBuffer, int optBuffer1Size, char *pOptBuffer2, int optBuffer2Size, char **zData);
 
-#if defined(_WIN32) || defined(_WIN64)
-// this function is only for windows
-concurrency::accelerator selectAccelerator(const std::string &acceleratorName, std::ofstream &logFile);
-#endif
+cl::Device selectAccelerator(const std::string &acceleratorName, std::ofstream &logFile);
 
 typedef struct Mesh_
 {
@@ -68,17 +68,9 @@ bool write_OBJ(
 	const Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> &VC,
 	const Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> &FG);
 
-#if defined(_WIN32) || defined(_WIN64)
-// this function is only for windows
-void AMP_computeSDF(
+void openCL_computeSDF(
 	const Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> &V,
 	const Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> &F,
 	const int &chunkSize,
-	const concurrency::accelerator &acc,
-	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> &FaceSDF);
-#endif
-
-void CPU_computeSDF(
-	const Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> &V,
-	const Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> &F,
+	const cl::Device &device,
 	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> &FaceSDF);

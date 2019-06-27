@@ -33,54 +33,15 @@ extern "C" DLLEXPORT float checkThickness(char *someText, double optValue, char 
 	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> F_RAWSDF;
 	std::chrono::system_clock::time_point start, end;
 	start = std::chrono::system_clock::now();
-#if defined(_WIN32) || defined(_WIN64)
-	// Windows: GPU or CPU
 
-	if (params.acceleratorName != "CPU")
-	{
-		// GPU
-		concurrency::accelerator acc = selectAccelerator(params.acceleratorName, logFile);
-		AMP_computeSDF(meshes.at(0).V, meshes.at(0).F, params.chunkSize, acc, F_RAWSDF);
-		end = std::chrono::system_clock::now();
-		double elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-		std::cout << "elapsed time for computation: " << elapsed << " [ms]" << std::endl;
-		logFile << "elapsed time for computation: " << elapsed << " [ms]" << std::endl;
-	}
-	else
-	{
-		// CPU
-		std::cout << "[[ selected accelerator ]]" << std::endl;
-		std::cout << "accelerator: CPU" << std::endl;
-		logFile << "[[ selected accelerator ]]" << std::endl;
-		logFile << "accelerator: CPU" << std::endl;
-		const int numOfThreads = std::max(static_cast<int>(std::thread::hardware_concurrency()), 1);
-		std::cout << "Compute with " << numOfThreads << " threads." << std::endl;
-		logFile << "Compute with " << numOfThreads << " threads." << std::endl;
+	cl::Device device = selectAccelerator(params.acceleratorName, logFile);
 
-		CPU_computeSDF(meshes.at(0).V, meshes.at(0).F, F_RAWSDF);
-		end = std::chrono::system_clock::now();
-		double elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-		std::cout << "elapsed time for computation: " << elapsed << " [ms]" << std::endl;
-		logFile << "elapsed time for computation: " << elapsed << " [ms]" << std::endl;
-	}
-
-#else
-	// Mac: CPU
-	std::cout << "[[ selected accelerator ]]" << std::endl;
-	std::cout << "accelerator: CPU" << std::endl;
-	logFile << "[[ selected accelerator ]]" << std::endl;
-	logFile << "accelerator: CPU" << std::endl;
-	const int numOfThreads = std::max(static_cast<int>(std::thread::hardware_concurrency()), 1);
-	std::cout << "Compute with " << numOfThreads << " threads." << std::endl;
-	logFile << "Compute with " << numOfThreads << " threads." << std::endl;
-
-	CPU_computeSDF(meshes.at(0).V, meshes.at(0).F, F_RAWSDF);
+	openCL_computeSDF(meshes.at(0).V, meshes.at(0).F, params.chunkSize, device, F_RAWSDF);
 	end = std::chrono::system_clock::now();
 	double elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 	std::cout << "elapsed time for computation: " << elapsed << " [ms]" << std::endl;
 	logFile << "elapsed time for computation: " << elapsed << " [ms]" << std::endl;
-#endif
-
+#if 0
 	////
 	// convert F_SDF to V_SDF (simple average)
 	Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> V_SDF;
@@ -124,6 +85,7 @@ extern "C" DLLEXPORT float checkThickness(char *someText, double optValue, char 
 	meshes.at(0).V /= params.scale;
 	write_OBJ(params.outputFilePath, meshes.at(0).V, meshes.at(0).F, VC_Thicknessi, meshes.at(0).FG);
 	////
+#endif
 	logFile.close();
 
 	return 1.0f;
