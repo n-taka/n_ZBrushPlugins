@@ -198,18 +198,19 @@ OCLSTRINGIFY(
                                                 __constant float4 *bb_min,
                                                 __constant float4 *bb_max,
                                                 __constant int *elements,
+                                                const int offset,
                                                 const int alignedRayCount,
                                                 const int BBCount,
                                                 __global float *T_partial) {
         int triIdx = get_global_id(0);
         int rayIdx = get_global_id(1);
         float4 source;
-        float4 v0 = V[F[triIdx].x];
-        float4 v1 = V[F[triIdx].y];
-        float4 v2 = V[F[triIdx].z];
+        float4 v0 = V[F[triIdx + offset].x];
+        float4 v1 = V[F[triIdx + offset].y];
+        float4 v2 = V[F[triIdx + offset].z];
         source = (v0 + v1 + v2) / 3.0f;
 
-        float4 dir = -FN[triIdx];
+        float4 dir = -FN[triIdx + offset];
 
         float4 base1 = v0 - source;
 

@@ -71,6 +71,7 @@ void parseParams(
 		//memcpy(loader.c, outputBuffer + sizeof(float) * 3, sizeof(int));
 		//params.chunkSize = loader.i;
 		params.chunkSize = 200000;
+		// params.chunkSize = 1000;
 
 		std::cout << "Height               : " << params.height << std::endl;
 		std::cout << "Preferred thickness  : " << params.preferredThickness << std::endl;
@@ -89,13 +90,14 @@ void parseParams(
 		mesh.fileName = ZBtextList.at(1);
 		std::cout << 1 << "-th mesh: " << mesh.fileName << std::endl;
 		logFile << 1 << "-th mesh: " << mesh.fileName << std::endl;
-		ZBtextList.at(1) = ZBtextList.at(0) + mesh.fileName;
 
 		Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> &V = mesh.V;
 		Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> &F = mesh.F;
 		Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> &VC = mesh.VC;
 		Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> &FG = mesh.FG;
-		read_OBJ(ZBtextList.at(1), V, F, VC, FG);
+		read_OBJ(ZBtextList.at(0) + ZBtextList.at(1) + ".obj", V, F, VC, FG);
+		std::cout << ZBtextList.at(0) + ZBtextList.at(1) + ".obj" << std::endl;
+		logFile << ZBtextList.at(0) + ZBtextList.at(1) + ".obj" << std::endl;
 
 		params.scale = (params.height / (V.col(1).maxCoeff() - V.col(1).minCoeff()));
 		V *= params.scale;
@@ -103,7 +105,8 @@ void parseParams(
 
 	{
 		params.outputFilePath = ZBtextList.at(0);
-		params.outputFilePath.append("thickness.obj");
+		params.outputFilePath.append(ZBtextList.at(1));
+		params.outputFilePath.append("_thickness.obj");
 		params.acceleratorName = ZBtextList.at(2);
 	}
 	return;

@@ -149,7 +149,7 @@ void openCL_computeSDF(
 			const size_t triCountToCompute = std::min((F.rows() - offset), aligned_chunkSize);
 
 			const cl_buffer_region t_partial{offset * aligned_RayCount * sizeof(cl_float), alignedCount * aligned_RayCount * sizeof(cl_float)};
-			cl::Buffer buffer_T_partial = buffer_T.createSubBuffer((CL_MEM_READ_WRITE), CL_BUFFER_CREATE_TYPE_REGION, &t_partial);
+			cl::Buffer buffer_T_partial = buffer_T.createSubBuffer((CL_MEM_WRITE_ONLY), CL_BUFFER_CREATE_TYPE_REGION, &t_partial);
 			computeIntersection_partial.setArg(0, buffer_V);
 			computeIntersection_partial.setArg(1, buffer_F);
 			computeIntersection_partial.setArg(2, buffer_FN);
@@ -157,9 +157,10 @@ void openCL_computeSDF(
 			computeIntersection_partial.setArg(4, buffer_BB_min);
 			computeIntersection_partial.setArg(5, buffer_BB_max);
 			computeIntersection_partial.setArg(6, buffer_elements);
-			computeIntersection_partial.setArg(7, aligned_RayCount);
-			computeIntersection_partial.setArg(8, static_cast<int>(elements.rows()));
-			computeIntersection_partial.setArg(9, buffer_T_partial);
+			computeIntersection_partial.setArg(7, static_cast<int>(offset));
+			computeIntersection_partial.setArg(8, aligned_RayCount);
+			computeIntersection_partial.setArg(9, static_cast<int>(elements.rows()));
+			computeIntersection_partial.setArg(10, buffer_T_partial);
 
 			queue.enqueueNDRangeKernel(
 				computeIntersection_partial, cl::NullRange, cl::NDRange(triCountToCompute, RAYCOUNT), cl::NullRange);
@@ -180,7 +181,7 @@ void openCL_computeSDF(
 
 			const cl_buffer_region t_partial{offset * aligned_RayCount * sizeof(cl_float), alignedCount * aligned_RayCount * sizeof(cl_float)};
 			const cl_buffer_region sdf_partial{offset * sizeof(cl_float), alignedCount * sizeof(cl_float)};
-			cl::Buffer buffer_T_partial = buffer_T.createSubBuffer((CL_MEM_READ_WRITE), CL_BUFFER_CREATE_TYPE_REGION, &t_partial);
+			cl::Buffer buffer_T_partial = buffer_T.createSubBuffer((CL_MEM_READ_ONLY), CL_BUFFER_CREATE_TYPE_REGION, &t_partial);
 			cl::Buffer buffer_FaceSDF_partial = buffer_FaceSDF.createSubBuffer((CL_MEM_WRITE_ONLY), CL_BUFFER_CREATE_TYPE_REGION, &sdf_partial);
 			computeSDF_partial.setArg(0, buffer_SW);
 			computeSDF_partial.setArg(1, buffer_T_partial);

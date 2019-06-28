@@ -10,6 +10,7 @@
 [VarDef, Tool_Export_Flp]
 [VarDef, Tool_Export_Mrg]
 [VarDef, Tool_Export_Grp]
+
 ////
 // dll path, language
 ////
@@ -18,14 +19,10 @@
 [VarDef, enLangFilePath, "dummy"]
 [VarDef, language]
 // debug
-//[VarDef, dataDirPath, [fileNameResolvePath, "ThicknessCheckerData_2019\"]]
+[VarDef, dataDirPath, [fileNameResolvePath, "ThicknessCheckerData_2019\"]]
 // install
-[VarDef, dataDirPath, [fileNameResolvePath, "ZBRUSH_ZSTARTUP\ZPlugs64\ThicknessCheckerData_2019\"]]
-////
-// temporary files
-////
-[VarDef, tmpFile, "tmp.obj"]
-[VarDef, colorOBJFile, "thickness.obj"]
+//[VarDef, dataDirPath, [fileNameResolvePath, "ZBRUSH_ZSTARTUP\ZPlugs64\ThicknessCheckerData_2019\"]]
+
 ////
 // parameters for computation
 ////
@@ -52,13 +49,13 @@
     // Make sure we have the dll and set its path
     [If, [ZBrushInfo, 6]==0,//windows
         //use the path below for testing only
-        //[VarSet, dllPath, "ThicknessCheckerData_2019\ThicknessChecker.dll"]
-        //[VarSet, zfutilPath, "ThicknessCheckerData_2019\ZFileUtils64.dll"]
-        //[VarSet, enLangFilePath, "ThicknessCheckerData_2019\lang\ThicknessChecker_en.xml"]
+        [VarSet, dllPath, "ThicknessCheckerData_2019\ThicknessChecker.dll"]
+        [VarSet, zfutilPath, "ThicknessCheckerData_2019\ZFileUtils64.dll"]
+        [VarSet, enLangFilePath, "ThicknessCheckerData_2019\lang\ThicknessChecker_en.xml"]
         //use the path below for installed plugins
-        [VarSet, dllPath, "ZBRUSH_ZSTARTUP\ZPlugs64\ThicknessCheckerData_2019\ThicknessChecker.dll"]
-        [VarSet, zfutilPath, "ZBRUSH_ZSTARTUP\ZPlugs64\ThicknessCheckerData_2019\ZFileUtils64.dll"]
-        [VarSet, enLangFilePath, "ZBRUSH_ZSTARTUP\ZPlugs64\ThicknessCheckerData_2019\lang\ThicknessChecker_en.xml"]
+        //[VarSet, dllPath, "ZBRUSH_ZSTARTUP\ZPlugs64\ThicknessCheckerData_2019\ThicknessChecker.dll"]
+        //[VarSet, zfutilPath, "ZBRUSH_ZSTARTUP\ZPlugs64\ThicknessCheckerData_2019\ZFileUtils64.dll"]
+        //[VarSet, enLangFilePath, "ZBRUSH_ZSTARTUP\ZPlugs64\ThicknessCheckerData_2019\lang\ThicknessChecker_en.xml"]
         ,
         //use the path below for testing only
         //[VarSet, dllPath, "ThicknessCheckerData_2019/ThicknessChecker.lib"]
@@ -78,6 +75,7 @@
 ]
 //////
 
+
 //////
 // translation routine
 // from http://docs.pixologic.com/user-guide/customizing-zbrush/zscripting/zfileutils/localization/
@@ -96,33 +94,21 @@
 //[RoutineCall, ZFU_GetCurrentLanguage, language]
 [RoutineCall, ZFU_RegisterLocalizationFile, [FileNameResolvePath, [Var, enLangFilePath]]]
 [FileExecute, [Var, dllPath], "getAccelerator", , , acceleratorTextMem]
-[MemReadString, acceleratorTextMem, acceleratorText]
 // 4 is hard coded...
-[VarDef, acceleratorNames(4), ""]
-[VarDef, acceleratorSpecs(4), ""]
+[VarDef, acceleratorNames(4), "none"]
 [VarSet, loopCount, 0]
+[VarSet, offset, 0]
 [Loop, 4,
-    [If, [StrFind, ",", acceleratorText] == -1,
-        [Varset, acceleratorNames(loopCount), "none"]
-        [Varset, acceleratorSpecs(loopCount), "none"]
+    [MemReadString, acceleratorTextMem, acceleratorText, [Var, offset], 1]
+    [If, [StrLength, acceleratorText]==0,
+        [LoopExit]
         ,
-        // last entry
-        [If, [StrFind, ";", acceleratorText] == -1,
-            [VarSet, GPUFullText, acceleratorText]
-            [VarSet, acceleratorText, ""]
-            [VarSet, acceleratorNames(loopCount), [StrExtract, GPUFullText, 0, [StrFind, ",", GPUFullText]-1]]
-            [VarSet, acceleratorSpecs(loopCount), [StrExtract, GPUFullText, [StrFind, ",", GPUFullText]+1, [StrLength, GPUFullText]]]
-            ,
-            [VarSet, GPUFullText, [StrExtract, acceleratorText, 0, [StrFind, ";", acceleratorText]-1]]
-            [VarSet, acceleratorText, [StrExtract, acceleratorText, [StrFind, ";", acceleratorText]+1, [StrLength, acceleratorText]]]
-            [VarSet, acceleratorNames(loopCount), [StrExtract, GPUFullText, 0, [StrFind, ",", GPUFullText]-1]]
-            [VarSet, acceleratorSpecs(loopCount), [StrExtract, GPUFullText, [StrFind, ",", GPUFullText]+1, [StrLength, GPUFullText]]]
-        ]
+        [VarSet, acceleratorNames(loopCount), [Var, acceleratorText]]
+        [VarSet, offset, offset + 1 + [StrLength, acceleratorText]]
     ]
-    ,
+ ,
     loopCount
 ]
-
 
 [RoutineDef, oneHot,
     [ISet, [StrMerge, "ZPlugin:ThicknessChecker:GPU:", [Var, acceleratorNames(0)]], [StrFind, [Var, acceleratorNames(0)], [Var, chosenAccelerator]] == 0]
@@ -154,28 +140,28 @@
 
 [ISubPalette, "ZPlugin:ThicknessChecker:GPU"]
 
-[ISwitch, [StrMerge, "ZPlugin:ThicknessChecker:GPU:", [Var, acceleratorNames(0)]], 1, [Var, acceleratorSpecs(0)],
+[ISwitch, [StrMerge, "ZPlugin:ThicknessChecker:GPU:", [Var, acceleratorNames(0)]], 1, [Var, acceleratorNames(0)],
     [VarSet, chosenAccelerator, [Var, acceleratorNames(0)]]
     [RoutineCall, oneHot],
     ,
     0,
     1
 ]
-[ISwitch, [StrMerge, "ZPlugin:ThicknessChecker:GPU:", [Var, acceleratorNames(1)]], 0, [Var, acceleratorSpecs(1)],
+[ISwitch, [StrMerge, "ZPlugin:ThicknessChecker:GPU:", [Var, acceleratorNames(1)]], 0, [Var, acceleratorNames(1)],
     [VarSet, chosenAccelerator, [Var, acceleratorNames(1)]]
     [RoutineCall, oneHot],
     ,
     0,
     1
 ]
-[ISwitch, [StrMerge, "ZPlugin:ThicknessChecker:GPU:", [Var, acceleratorNames(2)]], 0, [Var, acceleratorSpecs(2)],
+[ISwitch, [StrMerge, "ZPlugin:ThicknessChecker:GPU:", [Var, acceleratorNames(2)]], 0, [Var, acceleratorNames(2)],
     [VarSet, chosenAccelerator, [Var, acceleratorNames(2)]]
     [RoutineCall, oneHot],
     ,
     0,
     1
 ]
-[ISwitch, [StrMerge, "ZPlugin:ThicknessChecker:GPU:", [Var, acceleratorNames(3)]], 0, [Var, acceleratorSpecs(3)],
+[ISwitch, [StrMerge, "ZPlugin:ThicknessChecker:GPU:", [Var, acceleratorNames(3)]], 0, [Var, acceleratorNames(3)],
     [VarSet, chosenAccelerator, [Var, acceleratorNames(3)]]
     [RoutineCall, oneHot],
     ,
@@ -192,7 +178,6 @@
 ]
 
 [VarSet, chosenAccelerator,  [Var, acceleratorNames(0)]]
-
 
 [IButton, "ZPlugin:ThicknessChecker:Compute", "Start thickness computation",
     [If, [IExists, Tool:Export],
@@ -214,8 +199,17 @@
         [IUnPress,Tool:Export:Mrg]
         [IUnPress,Tool:Export:Grp]
 
+        // get the name of current active sub tool
+        [VarSet, subTName, ""]
+        [VarSet, activeSubT,[SubToolGetActiveIndex]]
+        [VarSet,totalSubTools,[SubToolGetCount]]
+        [SubToolSelect,[Val,activeSubT]] //selects the subtool by number
+        [VarSet,subTName,[IGetTitle,Tool:ItemInfo]] //gets the tool name
+        [VarSet,subTName,[StrExtract,subTName,0,[StrLength,subTName]-2]]//this takes of the end period
+        //
+
         //export current subtool to OBJ file (temporary file)
-        [FileNameSetNext, [StrMerge, [Var, dataDirPath], [Var, tmpFile]]]
+        [FileNameSetNext, [StrMerge, [Var, dataDirPath], [Var, subTName], ".obj"]]
         [IPress,Tool:Export]
 
         // restore original settings
@@ -230,7 +224,7 @@
         [ISet, Tool:Export:Grp, [Var, Tool_Export_Grp]]
         ////
 
-        [VarSet, textForDll, [StrMerge, [Var, dataDirPath], ",", [Var, tmpFile], ",", [Var, chosenAccelerator]]]
+        [VarSet, textForDll, [StrMerge, [Var, dataDirPath], ",", [Var, subTName], ",", [Var, chosenAccelerator]]]
         [MVarDef, mem, 3, 0]
         [MVarSet, mem, 0, [Var, height]]
         [MVarSet, mem, 1, [Var, preferredThickness]]
@@ -241,12 +235,12 @@
             // import to Tool
             [IFreeze,
                 [IPress,Tool:PolyMesh3D]
-                [FileNameSetNext, [StrMerge, [Var, dataDirPath], [Var, colorOBJFile]]]
+                [FileNameSetNext, [StrMerge, [Var, dataDirPath], [Var, subTName], "_thickness.obj"]]
                 [IPress,"Tool:Import"]
 
                 // erase temporary file.
-                [FileDelete, [StrMerge, [Var, dataDirPath], [Var, tmpFile]]]
-                [FileDelete, [StrMerge, [Var, dataDirPath], [Var, colorOBJFile]]]
+                [FileDelete, [StrMerge, [Var, dataDirPath], [Var, subTName], ".obj"]]
+                [FileDelete, [StrMerge, [Var, dataDirPath], [Var, subTName], "_thickness.obj"]]
             ]
         ,
             [Note, "Sorry, there is some error..."]

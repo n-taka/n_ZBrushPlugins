@@ -40,10 +40,6 @@ extern "C" DLLEXPORT float checkThickness(char *someText, double optValue, char 
 	cl::Device device = selectAccelerator(params.acceleratorName, logFile);
 
 	openCL_computeSDF(meshes.at(0).V, meshes.at(0).F, params.chunkSize, device, F_RAWSDF);
-	end = std::chrono::system_clock::now();
-	long long elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-	std::cout << "elapsed time for computation: " << elapsed << " [ms]" << std::endl;
-	logFile << "elapsed time for computation: " << elapsed << " [ms]" << std::endl;
 	////
 	// convert F_SDF to V_SDF (simple average)
 	Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> V_SDF;
@@ -87,6 +83,12 @@ extern "C" DLLEXPORT float checkThickness(char *someText, double optValue, char 
 	meshes.at(0).V /= params.scale;
 	write_OBJ(params.outputFilePath, meshes.at(0).V, meshes.at(0).F, VC_Thicknessi, meshes.at(0).FG);
 	////
+	end = std::chrono::system_clock::now();
+	long long elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+	std::cout << "elapsed time for computation: " << elapsed << " [ms]" << std::endl;
+	logFile << "elapsed time for computation: " << elapsed << " [ms]" << std::endl;
+	////
+
 	logFile.close();
 
 	return 1.0f;

@@ -6,7 +6,7 @@
 
 int main(int argc, char *argv[])
 {
-	char dummyc0[100] = "../../../testModels/,Dog.obj,GeForce RTX 2070 with Max-Q Design\0";
+	char dummyc0[100] = "../../../testModels/,Dog,GeForce RTX 2070 with Max-Q Design\0";
 	// char dummyc0[100] = "../../../testModels/,Dog.obj,Intel(R) UHD Graphics 630\0";
 	// char dummyc0[100] = "../../../testModels/,Dog.obj,Intel(R) Core(TM) i7-8750H CPU @ 2.20GHz\0";
 	char dummyc1[4096], dummyc2[4096];
@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
 	const float height = 100.0;
 	const float preferThickness = 5.0;
 	const float minThickness = 3.0;
-	const int chunkSize = 500000;
+	const int chunkSize = 1000;
 	double dummyd = 0;
 	int dummyi0 = 0;
 	int dummyi1 = 0;
