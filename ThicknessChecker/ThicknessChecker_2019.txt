@@ -19,9 +19,9 @@
 [VarDef, enLangFilePath, "dummy"]
 [VarDef, language]
 // debug
-[VarDef, dataDirPath, [fileNameResolvePath, "ThicknessCheckerData_2019\"]]
+//[VarDef, dataDirPath, [fileNameResolvePath, "ThicknessCheckerData_2019\"]]
 // install
-//[VarDef, dataDirPath, [fileNameResolvePath, "ZBRUSH_ZSTARTUP\ZPlugs64\ThicknessCheckerData_2019\"]]
+[VarDef, dataDirPath, [fileNameResolvePath, "ZBRUSH_ZSTARTUP\ZPlugs64\ThicknessCheckerData_2019\"]]
 
 ////
 // parameters for computation
@@ -49,13 +49,13 @@
     // Make sure we have the dll and set its path
     [If, [ZBrushInfo, 6]==0,//windows
         //use the path below for testing only
-        [VarSet, dllPath, "ThicknessCheckerData_2019\ThicknessChecker.dll"]
-        [VarSet, zfutilPath, "ThicknessCheckerData_2019\ZFileUtils64.dll"]
-        [VarSet, enLangFilePath, "ThicknessCheckerData_2019\lang\ThicknessChecker_en.xml"]
+        //[VarSet, dllPath, "ThicknessCheckerData_2019\ThicknessChecker.dll"]
+        //[VarSet, zfutilPath, "ThicknessCheckerData_2019\ZFileUtils64.dll"]
+        //[VarSet, enLangFilePath, "ThicknessCheckerData_2019\lang\ThicknessChecker_en.xml"]
         //use the path below for installed plugins
-        //[VarSet, dllPath, "ZBRUSH_ZSTARTUP\ZPlugs64\ThicknessCheckerData_2019\ThicknessChecker.dll"]
-        //[VarSet, zfutilPath, "ZBRUSH_ZSTARTUP\ZPlugs64\ThicknessCheckerData_2019\ZFileUtils64.dll"]
-        //[VarSet, enLangFilePath, "ZBRUSH_ZSTARTUP\ZPlugs64\ThicknessCheckerData_2019\lang\ThicknessChecker_en.xml"]
+        [VarSet, dllPath, "ZBRUSH_ZSTARTUP\ZPlugs64\ThicknessCheckerData_2019\ThicknessChecker.dll"]
+        [VarSet, zfutilPath, "ZBRUSH_ZSTARTUP\ZPlugs64\ThicknessCheckerData_2019\ZFileUtils64.dll"]
+        [VarSet, enLangFilePath, "ZBRUSH_ZSTARTUP\ZPlugs64\ThicknessCheckerData_2019\lang\ThicknessChecker_en.xml"]
         ,
         //use the path below for testing only
         //[VarSet, dllPath, "ThicknessCheckerData_2019/ThicknessChecker.lib"]

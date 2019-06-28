@@ -4,7 +4,7 @@
 #include <Windows.h>
 #include <CL/cl.hpp>
 #else
-#include <OpenCL/cl.hpp>
+#include "cl.hpp"
 #endif
 
 #include <vector>

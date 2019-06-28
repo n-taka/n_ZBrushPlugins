@@ -6,9 +6,14 @@
 
 int main(int argc, char *argv[])
 {
+#if defined(_WIN32) || defined(_WIN64)
 	char dummyc0[100] = "../../../testModels/,Dog,GeForce RTX 2070 with Max-Q Design\0";
-	// char dummyc0[100] = "../../../testModels/,Dog.obj,Intel(R) UHD Graphics 630\0";
-	// char dummyc0[100] = "../../../testModels/,Dog.obj,Intel(R) Core(TM) i7-8750H CPU @ 2.20GHz\0";
+	// char dummyc0[100] = "../../../testModels/,Dog,Intel(R) UHD Graphics 630\0";
+	// char dummyc0[100] = "../../../testModels/,Dog,Intel(R) Core(TM) i7-8750H CPU @ 2.20GHz\0";
+#else
+	//char dummyc0[100] = "!:../../testModels/,Dog,Intel(R) Iris(TM) Graphics 6100\0";
+	char dummyc0[100] = "!:../../testModels/,Dog,Intel(R) Core(TM) i7-5650U CPU @ 2.20GHz\0";
+#endif
 	char dummyc1[4096], dummyc2[4096];
 	char dummyc3[] = "hello";
 	const float height = 100.0;
@@ -32,8 +37,8 @@ int main(int argc, char *argv[])
 	loader.i = chunkSize;
 	memcpy(dummyc1 + sizeof(float) + sizeof(float) + sizeof(float), loader.c, sizeof(int));
 
-	// getAccelerator(dummyc0, dummyd, dummyc1, dummyi0, dummyc2, dummyi1, (char **)&dummyc3);
-	// std::cout << dummyc1 << std::endl;
+	//getAccelerator(dummyc0, dummyd, dummyc1, dummyi0, dummyc2, dummyi1, (char **)&dummyc3);
+	//std::cout << dummyc1 << std::endl;
 
 	// std::ofstream logFile("log.txt");
 	// cl::Device device = selectAccelerator(std::string(""), logFile);

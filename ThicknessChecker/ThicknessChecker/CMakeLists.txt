@@ -65,6 +65,9 @@ target_compile_features(ThicknessChecker PUBLIC cxx_std_11)
 if(WIN32)
     target_compile_options(ThicknessChecker PUBLIC -DNOMINMAX -D_CRT_SECURE_NO_WARNINGS)
 endif(WIN32)
+if(UNIX)
+    target_compile_options(ThicknessChecker PUBLIC -DCL_SILENCE_DEPRECATION)
+endif(UNIX)
 
 # version
 set_target_properties(ThicknessChecker PROPERTIES version ${serial})
@@ -73,4 +76,9 @@ set_target_properties(ThicknessChecker PROPERTIES version ${serial})
 target_include_directories(ThicknessChecker PUBLIC ${INCLUDE_DIR_LIB})
 
 # link with library
-target_link_libraries(ThicknessChecker PRIVATE ${LINK_LIBS_LIB})
+if(WIN32)
+    target_link_libraries(ThicknessChecker PRIVATE ${LINK_LIBS})
+endif(WIN32)
+if(UNIX)
+    target_link_libraries(ThicknessChecker PRIVATE ${LINK_LIBS} "-framework OpenCL")
+endif(UNIX)
