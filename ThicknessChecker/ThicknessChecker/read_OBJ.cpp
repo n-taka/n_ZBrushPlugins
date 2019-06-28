@@ -1,5 +1,8 @@
 #include "ThicknessChecker.h"
 
+#pragma warning(push)
+#pragma warning(disable : 4018 4129 4244 4267 4305 4566 4819 4996)
+
 #include "igl/list_to_matrix.h"
 
 #include <iostream>
@@ -325,3 +328,5 @@ bool read_OBJ(
 
 	return true;
 }
+
+#pragma warning(pop)

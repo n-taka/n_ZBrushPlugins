@@ -22,223 +22,6 @@
 // [0, pi]
 #define CONE_OPENING_ANGLE (2.0f / 3.0f * PI)
 
-#if 0
-bool AMP_rayBoxIntersection(
-	const concurrency::graphics::float_3 &orig,
-	const concurrency::graphics::float_3 &dir,
-	const concurrency::graphics::float_3 &bb_min,
-	const concurrency::graphics::float_3 &bb_max) restrict(amp, cpu)
-{
-	// This should be precomputed and provided as input
-	concurrency::graphics::float_3 inv_dir(1.0f / dir.x, 1.0f / dir.y, 1.0f / dir.z);
-	bool signX, signY, signZ;
-	signX = (inv_dir.x < 0.0f);
-	signY = (inv_dir.y < 0.0f);
-	signZ = (inv_dir.z < 0.0f);
-	// http://people.csail.mit.edu/amy/papers/box-jgt.pdf
-	// "An Efficient and Robust Ray–Box Intersection Algorithm"
-	float tmin, tmax, tymin, tymax, tzmin, tzmax;
-
-	tmin = (((signX) ? bb_max : bb_min).x - orig.x) * inv_dir.x;
-	tmax = (((signX) ? bb_min : bb_max).x - orig.x) * inv_dir.x;
-	tymin = (((signY) ? bb_max : bb_min).y - orig.y) * inv_dir.y;
-	tymax = (((signY) ? bb_min : bb_max).y - orig.y) * inv_dir.y;
-	if ((tmin > tymax) || (tymin > tmax))
-	{
-		return false;
-	}
-	if (tymin > tmin)
-	{
-		tmin = tymin;
-	}
-	if (tymax < tmax)
-	{
-		tmax = tymax;
-	}
-	tzmin = (((signZ) ? bb_max : bb_min).z - orig.z) * inv_dir.z;
-	tzmax = (((signZ) ? bb_min : bb_max).z - orig.z) * inv_dir.z;
-	if ((tmin > tzmax) || (tzmin > tmax))
-	{
-		return false;
-	}
-	if (tzmin > tmin)
-	{
-		tmin = tzmin;
-	}
-	if (tzmax < tmax)
-	{
-		tmax = tzmax;
-	}
-	// t1 == inf
-	// if(!( (tmin < t1) && (tmax > t0) ))
-	if (!(tmax > 0.0f))
-	{
-		return false;
-	}
-	return true;
-}
-
-#define IGL_RAY_TRI_EPSILON 0.000001
-#define IGL_RAY_TRI_CROSS(dest, v1, v2)         \
-	dest.x = (v1).y * (v2).z - (v1).z * (v2).y; \
-	dest.y = (v1).z * (v2).x - (v1).x * (v2).z; \
-	dest.z = (v1).x * (v2).y - (v1).y * (v2).x;
-#define IGL_RAY_TRI_DOT(v1, v2) ((v1).x * (v2).x + (v1).y * (v2).y + (v1).z * (v2).z)
-#define RAY_TRI_ADD(dest, v1, v2) \
-	dest.x = (v1).x + (v2).x;     \
-	dest.y = (v1).y + (v2).y;     \
-	dest.z = (v1).z + (v2).z;
-#define IGL_RAY_TRI_SUB(dest, v1, v2) \
-	dest.x = (v1).x - (v2).x;         \
-	dest.y = (v1).y - (v2).y;         \
-	dest.z = (v1).z - (v2).z;
-
-float AMP_rayTriangleIntersection(
-	concurrency::graphics::float_3 orig,
-	concurrency::graphics::float_3 dir,
-	concurrency::graphics::float_3 vert0,
-	concurrency::graphics::float_3 vert1,
-	concurrency::graphics::float_3 vert2) restrict(amp, cpu)
-{
-	float t, u, v;
-	concurrency::graphics::float_3 edge1, edge2, tvec, pvec, qvec;
-	float det, inv_det;
-
-	/* find vectors for two edges sharing vert0 */
-	IGL_RAY_TRI_SUB(edge1, vert1, vert0);
-	IGL_RAY_TRI_SUB(edge2, vert2, vert0);
-
-	/* begin calculating determinant - also used to calculate U parameter */
-	IGL_RAY_TRI_CROSS(pvec, dir, edge2);
-
-	/* if determinant is near zero, ray lies in plane of triangle */
-	det = IGL_RAY_TRI_DOT(edge1, pvec);
-
-	if (det > IGL_RAY_TRI_EPSILON)
-	{
-		/* calculate distance from vert0 to ray origin */
-		IGL_RAY_TRI_SUB(tvec, orig, vert0);
-
-		/* calculate U parameter and test bounds */
-		u = IGL_RAY_TRI_DOT(tvec, pvec);
-		if (u < 0.0f || u > det)
-			return -1.0f;
-
-		/* prepare to test V parameter */
-		IGL_RAY_TRI_CROSS(qvec, tvec, edge1);
-
-		/* calculate V parameter and test bounds */
-		v = IGL_RAY_TRI_DOT(dir, qvec);
-		if (v < 0.0f || u + v > det)
-			return -1.0f;
-	}
-	else if (det < -IGL_RAY_TRI_EPSILON)
-	{
-		/* calculate distance from vert0 to ray origin */
-		IGL_RAY_TRI_SUB(tvec, orig, vert0);
-
-		/* calculate U parameter and test bounds */
-		u = IGL_RAY_TRI_DOT(tvec, pvec);
-		/*      printf("*u=%f\n",(float)*u); */
-		/*      printf("det=%f\n",det); */
-		if (u > 0.0f || u < det)
-			return -1.0f;
-
-		/* prepare to test V parameter */
-		IGL_RAY_TRI_CROSS(qvec, tvec, edge1);
-
-		/* calculate V parameter and test bounds */
-		v = IGL_RAY_TRI_DOT(dir, qvec);
-		if (v > 0.0f || u + v < det)
-			return -1.0f;
-	}
-	else
-		return -1.0f; /* ray is parallel to the plane of the triangle */
-
-	inv_det = 1.0f / det;
-
-	/* calculate t, ray intersects triangle */
-	t = IGL_RAY_TRI_DOT(edge2, qvec) * inv_det;
-	//u *= inv_det;
-	//v *= inv_det;
-
-	return t;
-}
-
-float AMP_rayMeshIntersections(
-	const concurrency::graphics::float_3 &orig,
-	const concurrency::graphics::float_3 &dir,
-	const concurrency::array_view<concurrency::graphics::float_3, 1> &bb_mins,
-	const concurrency::array_view<concurrency::graphics::float_3, 1> &bb_maxs,
-	const concurrency::array_view<int, 1> &elements,
-	const concurrency::array_view<concurrency::graphics::float_3, 1> &V,
-	const concurrency::array_view<concurrency::graphics::int_3, 1> &F,
-	const concurrency::array_view<concurrency::graphics::float_3, 1> &FN) restrict(amp, cpu)
-{
-	float min_t = -1.0;
-	concurrency::index<1> currentIdx(0);
-	// do traverse...
-	while (unsigned(currentIdx[0]) < bb_mins.get_extent().size())
-	{
-		// check ray-box intersection (currentIdx)
-		if (AMP_rayBoxIntersection(orig, dir, bb_mins[currentIdx], bb_maxs[currentIdx]))
-		{
-			// check this box is leaf or non-leaf
-			if (elements[currentIdx] < 0)
-			{
-				// non-leaf: traverse
-				currentIdx[0] = currentIdx[0] * 2 + 1;
-			}
-			else
-			{
-				// leaf: ray-triangle intersection
-				// ignore false intersection (see original paper)
-				// as bonus, intersection with itself is also ignored.
-				if (IGL_RAY_TRI_DOT(FN[elements[currentIdx]], dir) > 0.0f)
-				{
-					const concurrency::graphics::float_3 &vert0 = V[F[elements[currentIdx]].x];
-					const concurrency::graphics::float_3 &vert1 = V[F[elements[currentIdx]].y];
-					const concurrency::graphics::float_3 &vert2 = V[F[elements[currentIdx]].z];
-					float t = AMP_rayTriangleIntersection(orig, dir, vert0, vert1, vert2);
-					if (t > 0.0 && (t < min_t || min_t < 0.0))
-					{
-						min_t = t;
-					}
-				}
-				// then move to
-				// sibling (odd nodes)
-				// sibling of the parent, grand parent, ... (even nodes)
-				while (currentIdx[0] % 2 == 0 && currentIdx[0] != 0)
-				{
-					currentIdx[0] = (currentIdx[0] - 1) / 2;
-				}
-				if (currentIdx[0] == 0)
-				{
-					break;
-				}
-				currentIdx[0] = currentIdx[0] + 1;
-			}
-		}
-		else
-		{
-			// then move to
-			// sibling (odd nodes)
-			// sibling of the parent, grand parent, ... (even nodes)
-			while (currentIdx[0] % 2 == 0 && currentIdx[0] != 0)
-			{
-				currentIdx[0] = (currentIdx[0] - 1) / 2;
-			}
-			if (currentIdx[0] == 0)
-			{
-				break;
-			}
-			currentIdx += 1;
-		}
-	}
-	return min_t;
-}
-#endif
-
 void openCL_computeSDF(
 	const Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> &V,
 	const Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> &F,
@@ -246,38 +29,35 @@ void openCL_computeSDF(
 	const cl::Device &device,
 	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> &FaceSDF)
 {
-	cl_int err = CL_SUCCESS;
 	try
 	{
 		//////
+		// Note: due to memory alignment, I explicitly use float"4"
+		//////
+		//////
 		// setup buffers for parallel computation
-		std::vector<float> cl_V(V.rows() * 3);
+		const size_t aligned_VCount = static_cast<size_t>(std::ceil(static_cast<float>(V.rows()) / 4.0f) * 4.0f);
+		std::vector<cl_float4> cl_V(aligned_VCount, {0.0f, 0.0f, 0.0f, 0.0f});
 		for (int v = 0; v < V.rows(); ++v)
 		{
-			for (int i = 0; i < 3; ++i)
-			{
-				cl_V.at(v * 3 + i) = V(v, i);
-			}
+			cl_V.at(v).x = V(v, 0);
+			cl_V.at(v).y = V(v, 1);
+			cl_V.at(v).z = V(v, 2);
 		}
 
-		std::vector<int> cl_F(F.rows() * 3);
-		for (int f = 0; f < F.rows(); ++f)
-		{
-			for (int i = 0; i < 3; ++i)
-			{
-				cl_F.at(f * 3 + i) = F(f, i);
-			}
-		}
-
+		const size_t aligned_FCount = static_cast<size_t>(std::ceil(static_cast<float>(F.rows()) / 4.0f) * 4.0f);
+		std::vector<cl_int4> cl_F(aligned_FCount, {0, 0, 0, 0});
 		Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> FN;
 		igl::per_face_normals(V, F, FN);
-		std::vector<float> cl_FN(int(FN.rows()) * 3);
-		for (int fn = 0; fn < FN.rows(); ++fn)
+		std::vector<cl_float4> cl_FN(aligned_FCount, {0.0f, 0.0f, 0.0f, 0.0f});
+		for (int f = 0; f < F.rows(); ++f)
 		{
-			for (int i = 0; i < 3; ++i)
-			{
-				cl_FN.at(fn * 3 + i) = FN(fn, i);
-			}
+			cl_F.at(f).x = F(f, 0);
+			cl_F.at(f).y = F(f, 1);
+			cl_F.at(f).z = F(f, 2);
+			cl_FN.at(f).x = FN(f, 0);
+			cl_FN.at(f).y = FN(f, 1);
+			cl_FN.at(f).z = FN(f, 2);
 		}
 		// end setup.
 		//////
@@ -290,23 +70,27 @@ void openCL_computeSDF(
 		aabb.init(V, F);
 		aabb.serialize(bb_mins, bb_maxs, elements);
 		// construct serialized AABB
-		std::vector<float> cl_bb_mins(int(bb_mins.rows()) * 3);
-		std::vector<float> cl_bb_maxs(int(bb_maxs.rows()) * 3);
-		std::vector<int> cl_elements(int(elements.rows()));
+		const size_t aligned_BBCount = static_cast<size_t>(std::ceil(static_cast<float>(bb_mins.rows()) / 4.0f) * 4.0f);
+		const size_t aligned_ElemCount = static_cast<size_t>(std::ceil(static_cast<float>(elements.rows()) / 16.0f) * 16.0f);
+		std::vector<cl_float4> cl_bb_mins(aligned_BBCount, {0.0f, 0.0f, 0.0f, 0.0f});
+		std::vector<cl_float4> cl_bb_maxs(aligned_BBCount, {0.0f, 0.0f, 0.0f, 0.0f});
+		std::vector<cl_int> cl_elements(aligned_ElemCount, 0);
 		for (int bb = 0; bb < bb_mins.rows(); ++bb)
 		{
-			for (int i = 0; i < 3; ++i)
-			{
-				cl_bb_mins.at(bb * 3 + i) = bb_mins(bb, i);
-				cl_bb_maxs.at(bb * 3 + i) = bb_maxs(bb, i);
-			}
+			cl_bb_mins.at(bb).x = bb_mins(bb, 0);
+			cl_bb_mins.at(bb).y = bb_mins(bb, 1);
+			cl_bb_mins.at(bb).z = bb_mins(bb, 2);
+			cl_bb_maxs.at(bb).x = bb_maxs(bb, 0);
+			cl_bb_maxs.at(bb).y = bb_maxs(bb, 1);
+			cl_bb_maxs.at(bb).z = bb_maxs(bb, 2);
 			cl_elements.at(bb) = elements(bb, 0);
 		}
 		//////
 
 		//////
 		// generate uniform disk sampling (with weighting) (similar to the CGAL)
-		std::vector<float> SW_vec(RAYCOUNT * 3);
+		const int aligned_RayCount = static_cast<int>(std::ceil(static_cast<float>(RAYCOUNT) / 16.0f) * 16.0f);
+		std::vector<cl_float4> cl_SW(aligned_RayCount, {0.0f, 0.0f, 0.0f, 0.0f});
 		const float golden_ratio = 3.0f - static_cast<float>(std::sqrt(5.0));
 		const float diskRadius = static_cast<float>(std::tan(CONE_OPENING_ANGLE / 2.0f));
 		for (int sw = 0; sw < RAYCOUNT; ++sw)
@@ -315,9 +99,9 @@ void openCL_computeSDF(
 			float R = std::sqrt(static_cast<float>(sw) / RAYCOUNT);
 			float weight = exp(-0.5f * (std::pow(R / 3.0f, 2)));
 
-			SW_vec.at(sw * 3 + 0) = diskRadius * R * cos(Q);
-			SW_vec.at(sw * 3 + 1) = diskRadius * R * sin(Q);
-			SW_vec.at(sw * 3 + 2) = weight;
+			cl_SW.at(sw).x = diskRadius * R * cos(Q);
+			cl_SW.at(sw).y = diskRadius * R * sin(Q);
+			cl_SW.at(sw).z = weight;
 		}
 		//////
 
@@ -340,40 +124,125 @@ void openCL_computeSDF(
 			exit(1);
 		}
 
-		cl::Kernel test1(program, "test1", &err);
-		cl::Kernel test2(program, "test2", &err);
+		const size_t aligned_TCount = static_cast<size_t>(std::ceil(static_cast<float>(aligned_FCount * aligned_RayCount) / 16.0f) * 16.0f);
+		std::vector<cl_float> cl_T(aligned_TCount, 0.0f);
 
-		std::vector<int> result(15, 0); // 3*5
+		cl::Buffer buffer_V(context, (CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR), sizeof(cl_float4) * cl_V.size(), cl_V.data());
+		cl::Buffer buffer_F(context, (CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR), sizeof(cl_int4) * cl_F.size(), cl_F.data());
+		cl::Buffer buffer_FN(context, (CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR), sizeof(cl_float4) * cl_FN.size(), cl_FN.data());
+		cl::Buffer buffer_SW(context, (CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR), sizeof(cl_float4) * cl_SW.size(), cl_SW.data());
+		cl::Buffer buffer_BB_min(context, (CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR), sizeof(cl_float4) * cl_bb_mins.size(), cl_bb_mins.data());
+		cl::Buffer buffer_BB_max(context, (CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR), sizeof(cl_float4) * cl_bb_maxs.size(), cl_bb_maxs.data());
+		cl::Buffer buffer_elements(context, (CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR), sizeof(cl_int) * cl_elements.size(), cl_elements.data());
+		cl::Buffer buffer_T(context, (CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR), sizeof(cl_float) * cl_T.size(), cl_T.data());
 
-		cl::Buffer buffer_A(context, CL_MEM_READ_WRITE, result.size() * sizeof(int), result.data());
-		int sizeX, sizeY;
-		sizeX = 3;
-		sizeY = 5;
-		test1.setArg(0, buffer_A);
-		test1.setArg(1, sizeX);
-		test2.setArg(0, buffer_A);
-		test2.setArg(1, sizeX);
+		cl::Kernel computeIntersection_partial(program, "computeIntersection_partial");
 
-		cl::Event event;
+		cl_int err;
 		cl::CommandQueue queue(context, device, 0, &err);
-		queue.enqueueNDRangeKernel(
-			test1, cl::NullRange, cl::NDRange(3, 5), cl::NullRange, NULL, &event);
-		event.wait();
-
-		queue.enqueueReadBuffer(
-			buffer_A,
-			true,
-			0,
-			result.size() * sizeof(int),
-			result.data());
-
-		for (int y = 0; y < sizeY; ++y)
+		// todo: tweak chunkSize to be aligned!!
+		// make sure that chunkSize * sizeof(cl_float) is aligned (64 byte)
+		const size_t aligned_chunkSize = static_cast<size_t>(std::ceil(static_cast<float>(chunkSize) / 16.0f) * 16.0f);
+		for (size_t offset = 0; offset < static_cast<size_t>(F.rows()); offset += aligned_chunkSize)
 		{
-			for (int x = 0; x < sizeX; ++x)
+			const size_t alignedCount = std::min((aligned_FCount - offset), aligned_chunkSize);
+			const size_t triCountToCompute = std::min((F.rows() - offset), aligned_chunkSize);
+
+			const cl_buffer_region t_partial{offset * aligned_RayCount * sizeof(cl_float), alignedCount * aligned_RayCount * sizeof(cl_float)};
+			cl::Buffer buffer_T_partial = buffer_T.createSubBuffer((CL_MEM_READ_WRITE), CL_BUFFER_CREATE_TYPE_REGION, &t_partial);
+			computeIntersection_partial.setArg(0, buffer_V);
+			computeIntersection_partial.setArg(1, buffer_F);
+			computeIntersection_partial.setArg(2, buffer_FN);
+			computeIntersection_partial.setArg(3, buffer_SW);
+			computeIntersection_partial.setArg(4, buffer_BB_min);
+			computeIntersection_partial.setArg(5, buffer_BB_max);
+			computeIntersection_partial.setArg(6, buffer_elements);
+			computeIntersection_partial.setArg(7, aligned_RayCount);
+			computeIntersection_partial.setArg(8, static_cast<int>(elements.rows()));
+			computeIntersection_partial.setArg(9, buffer_T_partial);
+
+			queue.enqueueNDRangeKernel(
+				computeIntersection_partial, cl::NullRange, cl::NDRange(triCountToCompute, RAYCOUNT), cl::NullRange);
+		}
+		std::cout << "intersection enqueued." << std::endl;
+
+		//////
+		const size_t aligned_FaceSDFCount = static_cast<size_t>(std::ceil(static_cast<float>(aligned_FCount) / 16.0f) * 16.0f);
+		std::vector<cl_float> cl_FaceSDF(aligned_FaceSDFCount, 0.0f);
+		cl::Buffer buffer_FaceSDF(context, (CL_MEM_WRITE_ONLY | CL_MEM_USE_HOST_PTR), sizeof(cl_float) * cl_FaceSDF.size(), cl_FaceSDF.data());
+		cl::Kernel computeSDF_partial(program, "computeSDF_partial");
+		for (size_t offset = 0; offset < static_cast<size_t>(F.rows()); offset += aligned_chunkSize)
+		{
+			const size_t alignedCount = std::min((aligned_FCount - offset), aligned_chunkSize);
+			const size_t triCountToCompute = std::min((F.rows() - offset), aligned_chunkSize);
+
+			const cl_buffer_region t_partial{offset * aligned_RayCount * sizeof(cl_float), alignedCount * aligned_RayCount * sizeof(cl_float)};
+			const cl_buffer_region sdf_partial{offset * sizeof(cl_float), alignedCount * sizeof(cl_float)};
+			cl::Buffer buffer_T_partial = buffer_T.createSubBuffer((CL_MEM_READ_WRITE), CL_BUFFER_CREATE_TYPE_REGION, &t_partial);
+			cl::Buffer buffer_FaceSDF_partial = buffer_FaceSDF.createSubBuffer((CL_MEM_WRITE_ONLY), CL_BUFFER_CREATE_TYPE_REGION, &sdf_partial);
+			computeSDF_partial.setArg(0, buffer_SW);
+			computeSDF_partial.setArg(1, buffer_T_partial);
+			computeSDF_partial.setArg(2, static_cast<int>(RAYCOUNT));
+			computeSDF_partial.setArg(3, aligned_RayCount);
+			computeSDF_partial.setArg(4, buffer_FaceSDF_partial);
+
+			queue.enqueueNDRangeKernel(
+				computeSDF_partial, cl::NullRange, cl::NDRange(triCountToCompute, 1), cl::NullRange);
+		}
+		queue.finish();
+
+		cl_float *result;
+		result = static_cast<cl_float *>(queue.enqueueMapBuffer(buffer_FaceSDF, CL_TRUE, CL_MAP_READ, 0, sizeof(cl_float) * cl_FaceSDF.size()));
+
+		FaceSDF.resize(F.rows(), 1);
+		for (int f = 0; f < F.rows(); ++f)
+		{
+			FaceSDF(f, 0) = result[f];
+		}
+		queue.enqueueUnmapMemObject(buffer_FaceSDF, result);
+
+		std::cout << "raw SDF done." << std::endl;
+
+		//////
+		// post process
+		Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> TT;
+		igl::triangle_triangle_adjacency(F, TT);
+
+		Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> FaceSDF_backup = FaceSDF;
+		std::unordered_set<int> idSet, idSetNext;
+		for (int f = 0; f < FaceSDF.rows(); ++f)
+		{
+			if (FaceSDF(f, 0) < 0.0f)
 			{
-				std::cout << result.at(sizeX * y + x) << " ";
+				idSet.insert(f);
 			}
-			std::cout << std::endl;
+		}
+		while (!(idSet.empty()))
+		{
+			for (const auto &idx : idSet)
+			{
+				float val = 0.0f;
+				int count = 0;
+				for (int e = 0; e < 3; ++e)
+				{
+					if (FaceSDF_backup(TT(idx, e)) >= 0.0f)
+					{
+						val += FaceSDF_backup(TT(idx, e));
+						count++;
+					}
+				}
+				if (count > 0)
+				{
+					FaceSDF(idx, 0) = val / count;
+				}
+				else
+				{
+					idSetNext.insert(idx);
+				}
+			}
+			idSet = idSetNext;
+			idSetNext.clear();
+			FaceSDF_backup = FaceSDF;
 		}
 	}
 	catch (cl::Error err)
@@ -381,181 +250,4 @@ void openCL_computeSDF(
 		std::cerr << "ERROR: " << err.what() << "(" << err.err() << ")" << std::endl;
 	}
 	return;
-
-#if 0
-
-	//////
-	// #triangle x #ray array. compute ray-mesh intersection and write to this vector in parallel
-	std::vector<float> T_vec(int(F.rows()) * RAYCOUNT, 0.0f);
-	concurrency::array_view<float, 2> AMP_T(int(F.rows()), RAYCOUNT, T_vec);
-
-	for (int offset = 0; offset < int(F.rows()); offset += chunkSize)
-	{
-		int endIdx = std::min(offset + chunkSize, int(F.rows()));
-		concurrency::array_view<float, 2> AMP_T_partial(endIdx - offset, RAYCOUNT, &T_vec[offset * RAYCOUNT]);
-		//////
-		concurrency::parallel_for_each(acc.get_default_view(),
-									   AMP_T_partial.extent,
-									   [=](concurrency::index<2> idx) restrict(amp) {
-										   // source point
-										   concurrency::graphics::float_3 source =
-											   (AMP_V[AMP_F[concurrency::index<1>(idx[0]) + offset].x] + AMP_V[AMP_F[concurrency::index<1>(idx[0]) + offset].y] + AMP_V[AMP_F[concurrency::index<1>(idx[0]) + offset].z]) / 3.0f;
-
-										   // generate dir (use pre-defined??)
-										   concurrency::graphics::float_3 dir = -AMP_FN[idx[0] + offset];
-										   // directions on disk
-										   concurrency::graphics::float_3 base1, base2;
-										   IGL_RAY_TRI_SUB(base1, AMP_V[concurrency::index<1>(AMP_F[concurrency::index<1>(idx[0]) + offset].x)], source);
-										   float norm2_1 = IGL_RAY_TRI_DOT(base1, base1);
-										   float norm_1 = concurrency::fast_math::sqrtf(norm2_1);
-										   base1 /= norm_1;
-										   IGL_RAY_TRI_CROSS(base2, dir, base1);
-										   base1 *= AMP_SW[idx[1]].x;
-										   base2 *= AMP_SW[idx[1]].y;
-
-										   RAY_TRI_ADD(dir, dir, base1);
-										   RAY_TRI_ADD(dir, dir, base2);
-
-										   float norm2_d = IGL_RAY_TRI_DOT(dir, dir);
-										   float norm_d = concurrency::fast_math::sqrtf(norm2_d);
-										   dir /= norm_d;
-
-										   // do computation
-										   float t = AMP_rayMeshIntersections(source, dir, AMP_bb_mins, AMP_bb_maxs, AMP_elements, AMP_V, AMP_F, AMP_FN);
-
-										   // write-back
-										   AMP_T_partial[idx] = t;
-									   });
-		AMP_T_partial.synchronize();
-	}
-
-	std::cout << "intersection done." << std::endl;
-
-	std::vector<float> FaceSDF_vec(int(F.rows()), 0.0f);
-	concurrency::array_view<float, 1> AMP_FaceSDF(int(F.rows()), FaceSDF_vec);
-
-	const float number_of_mad = 1.5f;
-	for (int offset = 0; offset < int(F.rows()); offset += chunkSize)
-	{
-		int endIdx = std::min(offset + chunkSize, int(F.rows()));
-		concurrency::array_view<float, 1> AMP_FaceSDF_partial(endIdx - offset, &FaceSDF_vec[offset]);
-		concurrency::parallel_for_each(acc.get_default_view(),
-									   AMP_FaceSDF_partial.extent,
-									   [=](concurrency::index<1> idx) restrict(amp) {
-										   float avg = 0.0f;
-										   float validCount = 0.0f;
-										   for (int r = 0; r < RAYCOUNT; ++r)
-										   {
-											   if (AMP_T(idx[0] + offset, r) >= 0.0f)
-											   {
-												   avg += AMP_T(idx[0] + offset, r);
-												   validCount += 1.0f;
-											   }
-										   }
-										   if (validCount < 0.5f)
-										   {
-											   AMP_FaceSDF_partial[idx] = -1.0f;
-											   return;
-										   }
-										   avg /= validCount;
-
-										   // use standard deviation and ratio of 1.5; (different from CGAL (median absolute))
-										   float standardDeviation = 0.0f;
-										   float acceptCount = 0.0f;
-										   for (int r = 0; r < RAYCOUNT; ++r)
-										   {
-											   if (AMP_T(idx[0] + offset, r) >= 0.0f)
-											   {
-												   float diff = AMP_T(idx[0] + offset, r) - avg;
-												   standardDeviation += (diff * diff);
-												   acceptCount += 1.0f;
-											   }
-										   }
-
-										   if (acceptCount > 0.5f)
-										   {
-											   standardDeviation /= acceptCount;
-											   standardDeviation = concurrency::fast_math::sqrt(standardDeviation);
-
-											   float weightedSDF = 0.0f;
-											   float weightSum = 0.0f;
-											   for (int r = 0; r < RAYCOUNT; ++r)
-											   {
-												   if (AMP_T(idx[0] + offset, r) >= 0.0f)
-												   {
-													   const float deviation = concurrency::fast_math::fabs(AMP_T(idx[0] + offset, r) - avg);
-													   if (deviation <= number_of_mad * standardDeviation)
-													   {
-														   weightedSDF += (AMP_SW[r].z * AMP_T(idx[0] + offset, r));
-														   weightSum += AMP_SW[r].z;
-													   }
-												   }
-											   }
-											   if (weightSum > 0.0f)
-											   {
-												   AMP_FaceSDF_partial[idx] = weightedSDF / weightSum;
-											   }
-											   else
-											   {
-												   AMP_FaceSDF_partial[idx] = -1.0f;
-											   }
-										   }
-										   else
-										   {
-											   AMP_FaceSDF_partial[idx] = -1.0f;
-										   }
-									   });
-		AMP_FaceSDF_partial.synchronize();
-	}
-	FaceSDF.resize(F.rows(), 1);
-	for (int f = 0; f < F.rows(); ++f)
-	{
-		FaceSDF(f, 0) = AMP_FaceSDF[f];
-	}
-
-	std::cout << "raw SDF done." << std::endl;
-
-	//////
-	// post process
-	Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> TT;
-	igl::triangle_triangle_adjacency(F, TT);
-
-	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> FaceSDF_backup = FaceSDF;
-	std::unordered_set<int> idSet, idSetNext;
-	for (int f = 0; f < FaceSDF.rows(); ++f)
-	{
-		if (FaceSDF(f, 0) < 0.0f)
-		{
-			idSet.insert(f);
-		}
-	}
-	while (!(idSet.empty()))
-	{
-		for (const auto &idx : idSet)
-		{
-			float val = 0.0f;
-			int count = 0;
-			for (int e = 0; e < 3; ++e)
-			{
-				if (FaceSDF_backup(TT(idx, e)) >= 0.0f)
-				{
-					val += FaceSDF_backup(TT(idx, e));
-					count++;
-				}
-			}
-			if (count > 0)
-			{
-				FaceSDF(idx, 0) = val / count;
-			}
-			else
-			{
-				idSetNext.insert(idx);
-			}
-		}
-		idSet = idSetNext;
-		idSetNext.clear();
-		FaceSDF_backup = FaceSDF;
-	}
-	//////
-#endif
 }

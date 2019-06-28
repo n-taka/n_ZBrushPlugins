@@ -7,7 +7,10 @@
 #include <chrono>
 #include <thread>
 
+#pragma warning(push)
+#pragma warning(disable : 4018 4129 4244 4267 4305 4566 4819 4996)
 #include "igl/jet.h"
+#pragma warning(pop)
 
 ////
 // implementation
@@ -38,10 +41,9 @@ extern "C" DLLEXPORT float checkThickness(char *someText, double optValue, char 
 
 	openCL_computeSDF(meshes.at(0).V, meshes.at(0).F, params.chunkSize, device, F_RAWSDF);
 	end = std::chrono::system_clock::now();
-	double elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+	long long elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 	std::cout << "elapsed time for computation: " << elapsed << " [ms]" << std::endl;
 	logFile << "elapsed time for computation: " << elapsed << " [ms]" << std::endl;
-#if 0
 	////
 	// convert F_SDF to V_SDF (simple average)
 	Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> V_SDF;
@@ -77,7 +79,7 @@ extern "C" DLLEXPORT float checkThickness(char *someText, double optValue, char 
 	VC_Thicknessi.resize(VC_Thicknessd.rows(), 4);
 	for (int v = 0; v < meshes.at(0).V.rows(); ++v)
 	{
-		VC_Thicknessi(v, 0) = 255;							  // A (M?)
+		VC_Thicknessi(v, 0) = 255;							  // (Mask)
 		VC_Thicknessi(v, 1) = int(VC_Thicknessd(v, 0) * 255); // R
 		VC_Thicknessi(v, 2) = int(VC_Thicknessd(v, 1) * 255); // G
 		VC_Thicknessi(v, 3) = int(VC_Thicknessd(v, 2) * 255); // B
@@ -85,7 +87,6 @@ extern "C" DLLEXPORT float checkThickness(char *someText, double optValue, char 
 	meshes.at(0).V /= params.scale;
 	write_OBJ(params.outputFilePath, meshes.at(0).V, meshes.at(0).F, VC_Thicknessi, meshes.at(0).FG);
 	////
-#endif
 	logFile.close();
 
 	return 1.0f;

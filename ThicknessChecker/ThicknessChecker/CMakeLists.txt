@@ -63,7 +63,7 @@ target_compile_options(ThicknessChecker PUBLIC "$<$<CONFIG:DEBUG>:${MY_DEBUG_OPT
 target_compile_options(ThicknessChecker PUBLIC "$<$<CONFIG:RELEASE>:${MY_RELEASE_OPTIONS}>")
 target_compile_features(ThicknessChecker PUBLIC cxx_std_11)
 if(WIN32)
-    target_compile_options(ThicknessChecker PUBLIC -DNOMINMAX)
+    target_compile_options(ThicknessChecker PUBLIC -DNOMINMAX -D_CRT_SECURE_NO_WARNINGS)
 endif(WIN32)
 
 # version

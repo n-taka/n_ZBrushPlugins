@@ -7,6 +7,9 @@
 #include <cstdio>
 #include <cassert>
 
+#pragma warning(push)
+#pragma warning(disable : 4018 4129 4244 4267 4305 4566 4819 4996)
+
 // originally from igl/writeOBJ.
 // there is some modificaton for handling MRGB in ZBrush.
 
@@ -80,3 +83,5 @@ bool write_OBJ(
 	fclose(obj_file);
 	return true;
 }
+
+#pragma warning(pop)
