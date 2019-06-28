@@ -163,6 +163,8 @@ void openCL_computeSDF(
 
 			queue.enqueueNDRangeKernel(
 				computeIntersection_partial, cl::NullRange, cl::NDRange(triCountToCompute, RAYCOUNT), cl::NullRange);
+
+			queue.finish();
 		}
 		std::cout << "intersection enqueued." << std::endl;
 
@@ -188,8 +190,9 @@ void openCL_computeSDF(
 
 			queue.enqueueNDRangeKernel(
 				computeSDF_partial, cl::NullRange, cl::NDRange(triCountToCompute, 1), cl::NullRange);
+
+			queue.finish();
 		}
-		queue.finish();
 
 		cl_float *result;
 		result = static_cast<cl_float *>(queue.enqueueMapBuffer(buffer_FaceSDF, CL_TRUE, CL_MAP_READ, 0, sizeof(cl_float) * cl_FaceSDF.size()));
