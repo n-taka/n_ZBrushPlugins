@@ -77,8 +77,8 @@ target_include_directories(ThicknessChecker PUBLIC ${INCLUDE_DIR_LIB})
 
 # link with library
 if(WIN32)
-    target_link_libraries(ThicknessChecker PRIVATE ${LINK_LIBS})
+    target_link_libraries(ThicknessChecker PRIVATE ${LINK_LIBS_LIB})
 endif(WIN32)
 if(UNIX)
-    target_link_libraries(ThicknessChecker PRIVATE ${LINK_LIBS} "-framework OpenCL")
+    target_link_libraries(ThicknessChecker PRIVATE ${LINK_LIBS_LIB} "-framework OpenCL")
 endif(UNIX)
